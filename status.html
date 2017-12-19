@@ -9,37 +9,56 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js"></script>
 <style>
+.container-fluid {
+    padding: 15px;
+}
 .progress{
   height: 1.5rem
 }
 </style>
 <script>
-  var info = {};
+  var info = {}
+  var block = []
+
+  info.setDisable = module => {
+    $('.reload', '#' + module).attr('disabled',true);
+    $('.card-body', '#' + module).css('opacity','.4');
+  }
+
+  info.setEnable = module => {
+    $('.reload', '#' + module).removeAttr('disabled');
+    $('.card-body', '#' + module).css('opacity','1');
+  }
 
   info.getMemory = () => {
+    var module = 'memory';
+    if(!block[module]) {
+      block[module] = true;
+        info.setDisable(module)
+        $.get('os/memory', function (data) {
+            var $box = $('#' + module);
+            info.insertDatas($box, module, data);
 
-      var module = 'memory';
-      $.get('os/memory', function (data) {
-          var $box = $('#' + module);
-          info.insertDatas($box, module, data);
+            $('#memory-progress-used', $box)
+            .css('width', data.percent_used + '%')
+            .html(data.percent_used + '%')
+            .attr('aria-valuenow', data.percent_used);
 
-          $('#memory-progress-used', $box)
-          .css('width', data.percent_used + '%')
-          .html(data.percent_used + '%')
-          .attr('aria-valuenow', data.percent_used);
+            $('#memory-progress-buffers', $box)
+            .css('width', data.percent_buffers + '%')
+            .html(data.percent_buffers + '%')
+            .attr('aria-valuenow', data.percent_buffers);
 
-          $('#memory-progress-buffers', $box)
-          .css('width', data.percent_buffers + '%')
-          .html(data.percent_buffers + '%')
-          .attr('aria-valuenow', data.percent_buffers);
+            $('#memory-progress-cached', $box)
+            .css('width', data.percent_cached + '%')
+            .html(data.percent_cached + '%')
+            .attr('aria-valuenow', data.percent_cached);
 
-          $('#memory-progress-cached', $box)
-          .css('width', data.percent_cached + '%')
-          .html(data.percent_cached + '%')
-          .attr('aria-valuenow', data.percent_cached);
+            info.setEnable(module)
+            block[module] = false;
 
-      }, 'json');
-
+        }, 'json');
+    }
   }
 
   info.getAll = function () {
@@ -56,23 +75,23 @@
       all: info.getAll,
       memory: info.getMemory,
   };
-
-  info.getAll();
 </script>
 </head>
 <body>
 
 <nav class="navbar navbar-light bg-light justify-content-between">
-  <a class="navbar-brand">Status</a>
-  <a href="#" onclick="info.getAll()">Reload</a>
+  <a class="navbar-brand" href="/">Status</a>
+  <button type="button" onclick="info.getAll()" class="reload btn btn-info">Reload</button>
 </nav>
 
 <div class="container-fluid">
 
   <div class="card" id="memory">
     <div class="card-header">
-      Memory
-      <a href="#" onclick="info.getMemory()">Reload</a>
+      <h4>
+        Memory
+        <button type="button" onclick="info.getMemory()" class="reload btn btn-info float-right">Reload</button>
+      </h4>
     </div>
     <div class="card-body">
     <table class="table table-striped">
@@ -127,5 +146,8 @@
 
 </div>
 
+<script>
+  info.getAll();
+</script>
 </body>
 </html>
