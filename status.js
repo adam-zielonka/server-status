@@ -32,5 +32,9 @@ app.get('/os/cpus', function (req, res) {
   res.send(os.cpus());
 })
 
+app.get('/os/load-average', function (req, res) {
+  res.send(os.loadavg());
+})
+
 app.listen(port, host)
 console.log(`Status on http://${host}:${port}/`)
