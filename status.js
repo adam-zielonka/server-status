@@ -1,7 +1,7 @@
 const os = require('os');
 var express = require('express')
 var shell = require('shelljs');
-var port = 30098
+var port = 30097
 var host = 'localhost'
 
 var app = express()
@@ -11,15 +11,20 @@ app.get('/', function (req, res) {
 })
 
 app.get('/os/memory', function (req, res) {
-  var free = shell.exec('grep ^MemFree /proc/meminfo | awk \'{print $2}\'',{silent:true}).stdout;
-  var buffers = shell.exec('grep ^Buffers /proc/meminfo | awk \'{print $2}\'',{silent:true}).stdout;
-  var cached = shell.exec('grep ^Cached /proc/meminfo | awk \'{print $2}\'',{silent:true}).stdout;
-  free = parseInt(free) + parseInt(buffers) + parseInt(cached)
+  var free = parseInt(shell.exec('grep ^MemFree /proc/meminfo | awk \'{print $2}\'',{silent:true}).stdout)
+  var buffers = parseInt(shell.exec('grep ^Buffers /proc/meminfo | awk \'{print $2}\'',{silent:true}).stdout)
+  var cached = parseInt(shell.exec('grep ^Cached /proc/meminfo | awk \'{print $2}\'',{silent:true}).stdout)
+  total_free = free + buffers + cached
   var json = {}
   json[`total`] = Math.round((os.totalmem()/1024/1024)*100)/100 + " MB"
+  json[`total_free`] = Math.round((total_free/1024)*100)/100 + " MB"
   json[`free`] = Math.round((free/1024)*100)/100 + " MB"
-  json[`used`] = Math.round(((os.totalmem() - free)/1024/1024)*100)/100 + " MB"
-  json[`percent_used`] = Math.round(((os.totalmem() - free*1024) / os.totalmem()) * 100)
+  json[`buffers`] = Math.round((buffers/1024)*100)/100 + " MB"
+  json[`cached`] = Math.round((cached/1024)*100)/100 + " MB"
+  json[`used`] = Math.round(((os.totalmem() - total_free)/1024/1024)*100)/100 + " MB"
+  json[`percent_used`] = Math.round(((os.totalmem() - total_free*1024) / os.totalmem()) * 100)
+  json[`percent_buffers`] = Math.round(((buffers*1024) / os.totalmem()) * 100)
+  json[`percent_cached`] = Math.round(((cached*1024) / os.totalmem()) * 100)
   res.send(json)
 })
 
