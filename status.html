@@ -27,7 +27,15 @@
 
   info.setEnable = module => {
     $('.reload', '#' + module).removeAttr('disabled')
+    .removeClass('btn-warning')
+    .addClass('btn-info')
     $('.card-body', '#' + module).css('opacity','1')
+  }
+
+  info.setFail = module => {
+    $('.reload', '#' + module).removeAttr('disabled')
+    .removeClass('btn-info')
+    .addClass('btn-warning')
   }
 
   info.getModule = (module, fun) => {
@@ -42,6 +50,10 @@
           info.setEnable(module)
           block[module] = false
       }, 'json')
+      .fail(() => {
+        info.setFail(module)
+        block[module] = false
+      })
     }
   }
 
