@@ -42,5 +42,17 @@ app.get('/os/pm2', function (req, res) {
   res.send(pm2);
 })
 
+app.get('/os/system', function (req, res) {
+  var system = {}
+  system.hostname = os.hostname()
+  system.os = shell.exec('/usr/bin/lsb_release -ds | cut -d= -f2 | tr -d \'"\'',{silent:true}).stdout.replace(/\r?\n|\r/g,'')
+  system.kernel = shell.exec('/bin/uname -r',{silent:true}).stdout.replace(/\r?\n|\r/g,'')
+  system.uptime = shell.exec('/usr/bin/cut -d. -f1 /proc/uptime',{silent:true}).stdout.replace(/\r?\n|\r/g,'')
+  system.last_boot = shell.exec('uptime -s',{silent:true}).stdout.replace(/\r?\n|\r/g,'')
+  system.current_users = shell.exec('who -u | awk \'{ print $1 }\' | wc -l',{silent:true}).stdout.replace(/\r?\n|\r/g,'')
+  system.server_date = shell.exec('/bin/date',{silent:true}).stdout.replace(/\r?\n|\r/g,'')
+  res.send(system);
+})
+
 app.listen(port, host)
 console.log(`Status on http://${host}:${port}/`)

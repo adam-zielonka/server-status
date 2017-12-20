@@ -38,7 +38,7 @@
     .addClass('btn-warning')
   }
 
-  info.getModule = (module, fun) => {
+  info.getModule = (module, fun = (module, data) => {}) => {
     if(!block[module]) {
       block[module] = true
       info.setDisable(module)
@@ -100,10 +100,17 @@
     })
   }
 
+  info.getSystem = () => {
+    info.getModule('system', (card, data) => {
+      $(card+'-uptime', card).html(info.getHumanTime(data.uptime));
+    })
+  }
+
   info.getAll = () => {
       info.getMemory();
       info.getLoadAverage();
       info.getPm2();
+      info.getSystem();
   }
 
   info.insertDatas = (block, datas) => {
@@ -166,6 +173,102 @@
 
 <div class="container-fluid">
   <div class="row">
+    <div class="col">
+      <div class="card" id="system">
+        <div class="card-header">
+          <h4>
+            System
+            <button type="button" onclick="info.getSystem()" class="reload btn btn-info float-right">Reload</button>
+          </h4>
+        </div>
+        <div class="card-body">
+        <table class="table table-striped">
+            <tbody>
+              <tr>
+                <td>Hostname</td>
+                <td id="system-hostname"></td>
+              </tr>
+              <tr>
+                <td>OS</td>
+                <td id="system-os"></td>
+              </tr>
+              <tr>
+                <td>Kernel version</td>
+                <td id="system-kernel"></td>
+              </tr>
+              <tr>
+                <td>Uptime</td>
+                <td id="system-uptime"></td>
+              </tr>
+              <tr>
+                <td>Last boot</td>
+                <td id="system-last_boot"></td>
+              </tr>
+              <tr>
+                <td>Current user(s)</td>
+                <td id="system-current_users"></td>
+              </tr>
+              <tr>
+                <td>Server date & time</td>
+                <td id="system-server_date"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card" id="load-average">
+        <div class="card-header">
+          <h4>
+            Load Average
+            <button type="button" onclick="info.getLoadAverage()" class="reload btn btn-info float-right">Reload</button>
+          </h4>
+        </div>
+        <div class="card-body">
+        <table class="table table-striped">
+            <tbody>
+              <tr>
+                <td style="width:0;">1&nbsp;min</td>
+                <td>
+                  <div class="progress">
+                    <div id="load-average_1" class="progress-bar bg-success" role="progressbar" aria-valuenow="0"
+                    aria-valuemin="0" aria-valuemax="100" style="width:0%">
+                      0%
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style="width:0;">5&nbsp;min</td>
+                <td>
+                  <div class="progress">
+                    <div id="load-average_5" class="progress-bar bg-success" role="progressbar" aria-valuenow="0"
+                    aria-valuemin="0" aria-valuemax="100" style="width:0%">
+                      0%
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style="width:0;">15&nbsp;min</td>
+                <td>
+                  <div class="progress">
+                    <div id="load-average_15" class="progress-bar bg-success" role="progressbar" aria-valuenow="0"
+                    aria-valuemin="0" aria-valuemax="100" style="width:0%">
+                      0%
+                    </div>
+                  </div>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
 
     <div class="col">
       <div class="card" id="memory">
@@ -217,57 +320,6 @@
                 <td>Total</td>
                 <td id="memory-total"></td>
               </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <div class="col">
-      <div class="card" id="load-average">
-        <div class="card-header">
-          <h4>
-            Load Average
-            <button type="button" onclick="info.getLoadAverage()" class="reload btn btn-info float-right">Reload</button>
-          </h4>
-        </div>
-        <div class="card-body">
-        <table class="table table-striped">
-            <tbody>
-              <tr>
-                <td style="width:0;">1&nbsp;min</td>
-                <td>
-                  <div class="progress">
-                    <div id="load-average_1" class="progress-bar bg-success" role="progressbar" aria-valuenow="0"
-                    aria-valuemin="0" aria-valuemax="100" style="width:0%">
-                      0%
-                    </div>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td style="width:0;">5&nbsp;min</td>
-                <td>
-                  <div class="progress">
-                    <div id="load-average_5" class="progress-bar bg-success" role="progressbar" aria-valuenow="0"
-                    aria-valuemin="0" aria-valuemax="100" style="width:0%">
-                      0%
-                    </div>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td style="width:0;">15&nbsp;min</td>
-                <td>
-                  <div class="progress">
-                    <div id="load-average_15" class="progress-bar bg-success" role="progressbar" aria-valuenow="0"
-                    aria-valuemin="0" aria-valuemax="100" style="width:0%">
-                      0%
-                    </div>
-                  </div>
-                </td>
-              </tr>
-
             </tbody>
           </table>
         </div>
