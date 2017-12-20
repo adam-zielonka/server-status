@@ -106,11 +106,34 @@
     })
   }
 
+  info.getVHost = () => {
+    info.getModule('vhost', (card, data) => {
+      var box = $(card + ' tbody');
+      box.empty();
+
+      for (var id in data) {
+          var color = 'dark'
+          if ((""+data[id].statusCode).match(/^1/)) color = 'info'
+          if ((""+data[id].statusCode).match(/^2/)) color = 'success'
+          if ((""+data[id].statusCode).match(/^3/)) color = 'warning'
+          if ((""+data[id].statusCode).match(/^5/)) color = 'danger'
+          var row = `
+          <tr>
+            <td>${data[id].port}</td>
+            <td><a href="http://${data[id].name}">${data[id].name}</a></td>
+            <td><span class="badge badge-${color}">${data[id].statusCode}<span></td>
+          <tr/>`
+          box.append(row);
+      }
+    })
+  }
+
   info.getAll = () => {
       info.getMemory();
       info.getLoadAverage();
       info.getPm2();
       info.getSystem();
+      info.getVHost();
   }
 
   info.insertDatas = (block, datas) => {
@@ -216,61 +239,7 @@
           </table>
         </div>
       </div>
-    </div>
-    <div class="col">
-      <div class="card" id="load-average">
-        <div class="card-header">
-          <h4>
-            Load Average
-            <button type="button" onclick="info.getLoadAverage()" class="reload btn btn-info float-right">Reload</button>
-          </h4>
-        </div>
-        <div class="card-body">
-        <table class="table table-striped">
-            <tbody>
-              <tr>
-                <td style="width:0;">1&nbsp;min</td>
-                <td>
-                  <div class="progress">
-                    <div id="load-average_1" class="progress-bar bg-success" role="progressbar" aria-valuenow="0"
-                    aria-valuemin="0" aria-valuemax="100" style="width:0%">
-                      0%
-                    </div>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td style="width:0;">5&nbsp;min</td>
-                <td>
-                  <div class="progress">
-                    <div id="load-average_5" class="progress-bar bg-success" role="progressbar" aria-valuenow="0"
-                    aria-valuemin="0" aria-valuemax="100" style="width:0%">
-                      0%
-                    </div>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td style="width:0;">15&nbsp;min</td>
-                <td>
-                  <div class="progress">
-                    <div id="load-average_15" class="progress-bar bg-success" role="progressbar" aria-valuenow="0"
-                    aria-valuemin="0" aria-valuemax="100" style="width:0%">
-                      0%
-                    </div>
-                  </div>
-                </td>
-              </tr>
 
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="row">
-
-    <div class="col">
       <div class="card" id="memory">
         <div class="card-header">
           <h4>
@@ -324,6 +293,88 @@
           </table>
         </div>
       </div>
+
+    </div>
+    <div class="col">
+      <div class="card" id="load-average">
+        <div class="card-header">
+          <h4>
+            Load Average
+            <button type="button" onclick="info.getLoadAverage()" class="reload btn btn-info float-right">Reload</button>
+          </h4>
+        </div>
+        <div class="card-body">
+        <table class="table table-striped">
+            <tbody>
+              <tr>
+                <td style="width:0;">1&nbsp;min</td>
+                <td>
+                  <div class="progress">
+                    <div id="load-average_1" class="progress-bar bg-success" role="progressbar" aria-valuenow="0"
+                    aria-valuemin="0" aria-valuemax="100" style="width:0%">
+                      0%
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style="width:0;">5&nbsp;min</td>
+                <td>
+                  <div class="progress">
+                    <div id="load-average_5" class="progress-bar bg-success" role="progressbar" aria-valuenow="0"
+                    aria-valuemin="0" aria-valuemax="100" style="width:0%">
+                      0%
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style="width:0;">15&nbsp;min</td>
+                <td>
+                  <div class="progress">
+                    <div id="load-average_15" class="progress-bar bg-success" role="progressbar" aria-valuenow="0"
+                    aria-valuemin="0" aria-valuemax="100" style="width:0%">
+                      0%
+                    </div>
+                  </div>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+        <div class="card" id="vhost">
+            <div class="card-header">
+                <h4>
+                  VirtualHosts
+                  <button type="button" onclick="info.getVHost()" class="reload btn btn-info float-right">Reload</button>
+                </h4>
+            </div>
+
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>port</th>
+                        <th>name</th>
+                        <th>status code</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+  </div>
+  <div class="row">
+
+    <div class="col">
+
     </div>
 
   </div>

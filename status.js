@@ -1,6 +1,8 @@
 const os = require('os');
 var express = require('express')
 var shell = require('shelljs');
+var http = require('http');
+var https = require('https');
 var port = 30097
 var host = 'localhost'
 
@@ -52,6 +54,68 @@ app.get('/os/system', function (req, res) {
   system.current_users = shell.exec('who -u | awk \'{ print $1 }\' | wc -l',{silent:true}).stdout.replace(/\r?\n|\r/g,'')
   system.server_date = shell.exec('/bin/date',{silent:true}).stdout.replace(/\r?\n|\r/g,'')
   res.send(system);
+})
+var vhostCounter = 0;
+
+var getHttpCode = (appres, vhost, id, url, counter = 0) => {
+  var fun = (res) => {
+    const { statusCode } = res;
+    if(statusCode == 301 || statusCode == 302 || statusCode == 303) {
+      if(counter<10) {
+        getHttpCode(appres, vhost, id, res.headers.location, counter+1)
+      } else {
+        console.log(url+" "+statusCode+" ")
+        console.log(vhostCounter)
+        vhost[id].statusCode = 508
+        vhostCounter--
+        if(vhostCounter < 1) appres.send(vhost);
+      }
+    } else {
+      console.log(url+" "+statusCode+" ")
+      vhost[id].statusCode = statusCode
+      vhostCounter--
+      if(vhostCounter < 1) appres.send(vhost);
+    }
+  }
+  var error = (e) => {
+    vhostCounter--
+    if(vhostCounter < 1) appres.send(vhost);
+  }
+  if(url.match(/^https/))
+    https.get(url, fun).on('error', error)
+  else
+    http.get(url, fun).on('error', error)
+}
+
+app.get('/os/vhost', function (req, res) {
+  var info = shell.exec('apache2ctl -t -D DUMP_VHOSTS',{silent:true}).stdout
+  var vhost = []
+  for (var row of info.split('\n')) {
+    if(row.match(/^\s.*port/)) {
+      var one = {}
+      var port = false;
+      var name = false;
+      for(var v of row.split(' '))
+        if(v) {
+          if(port) {
+            one.port = v
+            port = false
+          }
+          if(name) {
+            one.name = v
+            name = false
+          }
+          if(v == "port") port = true
+          if(v == "namevhost") name = true
+        }
+        if(one) vhost.push(one)
+    }
+  }
+  vhostCounter = vhost.length
+  var i = 0;
+  for(var v of vhost) {
+    getHttpCode(res, vhost, i++, 'http://'+v.name+":"+v.port)
+  }
 })
 
 app.listen(port, host)
