@@ -64,20 +64,18 @@ var getHttpCode = (appres, vhost, id, url, counter = 0) => {
       if(counter<10) {
         getHttpCode(appres, vhost, id, res.headers.location, counter+1)
       } else {
-        console.log(url+" "+statusCode+" ")
-        console.log(vhostCounter)
         vhost[id].statusCode = 508
         vhostCounter--
         if(vhostCounter < 1) appres.send(vhost);
       }
     } else {
-      console.log(url+" "+statusCode+" ")
       vhost[id].statusCode = statusCode
       vhostCounter--
       if(vhostCounter < 1) appres.send(vhost);
     }
   }
   var error = (e) => {
+    vhost[id].statusCode = e.code
     vhostCounter--
     if(vhostCounter < 1) appres.send(vhost);
   }

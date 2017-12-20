@@ -112,10 +112,11 @@
       box.empty();
 
       for (var id in data) {
-          var color = 'dark'
+          var color = 'danger'
           if ((""+data[id].statusCode).match(/^1/)) color = 'info'
           if ((""+data[id].statusCode).match(/^2/)) color = 'success'
           if ((""+data[id].statusCode).match(/^3/)) color = 'warning'
+          if ((""+data[id].statusCode).match(/^4/)) color = 'dark'
           if ((""+data[id].statusCode).match(/^5/)) color = 'danger'
           var row = `
           <tr>
