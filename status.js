@@ -3,6 +3,7 @@ var express = require('express')
 var shell = require('shelljs');
 var http = require('http');
 var https = require('https');
+var request = require('request');
 var port = 30097
 var host = 'localhost'
 
@@ -58,31 +59,28 @@ app.get('/os/system', function (req, res) {
 var vhostCounter = 0;
 
 var getHttpCode = (appres, vhost, id, url, counter = 0) => {
-  var fun = (res) => {
-    const { statusCode } = res;
-    if(statusCode == 301 || statusCode == 302 || statusCode == 303) {
-      if(counter<10) {
-        getHttpCode(appres, vhost, id, res.headers.location, counter+1)
+  request({'url': url}, function (error, res, body) {
+    if(!error) {
+      const { statusCode } = res;
+      if(statusCode == 301 || statusCode == 302 || statusCode == 303) {
+        if(counter<10) {
+          getHttpCode(appres, vhost, id, res.headers.location, counter+1)
+        } else {
+          vhost[id].statusCode = 508
+          vhostCounter--
+          if(vhostCounter < 1) appres.send(vhost);
+        }
       } else {
-        vhost[id].statusCode = 508
+        vhost[id].statusCode = statusCode
         vhostCounter--
         if(vhostCounter < 1) appres.send(vhost);
       }
     } else {
-      vhost[id].statusCode = statusCode
+      vhost[id].statusCode = error.code
       vhostCounter--
       if(vhostCounter < 1) appres.send(vhost);
     }
-  }
-  var error = (e) => {
-    vhost[id].statusCode = e.code
-    vhostCounter--
-    if(vhostCounter < 1) appres.send(vhost);
-  }
-  if(url.match(/^https/))
-    https.get(url, fun).on('error', error)
-  else
-    http.get(url, fun).on('error', error)
+  })
 }
 
 app.get('/os/vhost', function (req, res) {
