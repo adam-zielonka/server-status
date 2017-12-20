@@ -9,11 +9,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js"></script>
 <style>
-.container-fluid {
-    padding: 15px;
+.progress {
+  height: 1.5rem;
 }
-.progress{
-  height: 1.5rem
+.card {
+  margin-top: 15px;
 }
 </style>
 <script>
@@ -61,9 +61,37 @@
     })
   }
 
+  info.getPm2 = () => {
+    info.getModule('pm2', (card, data) => {
+      var box = $(card + ' tbody');
+      box.empty();
+
+      for (var proces in data.processes) {
+          var status_color = data.processes[proces].pm2_env.status == 'online' ? 'badge-success' : 'badge-danger';
+          var watch = data.processes[proces].pm2_env.watch ? 'enabled' : 'disabled';
+          var watch_color = data.processes[proces].pm2_env.watch ? 'badge-success' : 'badge-secondary';
+          var row = `
+          <tr>
+            <td>${data.processes[proces].name}</td>
+            <td>${data.processes[proces].pm_id}</td>
+            <td>${data.processes[proces].pm2_env.exec_mode}</td>
+            <td><span class="badge ${status_color}">${data.processes[proces].pm2_env.status.toUpperCase()}</span></td>
+            <td>${data.processes[proces].pm2_env.restart_time}</td>
+            <td>${info.getHumanTime((data.time - data.processes[proces].pm2_env.pm_uptime) / 1000)}</td>
+            <td>${data.processes[proces].monit.cpu} %</td>
+            <td>${Math.round((data.processes[proces].monit.memory / 1024 / 1024) * 100) / 100} MB</td>
+            <td>${data.processes[proces].pm2_env.uid == undefined ? 'root' : data.processes[proces].pm2_env.uid}</td>
+            <td><span class="badge ${watch_color}">${watch.toUpperCase()}</span></td>
+          <tr/>`
+          box.append(row);
+      }
+    })
+  }
+
   info.getAll = () => {
       info.getMemory();
       info.getLoadAverage();
+      info.getPm2();
   }
 
   info.insertDatas = (block, datas) => {
@@ -88,6 +116,32 @@
       progress.removeClass("bg-success bg-warning bg-danger")
       .addClass(info.getColor(percent))
     }
+  }
+
+  info.getHumanTime = (seconds) => {
+      var units = {
+          'year': 365 * 86400,
+          'day': 86400,
+          'hour': 3600,
+          'minute': 60,
+          //'second': 1
+      };
+
+      var result = [];
+
+      for (var unit in units) {
+          var divisor = units[unit];
+          var div = Math.floor(seconds / divisor);
+
+          if (div == 0) continue;
+          else {
+              if (div == 1) result.push(div + ' ' + unit);
+              else result.push(div + ' ' + unit + 's');
+              seconds %= divisor;
+          }
+      }
+
+      return result.join(" ");
   }
 </script>
 </head>
@@ -212,6 +266,40 @@
       </div>
     </div>
 
+  </div>
+  <div class="row">
+    <div class="col">
+      <div class="card" id="pm2">
+          <div class="card-header">
+              <h4>
+                PM2
+                <button type="button" onclick="info.getPm2()" class="reload btn btn-info float-right">Reload</button>
+              </h4>
+          </div>
+
+          <div class="card-body">
+              <table class="table table-striped">
+                  <thead>
+                  <tr>
+                      <th>App name</th>
+                      <th>id</th>
+                      <th>mode</th>
+                      <th>status</th>
+                      <th>restart</th>
+                      <th>uptime</th>
+                      <th>cpu</th>
+                      <th>mem</th>
+                      <th>user</th>
+                      <th>watching</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+
+                  </tbody>
+              </table>
+          </div>
+      </div>
+    </div>
   </div>
 </div>
 

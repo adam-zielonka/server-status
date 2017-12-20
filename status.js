@@ -36,5 +36,12 @@ app.get('/os/load-average', function (req, res) {
   res.send(os.loadavg());
 })
 
+app.get('/os/pm2', function (req, res) {
+  var pm2 = {}
+  pm2.processes = JSON.parse(shell.exec('pm2 jlist',{silent:true}).stdout)
+  pm2.time = Date.now()
+  res.send(pm2);
+})
+
 app.listen(port, host)
 console.log(`Status on http://${host}:${port}/`)
