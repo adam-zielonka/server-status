@@ -47,7 +47,7 @@
 
   info.getMemory = () => {
     info.getModule('memory', (card, data) => {
-      info.setProgress("-progress-used", card, data.percent_used)
+      info.setProgress("-progress-used", card, data.percent_used, true)
       info.setProgress("-progress-buffers", card, data.percent_buffers)
       info.setProgress("-progress-cached", card, data.percent_cached)
     })
@@ -174,11 +174,11 @@
                     aria-valuemin="0" aria-valuemax="100" style="width:0%">
                       0%
                     </div>
-                    <div id="memory-progress-buffers" class="progress-bar" role="progressbar" aria-valuenow="0"
+                    <div id="memory-progress-cached" class="progress-bar bg-info" role="progressbar" aria-valuenow="0"
                     aria-valuemin="0" aria-valuemax="100" style="width:0%">
                       0%
                     </div>
-                    <div id="memory-progress-cached" class="progress-bar bg-info" role="progressbar" aria-valuenow="0"
+                    <div id="memory-progress-buffers" class="progress-bar" role="progressbar" aria-valuenow="0"
                     aria-valuemin="0" aria-valuemax="100" style="width:0%">
                       0%
                     </div>
@@ -190,20 +190,16 @@
                 <td id="memory-used"></td>
               </tr>
               <tr>
-                <td>Free</td>
-                <td id="memory-free"></td>
+                <td>Cached</td>
+                <td id="memory-cached"></td>
               </tr>
               <tr>
                 <td>Buffers</td>
                 <td id="memory-buffers"></td>
               </tr>
               <tr>
-                <td>Cached</td>
-                <td id="memory-cached"></td>
-              </tr>
-              <tr>
-                <td>Total&nbsp;Free</td>
-                <td id="memory-total_free"></td>
+                <td>Free</td>
+                <td id="memory-free"></td>
               </tr>
               <tr>
                 <td>Total</td>

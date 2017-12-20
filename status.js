@@ -17,11 +17,10 @@ app.get('/os/memory', function (req, res) {
   total_free = free + buffers + cached
   var json = {}
   json[`total`] = Math.round((os.totalmem()/1024/1024)*100)/100 + " MB"
-  json[`total_free`] = Math.round((total_free/1024)*100)/100 + " MB"
-  json[`free`] = Math.round((free/1024)*100)/100 + " MB"
+  json[`free`] = Math.round((free/1024)*100)/100 + " MB (Total: " + Math.round((total_free/1024)*100)/100 + " MB)"
   json[`buffers`] = Math.round((buffers/1024)*100)/100 + " MB"
   json[`cached`] = Math.round((cached/1024)*100)/100 + " MB"
-  json[`used`] = Math.round(((os.totalmem() - total_free)/1024/1024)*100)/100 + " MB"
+  json[`used`] = Math.round(((os.totalmem() - total_free*1024)/1024/1024)*100)/100 + " MB"
   json[`percent_used`] = Math.round(((os.totalmem() - total_free*1024) / os.totalmem()) * 100)
   json[`percent_buffers`] = Math.round(((buffers*1024) / os.totalmem()) * 100)
   json[`percent_cached`] = Math.round(((cached*1024) / os.totalmem()) * 100)
