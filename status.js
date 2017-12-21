@@ -1,8 +1,6 @@
 const os = require('os');
 var express = require('express')
 var shell = require('shelljs');
-var http = require('http');
-var https = require('https');
 var request = require('request');
 var port = 30097
 var host = 'localhost'
@@ -56,32 +54,6 @@ app.get('/os/system', function (req, res) {
   system.server_date = shell.exec('/bin/date',{silent:true}).stdout.replace(/\r?\n|\r/g,'')
   res.send(system);
 })
-var vhostCounter = 0;
-
-var getHttpCode = (appres, vhost, id, url, counter = 0) => {
-  request({'url': url}, function (error, res, body) {
-    if(!error) {
-      const { statusCode } = res;
-      if(statusCode == 301 || statusCode == 302 || statusCode == 303) {
-        if(counter<10) {
-          getHttpCode(appres, vhost, id, res.headers.location, counter+1)
-        } else {
-          vhost[id].statusCode = 508
-          vhostCounter--
-          if(vhostCounter < 1) appres.send(vhost);
-        }
-      } else {
-        vhost[id].statusCode = statusCode
-        vhostCounter--
-        if(vhostCounter < 1) appres.send(vhost);
-      }
-    } else {
-      vhost[id].statusCode = error.code
-      vhostCounter--
-      if(vhostCounter < 1) appres.send(vhost);
-    }
-  })
-}
 
 app.get('/os/vhost', function (req, res) {
   var info = shell.exec('apache2ctl -t -D DUMP_VHOSTS',{silent:true}).stdout
@@ -107,10 +79,12 @@ app.get('/os/vhost', function (req, res) {
         if(one) vhost.push(one)
     }
   }
-  vhostCounter = vhost.length
-  var i = 0;
-  for(var v of vhost) {
-    getHttpCode(res, vhost, i++, 'http://'+v.name+":"+v.port)
+  var count = vhost.length;
+  for(let i=0; i<vhost.length; i++) {
+    request(`http://${vhost[i].name}:${vhost[i].port}`, (error, response, body) => {
+      vhost[i].statusCode = error ? error.code : response.statusCode
+      if(--count < 1) res.send(vhost)
+    })
   }
 })
 
