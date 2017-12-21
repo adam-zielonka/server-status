@@ -1,10 +1,8 @@
 const os = require('os');
+var config = require('./config');
 var express = require('express')
 var shell = require('shelljs');
 var request = require('request');
-var port = 30097
-var host = 'localhost'
-
 var app = express()
 
 app.get('/', function (req, res) {
@@ -79,14 +77,23 @@ app.get('/os/vhost', function (req, res) {
         if(one) vhost.push(one)
     }
   }
+  var auth = () => {
+    if(config.vhost && config.vhost.user) return {
+    'auth': {
+      'user': config.vhost.user,
+      'pass': config.vhost.pass,
+      'sendImmediately': false
+    }}
+    return {}
+  }
   var count = vhost.length;
   for(let i=0; i<vhost.length; i++) {
-    request(`http://${vhost[i].name}:${vhost[i].port}`, (error, response, body) => {
+    request(`http://${vhost[i].name}:${vhost[i].port}`, auth(), (error, response, body) => {
       vhost[i].statusCode = error ? error.code : response.statusCode
       if(--count < 1) res.send(vhost)
     })
   }
 })
 
-app.listen(port, host)
-console.log(`Status on http://${host}:${port}/`)
+app.listen(config.web.port, config.web.host)
+console.log(`Status on http://${config.web.host}:${config.web.port}/`)
