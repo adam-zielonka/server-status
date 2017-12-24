@@ -1,10 +1,10 @@
 const os = require('os');
 const si = require('systeminformation');
 const { exec } = require('child_process');
-var config = require('./config');
-var express = require('express')
-var request = require('request');
-var app = express()
+const config = require('./config');
+const express = require('express')
+const request = require('request');
+const app = express()
 
 app.get('/', function (req, res) {
   res.sendFile('status.html', {root: __dirname })
@@ -86,5 +86,6 @@ app.get('/os/vhost', function (req, res) {
   })
 })
 
-app.listen(config.web.port, config.web.host)
-console.log(`Status on http://${config.web.host}:${config.web.port}/`)
+app.listen(config.web.port, config.web.host, () => {
+  console.log(`Status on http://${config.web.host}:${config.web.port}/`)
+})

@@ -60,6 +60,7 @@
     info.getModule('memory', (card, data) => {
       info.setProgress("-progress-used", card, Math.round((data.active/data.total)*100), true)
       info.setProgress("-progress-buffcache", card, Math.round((data.buffcache/data.total)*100))
+      info.setProgress("-progress-swap", card, Math.round((data.active/data.total)*100), true)
       for (var v in data)
         if (data.hasOwnProperty(v))
           data[v] = Math.round((data[v]/1024/1024)*100)/100 + " MB"
@@ -233,7 +234,7 @@
       <div class="card" id="memory">
         <div class="card-header">
           <h4>
-            Memory
+            Memory&amp;Swap
             <button type="button" onclick="info.getMemory()" class="reload btn btn-info float-right">Reload</button>
           </h4>
         </div>
@@ -241,7 +242,7 @@
         <table class="table table-striped">
             <tbody>
               <tr>
-                <td style="width:0;">Used&nbsp;%</td>
+                <td style="width:0;">Memory&nbsp;%</td>
                 <td>
                   <div class="progress">
                     <div id="memory-progress-used" class="progress-bar bg-success" role="progressbar" aria-valuenow="0"
@@ -270,6 +271,29 @@
               <tr>
                 <td>Total</td>
                 <td id="memory-total"></td>
+              </tr>
+              <tr>
+                <td style="width:0;">Swap&nbsp;%</td>
+                <td>
+                  <div class="progress">
+                    <div id="memory-progress-swap" class="progress-bar bg-success" role="progressbar" aria-valuenow="0"
+                    aria-valuemin="0" aria-valuemax="100" style="width:0%">
+                      0%
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>Used</td>
+                <td id="memory-swapused"></td>
+              </tr>
+              <tr>
+                <td>Free</td>
+                <td id="memory-swapfree"></td>
+              </tr>
+              <tr>
+                <td>Total</td>
+                <td id="memory-swaptotal"></td>
               </tr>
             </tbody>
           </table>
