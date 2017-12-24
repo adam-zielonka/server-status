@@ -60,7 +60,7 @@
     info.getModule('memory', (card, data) => {
       info.setProgress("-progress-used", card, Math.round((data.active/data.total)*100), true)
       info.setProgress("-progress-buffcache", card, Math.round((data.buffcache/data.total)*100))
-      info.setProgress("-progress-swap", card, Math.round((data.active/data.total)*100), true)
+      info.setProgress("-progress-swap", card, Math.round((data.swapused/data.swaptotal)*100), true)
       for (var v in data)
         if (data.hasOwnProperty(v))
           data[v] = Math.round((data[v]/1024/1024)*100)/100 + " MB"
