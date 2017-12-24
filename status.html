@@ -103,7 +103,7 @@
 
   info.getSystem = () => {
     info.getModule('system', (card, data) => {
-      $(card+'-uptime', card).html(info.getHumanTime(data.uptime));
+      $(card+'-uptime', card).html(info.getHumanTime(data.time.uptime));
     })
   }
 
@@ -215,7 +215,7 @@
               </tr>
               <tr>
                 <td>OS</td>
-                <td id="system-os"></td>
+                <td id="system-distro"></td>
               </tr>
               <tr>
                 <td>Kernel version</td>
@@ -224,18 +224,6 @@
               <tr>
                 <td>Uptime</td>
                 <td id="system-uptime"></td>
-              </tr>
-              <tr>
-                <td>Last boot</td>
-                <td id="system-last_boot"></td>
-              </tr>
-              <tr>
-                <td>Current user(s)</td>
-                <td id="system-current_users"></td>
-              </tr>
-              <tr>
-                <td>Server date & time</td>
-                <td id="system-server_date"></td>
               </tr>
             </tbody>
           </table>
