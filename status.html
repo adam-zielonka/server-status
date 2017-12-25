@@ -124,7 +124,28 @@
           <tr>
             <td>${data[id].port}</td>
             <td><a href="http://${data[id].name}">${data[id].name}</a></td>
-            <td><span class="badge badge-${color}">${data[id].statusCode}<span></td>
+            <td><span class="badge badge-${color}">${data[id].statusCode}</span></td>
+          <tr/>`
+          box.append(row);
+      }
+    })
+  }
+
+  info.getServices = () => {
+    info.getModule('services', (card, data) => {
+      var box = $(card + ' tbody');
+      box.empty();
+
+      for (var id in data) {
+          var color = data[id].status ? 'success' : 'danger'
+          var color2 = data[id].localhost ? 'success' : 'danger'
+          var link = data[id].link ? `<a href="http://${data[id].name}">${data[id].name}</a>` : data[id].name
+          var row = `
+          <tr>
+            <td>${data[id].port}</td>
+            <td><span class="badge badge-${color}">${data[id].host}</span>
+            <span class="badge badge-${color2}">LOCALHOST</span></td>
+            <td>${link}</td>
           <tr/>`
           box.append(row);
       }
@@ -137,6 +158,7 @@
       info.getPm2();
       info.getSystem();
       info.getVHost();
+      info.getServices();
   }
 
   info.insertDatas = (block, datas) => {
@@ -366,6 +388,30 @@
                         <th>port</th>
                         <th>name</th>
                         <th>status code</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card" id="services">
+            <div class="card-header">
+                <h4>
+                  Services
+                  <button type="button" onclick="info.getServices()" class="reload btn btn-info float-right">Reload</button>
+                </h4>
+            </div>
+
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>port</th>
+                        <th>host</th>
+                        <th>name</th>
                     </tr>
                     </thead>
                     <tbody>

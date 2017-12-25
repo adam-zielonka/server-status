@@ -5,6 +5,7 @@ const config = require('./config');
 const express = require('express')
 const request = require('request');
 const app = express()
+const tcpPortUsed = require('tcp-port-used');
 
 app.get('/', function (req, res) {
   res.sendFile('status.html', {root: __dirname })
@@ -21,6 +22,29 @@ app.get('/os/cpus', function (req, res) {
 
 app.get('/os/load-average', function (req, res) {
   res.send(os.loadavg());
+})
+
+app.get('/os/services', function (req, res) {
+  if(config.services && config.services.length > 0) {
+    var count = config.services.length*2;
+    for(let i=0; i<config.services.length; i++) {
+      tcpPortUsed.check(config.services[i])
+      .then(function(inUse) {
+          config.services[i].status = inUse
+          if(--count < 1) res.send(config.services)
+      }, function(err) {
+          if(--count < 1) res.send(config.services)
+      });
+      tcpPortUsed.check(config.services[i],`localhost`)
+      .then(function(inUse) {
+          config.services[i].localhost = inUse
+          if(--count < 1) res.send(config.services)
+      }, function(err) {
+          if(--count < 1) res.send(config.services)
+      });
+    }
+  } else res.status(500).send("500")
+
 })
 
 app.get('/os/pm2', function (req, res) {
