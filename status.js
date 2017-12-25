@@ -35,7 +35,7 @@ app.get('/os/services', function (req, res) {
       }, function(err) {
           if(--count < 1) res.send(config.services)
       });
-      tcpPortUsed.check(config.services[i],`localhost`)
+      tcpPortUsed.check(config.services[i].port,`127.0.0.1`)
       .then(function(inUse) {
           config.services[i].localhost = inUse
           if(--count < 1) res.send(config.services)
