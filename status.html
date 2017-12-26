@@ -104,7 +104,7 @@
 
   info.getSystem = () => {
     info.getModule('system', (card, data) => {
-      $(card+'-uptime', card).html(info.getHumanTime(data.time.uptime));
+      data.uptime = info.getHumanTime(data.time.uptime)
     })
   }
 
@@ -288,7 +288,7 @@
 </head>
 <body>
 
-<nav class="navbar navbar-light bg-light justify-content-between">
+<nav class="navbar navbar-light bg-light justify-content-between sticky-top">
   <a class="navbar-brand" href="/">Status</a>
   <button type="button" onclick="info.getAll()" class="reload btn btn-info">Reload</button>
 </nav>
