@@ -25,6 +25,20 @@ app.get('/os/fs', function (req, res) {
     .catch(error => res.status(500).send(error));
 })
 
+app.get('/os/network', function (req, res) {
+  si.networkInterfaces().then(data => {
+    var count = data.length
+    for(let i=0; i<data.length; i++){
+      si.networkStats(data[i].iface).then(stats => {
+          data[i].stats = stats
+          if(--count < 1) res.send(data)
+      }, err => {
+          if(--count < 1) res.send(data)
+      });
+    }
+  }).catch(error => res.status(500).send(error));
+})
+
 app.get('/os/load-average', function (req, res) {
   res.send(os.loadavg());
 })
