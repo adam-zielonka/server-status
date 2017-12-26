@@ -164,7 +164,7 @@
             <td>${data[id].mount}</td>
             <td>
               <div class="progress">
-                <div class="progress-bar bg-success" role="progressbar" aria-valuenow="${use}"
+                <div class="progress-bar ${info.getColor(use)}" role="progressbar" aria-valuenow="${use}"
                 aria-valuemin="0" aria-valuemax="100" style="width:${use}%">
                   ${use}%
                 </div>
@@ -173,6 +173,7 @@
             <td>${data[id].type}</td>
             <td>${info.round(data[id].size/1024/1024/1024,2)}&nbsp;GB</td>
             <td>${info.round(data[id].used/1024/1024/1024,2)}&nbsp;GB</td>
+            <td>${info.round((data[id].size-data[id].used)/1024/1024/1024,2)}&nbsp;GB</td>
           <tr/>`
           box.append(row);
       }
@@ -405,54 +406,6 @@
         </div>
       </div>
 
-        <div class="card" id="vhost">
-            <div class="card-header">
-                <h4>
-                  VirtualHosts
-                  <button type="button" onclick="info.getVHost()" class="reload btn btn-info float-right">Reload</button>
-                </h4>
-            </div>
-
-            <div class="card-body">
-                <table class="table">
-                    <thead>
-                    <tr>
-                        <th>port</th>
-                        <th>name</th>
-                        <th>status code</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="card" id="services">
-            <div class="card-header">
-                <h4>
-                  Services
-                  <button type="button" onclick="info.getServices()" class="reload btn btn-info float-right">Reload</button>
-                </h4>
-            </div>
-
-            <div class="card-body">
-                <table class="table">
-                    <thead>
-                    <tr>
-                        <th>port</th>
-                        <th>host</th>
-                        <th>name</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
     </div>
   </div>
   <div class="row">
@@ -476,6 +429,7 @@
                       <th>type</th>
                       <th>size</th>
                       <th>used</th>
+                      <th>free</th>
                   </tr>
                   </thead>
                   <tbody>
@@ -523,6 +477,65 @@
       </div>
     </div>
   </div>
+
+  <div class="row">
+    <div class="col">
+
+      <div class="card" id="vhost">
+          <div class="card-header">
+              <h4>
+                VirtualHosts
+                <button type="button" onclick="info.getVHost()" class="reload btn btn-info float-right">Reload</button>
+              </h4>
+          </div>
+
+          <div class="card-body">
+              <table class="table">
+                  <thead>
+                  <tr>
+                      <th>port</th>
+                      <th>name</th>
+                      <th>status code</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+
+                  </tbody>
+              </table>
+          </div>
+      </div>
+
+    </div>
+    <div class="col">
+
+      <div class="card" id="services">
+          <div class="card-header">
+              <h4>
+                Services
+                <button type="button" onclick="info.getServices()" class="reload btn btn-info float-right">Reload</button>
+              </h4>
+          </div>
+
+          <div class="card-body">
+              <table class="table">
+                  <thead>
+                  <tr>
+                      <th>port</th>
+                      <th>host</th>
+                      <th>name</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+
+                  </tbody>
+              </table>
+          </div>
+      </div>
+
+    </div>
+  </div>
+
+
 </div>
 
 <script>
