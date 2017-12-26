@@ -108,6 +108,14 @@
     })
   }
 
+  info.getCPU = () => {
+    info.getModule('cpu', (card, data) => {
+      data.model = `${data.manufacturer} ${data.brand}`
+      data.speed = data.speed + `&nbsp;GHz`
+      data.cache = info.getHumanSize(data.cache.l1d + data.cache.l1i + data.cache.l2 + data.cache.l3)
+    })
+  }
+
   info.getVHost = () => {
     info.getModule('vhost', (card, data) => {
       var box = $(card + ' tbody');
@@ -207,6 +215,7 @@
       info.getServices()
       info.getFS()
       info.getNetwork()
+      info.getCPU()
   }
 
   info.insertDatas = (block, datas) => {
@@ -433,6 +442,37 @@
                 </td>
               </tr>
 
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" id="cpu">
+        <div class="card-header">
+          <h4>
+            CPU
+            <button type="button" onclick="info.getCPU()" class="reload btn btn-info float-right">Reload</button>
+          </h4>
+        </div>
+        <div class="card-body">
+        <table class="table table-striped table-sm">
+            <tbody>
+              <tr>
+                <td>Model</td>
+                <td id="cpu-model"></td>
+              </tr>
+              <tr>
+                <td>Cores</td>
+                <td id="cpu-cores"></td>
+              </tr>
+              <tr>
+                <td>Speed</td>
+                <td id="cpu-speed"></td>
+              </tr>
+              <tr>
+                <td>Cache</td>
+                <td id="cpu-cache"></td>
+              </tr>
             </tbody>
           </table>
         </div>
