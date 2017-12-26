@@ -63,7 +63,7 @@
       info.setProgress("-progress-swap", card, Math.round((data.swapused/data.swaptotal)*100), true)
       for (var v in data)
         if (data.hasOwnProperty(v))
-          data[v] = Math.round((data[v]/1024/1024)*100)/100 + " MB"
+          data[v] = info.getHumanSize(data[v])
     })
   }
 
@@ -93,7 +93,7 @@
             <td>${data.processes[proces].pm2_env.restart_time}</td>
             <td>${info.getHumanTime((data.time - data.processes[proces].pm2_env.pm_uptime) / 1000)}</td>
             <td>${data.processes[proces].monit.cpu}%</td>
-            <td>${Math.round((data.processes[proces].monit.memory / 1024 / 1024) * 100) / 100} MB</td>
+            <td>${info.getHumanSize(data.processes[proces].monit.memory)}</td>
             <td>${data.processes[proces].pm2_env.uid == undefined ? 'root' : data.processes[proces].pm2_env.uid}</td>
             <td><span class="badge ${watch_color}">${watch.toUpperCase()}</span></td>
           <tr/>`
@@ -171,9 +171,9 @@
               </div>
             </td>
             <td>${data[id].type}</td>
-            <td>${info.round(data[id].size/1024/1024/1024,2)}&nbsp;GB</td>
-            <td>${info.round(data[id].used/1024/1024/1024,2)}&nbsp;GB</td>
-            <td>${info.round((data[id].size-data[id].used)/1024/1024/1024,2)}&nbsp;GB</td>
+            <td>${info.getHumanSize(data[id].size)}</td>
+            <td>${info.getHumanSize(data[id].used)}</td>
+            <td>${info.getHumanSize(data[id].size-data[id].used)}</td>
           <tr/>`
           box.append(row);
       }
@@ -190,8 +190,8 @@
           <tr>
             <td>${data[id].iface}</td>
             <td>${data[id].ip4} ${data[id].ip6}</td>
-            <td>${info.round(data[id].stats.rx/1024/1024,2)} MB</td>
-            <td>${info.round(data[id].stats.tx/1024/1024,2)} MB</td>
+            <td>${info.getHumanSize(data[id].stats.rx)}</td>
+            <td>${info.getHumanSize(data[id].stats.tx)}</td>
           <tr/>`
           box.append(row)
       }
@@ -261,6 +261,19 @@
       }
 
       return result.join(" ");
+  }
+
+  info.getHumanSize = (bytes, precision=2) => {
+    var units = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
+    var result = ''
+    for (unit of units) {
+      if (bytes > 1024) bytes  /= 1024;
+      else {
+        result = unit
+        break
+      }
+    }
+    return info.round(bytes,precision)+'&nbsp;'+result+'B'
   }
 </script>
 </head>
