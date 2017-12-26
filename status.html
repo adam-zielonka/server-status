@@ -152,6 +152,33 @@
     })
   }
 
+  info.getFS = () => {
+    info.getModule('fs', (card, data) => {
+      var box = $(card + ' tbody');
+      box.empty();
+
+      for (var id in data) {
+          var use = Math.round(data[id].use)
+          var row = `
+          <tr>
+            <td>${data[id].mount}</td>
+            <td>
+              <div class="progress">
+                <div class="progress-bar bg-success" role="progressbar" aria-valuenow="${use}"
+                aria-valuemin="0" aria-valuemax="100" style="width:${use}%">
+                  ${use}%
+                </div>
+              </div>
+            </td>
+            <td>${data[id].type}</td>
+            <td>${info.round(data[id].size/1024/1024/1024,2)}&nbsp;GB</td>
+            <td>${info.round(data[id].used/1024/1024/1024,2)}&nbsp;GB</td>
+          <tr/>`
+          box.append(row);
+      }
+    })
+  }
+
   info.getAll = () => {
       info.getMemory();
       info.getLoadAverage();
@@ -159,6 +186,7 @@
       info.getSystem();
       info.getVHost();
       info.getServices();
+      info.getFS();
   }
 
   info.insertDatas = (block, datas) => {
@@ -183,6 +211,10 @@
       progress.removeClass("bg-success bg-warning bg-danger")
       .addClass(info.getColor(percent))
     }
+  }
+
+  info.round = (value, precision) => {
+    return Math.round(value*(10**precision))/(10**precision)
   }
 
   info.getHumanTime = (seconds) => {
@@ -264,8 +296,8 @@
         <table class="table table-striped">
             <tbody>
               <tr>
-                <td style="width:0;">Memory&nbsp;%</td>
-                <td>
+                <td>Memory&nbsp;%</td>
+                <td class="w-100">
                   <div class="progress">
                     <div id="memory-progress-used" class="progress-bar bg-success" role="progressbar" aria-valuenow="0"
                     aria-valuemin="0" aria-valuemax="100" style="width:0%">
@@ -335,8 +367,8 @@
         <table class="table table-striped">
             <tbody>
               <tr>
-                <td style="width:0;">1&nbsp;min</td>
-                <td>
+                <td>1&nbsp;min</td>
+                <td class="w-100">
                   <div class="progress">
                     <div id="load-average_1" class="progress-bar bg-success" role="progressbar" aria-valuenow="0"
                     aria-valuemin="0" aria-valuemax="100" style="width:0%">
@@ -346,7 +378,7 @@
                 </td>
               </tr>
               <tr>
-                <td style="width:0;">5&nbsp;min</td>
+                <td>5&nbsp;min</td>
                 <td>
                   <div class="progress">
                     <div id="load-average_5" class="progress-bar bg-success" role="progressbar" aria-valuenow="0"
@@ -357,7 +389,7 @@
                 </td>
               </tr>
               <tr>
-                <td style="width:0;">15&nbsp;min</td>
+                <td>15&nbsp;min</td>
                 <td>
                   <div class="progress">
                     <div id="load-average_15" class="progress-bar bg-success" role="progressbar" aria-valuenow="0"
@@ -424,12 +456,39 @@
     </div>
   </div>
   <div class="row">
-
     <div class="col">
 
-    </div>
 
+      <div class="card" id="fs">
+          <div class="card-header">
+              <h4>
+                Files system
+                <button type="button" onclick="info.getFS()" class="reload btn btn-info float-right">Reload</button>
+              </h4>
+          </div>
+
+          <div class="card-body">
+              <table class="table">
+                  <thead>
+                  <tr>
+                      <th>mount</th>
+                      <th class="w-100">use</th>
+                      <th>type</th>
+                      <th>size</th>
+                      <th>used</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+
+                  </tbody>
+              </table>
+          </div>
+      </div>
+
+
+    </div>
   </div>
+
   <div class="row">
     <div class="col">
       <div class="card" id="pm2">

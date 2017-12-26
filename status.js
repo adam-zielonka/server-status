@@ -20,6 +20,11 @@ app.get('/os/cpus', function (req, res) {
   res.send(os.cpus());
 })
 
+app.get('/os/fs', function (req, res) {
+  si.fsSize().then(data => res.send(data))
+    .catch(error => res.status(500).send(error));
+})
+
 app.get('/os/load-average', function (req, res) {
   res.send(os.loadavg());
 })
