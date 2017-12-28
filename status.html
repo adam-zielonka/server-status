@@ -141,21 +141,24 @@
 
   info.getServices = () => {
     info.getModule('services', (card, data) => {
-      var box = $(card + ' tbody');
-      box.empty();
+      var box = $(card + ' tbody')
+      box.empty()
 
       for (var id in data) {
-          var color = data[id].status ? 'success' : 'danger'
-          var color2 = data[id].localhost ? 'success' : 'danger'
+          var hosts = ""
+          data[id].host.push('localhost')
+          for (var host of data[id].host) {
+            var color = data[id].open[host] ? 'success' : 'danger'
+            hosts+= `<span class="badge badge-${color}">${host}</span> `
+          }
           var link = data[id].link ? `<a href="http://${data[id].name}">${data[id].name}</a>` : data[id].name
           var row = `
           <tr>
             <td>${data[id].port}</td>
-            <td><span class="badge badge-${color}">${data[id].host}</span>
-            <span class="badge badge-${color2}">LOCALHOST</span></td>
+            <td>${hosts}</td>
             <td>${link}</td>
           <tr/>`
-          box.append(row);
+          box.append(row)
       }
     })
   }
