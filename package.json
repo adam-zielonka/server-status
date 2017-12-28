@@ -11,7 +11,7 @@
   "dependencies": {
     "express": "^4.16.2",
     "request": "^2.83.0",
-    "systeminformation": "^3.33.11",
+    "systeminformation": "^3.33.12",
     "tcp-port-used": "^0.1.2"
   }
 }
