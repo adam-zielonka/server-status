@@ -151,7 +151,7 @@
             var color = data[id].open[host] ? 'success' : 'danger'
             hosts+= `<span class="badge badge-${color}">${host}</span> `
           }
-          var link = data[id].link ? `<a href="http://${data[id].name}">${data[id].name}</a>` : data[id].name
+          var link = data[id].link ? `<a href="${data[id].link}">${data[id].name}</a>` : data[id].name
           var row = `
           <tr>
             <td>${data[id].port}</td>
