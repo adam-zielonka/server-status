@@ -45,9 +45,9 @@ app.get('/os/load-average', function (req, res) {
 })
 
 var countServices = services => {
-  var count = services.length
+  var count = config.hosts ? services.length * config.hosts.length : 0
   for (service of services) {
-    count += service.host.length
+    count += service.host ? service.host.length : 0
   }
   return count
 }
@@ -57,7 +57,11 @@ app.get('/os/services', function (req, res) {
     var count = countServices(config.services);
     for(let i=0; i<config.services.length; i++) {
       if(!config.services[i].open) config.services[i].open = {}
-      for (let j=0; j<config.services[i].host.length; j++) {
+      var array = []
+      array = array.concat(config.services[i].host ? config.services[i].host : [])
+      array = array.concat(config.hosts ? config.hosts : [])
+      config.services[i].order = array
+      if(config.services[i].host) for (let j=0; j<config.services[i].host.length; j++) {
         tcpPortUsed.check(config.services[i].port, config.services[i].host[j])
         .then(function(inUse) {
             config.services[i].open[config.services[i].host[j]] = inUse
@@ -66,13 +70,15 @@ app.get('/os/services', function (req, res) {
             if(--count < 1) res.send(config.services)
         });
       }
-      tcpPortUsed.check(config.services[i].port,`127.0.0.1`)
-      .then(function(inUse) {
-          config.services[i].open.localhost = inUse
-          if(--count < 1) res.send(config.services)
-      }, function(err) {
-          if(--count < 1) res.send(config.services)
-      });
+      if(config.hosts) for (let j=0; j<config.hosts.length; j++) {
+        tcpPortUsed.check(config.services[i].port, config.hosts[j])
+        .then(function(inUse) {
+            config.services[i].open[config.hosts[j]] = inUse
+            if(--count < 1) res.send(config.services)
+        }, function(err) {
+            if(--count < 1) res.send(config.services)
+        });
+      }
     }
   } else res.status(500).send("500")
 

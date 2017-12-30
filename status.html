@@ -146,8 +146,7 @@
 
       for (var id in data) {
           var hosts = ""
-          data[id].host.push('localhost')
-          for (var host of data[id].host) {
+          if(data[id].order) for (var host of data[id].order) {
             var color = data[id].open[host] ? 'success' : 'danger'
             hosts+= `<span class="badge badge-${color}">${host}</span> `
           }
