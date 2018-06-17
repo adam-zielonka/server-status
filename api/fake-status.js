@@ -1,9 +1,8 @@
 const express = require('express')
+const path = require('path')
 const app = express()
 
-app.get('/', function (req, res) {
-  res.sendFile('status.html', {root: __dirname })
-})
+app.use(express.static(path.join(__dirname, '../www/build/')))
 
 app.get('/os/memory', function (req, res) {
   res.send({
@@ -13,7 +12,7 @@ app.get('/os/memory', function (req, res) {
     "active": 613232640,
     "available": 220889088,
     "buffcache": 268042240,
-    "swaptotal": 1996484608,
+    "swaptotal": 0,
     "swapused": 546840576,
     "swapfree": 1449644032
   })
@@ -271,5 +270,5 @@ app.get('/os/vhost', function (req, res) {
 })
 
 app.listen(30098, `localhost`, () => {
-  console.log(`Status on http://localhost:30097/`)
+  console.log(`Status on http://localhost:30098/`)
 })

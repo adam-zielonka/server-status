@@ -10,8 +10,9 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.16.2",
-    "request": "^2.83.0",
+    "request": "^2.87.0",
     "systeminformation": "^3.33.12",
-    "tcp-port-used": "^0.1.2"
+    "tcp-port-used": "^0.1.2",
+    "vash": "^0.12.4"
   }
 }

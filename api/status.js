@@ -1,15 +1,14 @@
-const os = require('os');
-const si = require('systeminformation');
-const { exec } = require('child_process');
-const config = require('./config');
+const os = require('os')
+const si = require('systeminformation')
+const { exec } = require('child_process')
+const config = require('./config')
 const express = require('express')
-const request = require('request');
-const app = express()
-const tcpPortUsed = require('tcp-port-used');
+const request = require('request')
+const tcpPortUsed = require('tcp-port-used')
+const path = require('path')
 
-app.get('/', function (req, res) {
-  res.sendFile('status.html', {root: __dirname })
-})
+const app = express()
+app.use(express.static(path.join(__dirname, '../www/build/')))
 
 app.get('/os/memory', function (req, res) {
   si.mem().then(data => res.send(data))
