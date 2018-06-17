@@ -39,7 +39,7 @@ app.get('/os/network', function (req, res) {
   }).catch(error => res.status(500).send(error));
 })
 
-app.get('/os/load-average', function (req, res) {
+app.get('/os/loadAverage', function (req, res) {
   res.send(os.loadavg());
 })
 

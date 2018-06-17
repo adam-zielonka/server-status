@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { Tools } from './Tools.js'
+import { Config } from './config.js'
 import './App.css'
 
 const API = '/os/'
@@ -33,7 +34,7 @@ class App extends Component {
               <Box name="Network" api="network" date={this.state.date} />
             </div>
             <div className="col">
-              <Box name="Load Average" api="load-average" date={this.state.date} />
+              <Box name="Load Average" api="loadAverage" date={this.state.date} />
               <Box name="Memory" api="memory" date={this.state.date} />
               <Box name="CPU" api="cpu" date={this.state.date} />
             </div>
@@ -72,7 +73,7 @@ class Box extends Component {
   update() {
     this.setState({ isLoading: true })
     if(!this.state.isLoading)
-    fetch(API + this.props.api)
+    fetch(API + this.props.api, { headers: Config.headers ? Config.headers : {}})
       .then(response => {
         if (response.ok) {
           return response.json()
@@ -186,7 +187,7 @@ class Box extends Component {
           {obj.swaptotal ? swap : ''}
           </div>
         )
-      case 'load-average':
+      case 'loadAverage':
         var time = [15, 5, 1]
         return (
           <div>
@@ -401,6 +402,7 @@ class Box extends Component {
   }
 
   render() {
+    if(!Config.modules[this.props.api]) return ''
     const { array, obj } = this.state;
 
     var classButton = 'btn-info'

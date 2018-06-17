@@ -1,11 +1,13 @@
 # Server Status
 
-Server Status is a nodejs script for server monitoring. Tested only on Debian. Based on [eZ Server Monitor (eSM) `Web](https://www.ezservermonitor.com/esm-web/features).
+Server Status is a nodejs script for server monitoring. Tested only on Debian. Inspired by [eZ Server Monitor (eSM) `Web](https://www.ezservermonitor.com/esm-web/features).
 
 ![](https://screenshots.firefoxusercontent.com/images/1a773f64-85a7-4f93-9a90-e8dc37aaf54d.png)
 
 ## Configuration
-Create config.js or rename and edit sample-config.js.
+
+### Backend
+Create api/config.js or rename and edit api/sample-config.js.
 ```js
 var config = {}
 
@@ -32,9 +34,54 @@ config.services.push({
 module.exports = config
 ```
 
-## Used nodejs modules
+### Frontend
+Create www/src/config.js or rename and edit www/src/sample-config.js.
+```js
+export const Config = {
+    modules: {
+        system: true,
+        fs: true,
+        network: true,
+        loadAverage: true,
+        memory: true,
+        cpu: true,
+        pm2: true,
+        vhost: true,
+        services: true
+    },
+    headers: new Headers({
+        'Authorization': 'Basic '+btoa('user:password'), 
+        'Content-Type': 'application/x-www-form-urlencoded'
+    })
+}
+```
 
+## Build project
+
+```sh
+# Build frontend
+cd www
+npm install
+npm run build
+cd ..
+
+# Run backend
+cd api
+npm install
+node status.js 
+```
+
+## Used in this project
+
+### For backend
+
+- **[nodejs](https://nodejs.org)**
 - **[systeminformation](https://github.com/sebhildebrandt/systeminformation)**
 - **[express](https://expressjs.com/)**
 - **[request](https://github.com/request/request)**
 - **[tcp-port-used](https://github.com/stdarg/tcp-port-used)**
+
+### For frontend
+
+- **[reactjs](https://reactjs.org/)**
+- **[bootstrap](https://getbootstrap.com/)**
