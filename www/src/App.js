@@ -28,15 +28,19 @@ class App extends Component {
         </nav>
         <div className="container-fluid">
           <div className="row">
-            <div className="col">
+            <div className="col-sm-12 col-md-6 col-lg-6 col-xl-4">
               <Box name="System" api="system" date={this.state.date} />
               <Box name="Files system" api="fs" date={this.state.date} />
               <Box name="Network" api="network" date={this.state.date} />
             </div>
-            <div className="col">
+            <div className="col-sm-12 col-md-6 col-lg-6 col-xl-4">
               <Box name="Load Average" api="loadAverage" date={this.state.date} />
               <Box name="Memory" api="memory" date={this.state.date} />
               <Box name="CPU" api="cpu" date={this.state.date} />
+            </div>
+            <div className="col-sm-12 col-md-12 col-lg-12 col-xl-4">
+              <Box name="VirtualHosts" api="vhost" date={this.state.date} />
+              <Box name="Services" api="services" date={this.state.date} />
             </div>
           </div>
           <div className="row">
@@ -45,12 +49,7 @@ class App extends Component {
             </div>
           </div>
           <div className="row">
-            <div className="col">
-              <Box name="VirtualHosts" api="vhost" date={this.state.date} />
-            </div>
-            <div className="col">
-              <Box name="Services" api="services" date={this.state.date} />
-            </div>
+
           </div>
         </div>
       </div>
@@ -315,7 +314,7 @@ class Box extends Component {
                       <td>{app.pm_id}</td>
                       <td>{app.pm2_env.exec_mode}</td>
                       <td>
-                      <span className={"badge badge-" + (app.pm2_env.status == 'online' ? 'success' : 'danger')}>
+                      <span className={"badge badge-" + (app.pm2_env.status === 'online' ? 'success' : 'danger')}>
                           {app.pm2_env.status.toUpperCase()}
                         </span>
                       </td>
@@ -323,7 +322,7 @@ class Box extends Component {
                       <td>{Tools.getHumanTime((obj.time - app.pm2_env.pm_uptime) / 1000)}</td>
                       <td>{app.monit.cpu}%</td>
                       <td>{Tools.getHumanSize(app.monit.memory)}</td>
-                      <td>{app.pm2_env.uid == undefined ? 'root' : app.pm2_env.uid}</td>
+                      <td>{app.pm2_env.uid === undefined ? 'root' : app.pm2_env.uid}</td>
                       <td>
                         <span className={"badge badge-" + (app.pm2_env.watch ? 'success' : 'secondary')}>
                           {(app.pm2_env.watch ? 'enabled' : 'disabled').toUpperCase()}
