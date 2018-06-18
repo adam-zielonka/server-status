@@ -73,7 +73,7 @@ class Box extends Component {
   update() {
     this.setState({ isLoading: true })
     if(!this.state.isLoading)
-    fetch(API + this.props.api, { headers: Config.headers ? Config.headers : {}})
+    fetch(API + this.props.api, { credentials: 'same-origin' })
       .then(response => {
         if (response.ok) {
           return response.json()

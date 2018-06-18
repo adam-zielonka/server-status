@@ -9,9 +9,5 @@ export const Config = {
         pm2: true,
         vhost: true,
         services: true
-    },
-    headers: new Headers({
-        'Authorization': 'Basic '+btoa('user:password'), 
-        'Content-Type': 'application/x-www-form-urlencoded'
-    })
+    }
 }

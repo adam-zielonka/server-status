@@ -98,7 +98,7 @@ app.get('/os/network', function (req, res) {
   ])
 })
 
-app.get('/os/load-average', function (req, res) {
+app.get('/os/loadAverage', function (req, res) {
   res.send([
     0.83935546875,
     0.5943359375,
