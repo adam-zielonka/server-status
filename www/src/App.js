@@ -31,25 +31,23 @@ class App extends Component {
             <div className="col-sm-12 col-md-6 col-lg-6 col-xl-4">
               <Box name="System" api="system" date={this.state.date} />
               <Box name="Files system" api="fs" date={this.state.date} />
-              <Box name="Network" api="network" date={this.state.date} />
             </div>
             <div className="col-sm-12 col-md-6 col-lg-6 col-xl-4">
               <Box name="Load Average" api="loadAverage" date={this.state.date} />
               <Box name="Memory" api="memory" date={this.state.date} />
-              <Box name="CPU" api="cpu" date={this.state.date} />
             </div>
             <div className="col-sm-12 col-md-12 col-lg-12 col-xl-4">
+              <Box name="Network" api="network" date={this.state.date} />
               <Box name="VirtualHosts" api="vhost" date={this.state.date} />
-              <Box name="Services" api="services" date={this.state.date} />
             </div>
           </div>
           <div className="row">
+            <div className="col-sm-12 col-md-6 col-lg-6 col-xl-4">
+              <Box name="Services" api="services" date={this.state.date} />
+            </div>
             <div className="col">
               <Box name="PM2" api="pm2" date={this.state.date} />
             </div>
-          </div>
-          <div className="row">
-
           </div>
         </div>
       </div>
@@ -117,7 +115,13 @@ class Box extends Component {
                 </tr>
                 <tr>
                   <td>Uptime</td>
-                  <td>{obj.time ? Tools.getHumanTime(obj.time.uptime) : ''}</td>
+                  <td>{obj.time && Tools.getHumanTime(obj.time.uptime)}</td>
+                </tr>
+                <tr>
+                  <td>CPU</td>
+                  <td>
+                    {obj.cpu && `${obj.cpu.cores}x ${obj.cpu.manufacturer} ${obj.cpu.brand} @ ${obj.cpu.speed}\u00A0GHz`}
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -202,31 +206,6 @@ class Box extends Component {
                     </td>
                   </tr>
                 )}
-              </tbody>
-            </table>
-          </div>
-        )
-      case 'cpu':
-        return (
-          <div>
-            <table className="table table-striped table-sm">
-              <tbody>
-                <tr>
-                  <td>Model</td>
-                  <td>{obj.manufacturer} {obj.brand}</td>
-                </tr>
-                <tr>
-                  <td>Cores</td>
-                  <td>{obj.cores}</td>
-                </tr>
-                <tr>
-                  <td>Speed</td>
-                  <td>{obj.speed}&nbsp;GHz</td>
-                </tr>
-                <tr>
-                  <td>Cache</td>
-                  <td>{obj.cache ? Tools.getHumanSize(obj.cache.l1d + obj.cache.l1i + obj.cache.l2 + obj.cache.l3) : ''}</td>
-                </tr>
               </tbody>
             </table>
           </div>

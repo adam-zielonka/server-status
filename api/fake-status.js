@@ -18,28 +18,6 @@ app.get('/os/memory', function (req, res) {
   })
 })
 
-app.get('/os/cpu', function (req, res) {
-  res.send({
-    "manufacturer": "Intel\u00ae",
-    "brand": "Xeon\u00ae  E5-2650L v4",
-    "vendor": "GenuineIntel",
-    "family": "6",
-    "model": "45",
-    "stepping": "2",
-    "revision": "",
-    "speed": "1.70",
-    "speedmin": "",
-    "speedmax": "",
-    "cores": 1,
-    "cache": {
-      "l1d": 32768,
-      "l1i": 32768,
-      "l2": 262144,
-      "l3": 36700160
-    }
-  })
-})
-
 app.get('/os/fs', function (req, res) {
   res.send([
     {
@@ -240,6 +218,25 @@ app.get('/os/system', function (req, res) {
       "uptime": 452046,
       "timezone": "GMT+0100",
       "timezoneName": "CET"
+    },
+    "cpu": {
+      "manufacturer": "Intel\u00ae",
+      "brand": "Xeon\u00ae  E5-2650L v4",
+      "vendor": "GenuineIntel",
+      "family": "6",
+      "model": "45",
+      "stepping": "2",
+      "revision": "",
+      "speed": "1.70",
+      "speedmin": "",
+      "speedmax": "",
+      "cores": 1,
+      "cache": {
+        "l1d": 32768,
+        "l1i": 32768,
+        "l2": 262144,
+        "l3": 36700160
+      }
     }
   })
 })
