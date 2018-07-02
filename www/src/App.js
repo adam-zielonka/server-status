@@ -28,25 +28,27 @@ class App extends Component {
         </nav>
         <div className="container-fluid">
           <div className="row">
-            <div className="col-sm-12 col-md-6 col-lg-6 col-xl-4">
+            <div className="col-sm-12 col-md-12 col-lg-12 col-xl-4">
               <Box name="System" api="system" date={this.state.date} />
-              <Box name="Files system" api="fs" date={this.state.date} />
-            </div>
-            <div className="col-sm-12 col-md-6 col-lg-6 col-xl-4">
               <Box name="Load Average" api="loadAverage" date={this.state.date} />
               <Box name="Memory" api="memory" date={this.state.date} />
             </div>
-            <div className="col-sm-12 col-md-12 col-lg-12 col-xl-4">
-              <Box name="Network" api="network" date={this.state.date} />
-              <Box name="VirtualHosts" api="vhost" date={this.state.date} />
-            </div>
-          </div>
-          <div className="row">
-            <div className="col-sm-12 col-md-6 col-lg-6 col-xl-4">
-              <Box name="Services" api="services" date={this.state.date} />
-            </div>
             <div className="col">
-              <Box name="PM2" api="pm2" date={this.state.date} />
+              <div className="row">
+                <div className="col">
+                  <Box name="PM2" api="pm2" date={this.state.date} />
+                </div>
+              </div>
+              <div className="row">
+                <div className="col-sm-12 col-md-6 col-lg-6 col-xl-6">
+                  <Box name="Files system" api="fs" date={this.state.date} />
+                  <Box name="Services" api="services" date={this.state.date} />
+                </div>
+                <div className="col-sm-12 col-md-6 col-lg-6 col-xl-6">
+                  <Box name="Network" api="network" date={this.state.date} />
+                  <Box name="VirtualHosts" api="vhost" date={this.state.date} />
+                </div>
+              </div>
             </div>
           </div>
         </div>
