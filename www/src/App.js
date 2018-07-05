@@ -157,41 +157,11 @@ class Box extends Component {
           </div>
         )
       case 'memory':
-        var swap = (
-          <div>
-            <table className="table table-striped table-sm">
-              <tbody>
-                <tr>
-                  <td>Swap&nbsp;%</td>
-                  <td className="w-100">
-                    <div className="progress">
-                      {Tools.getProgressBar(obj.swapused/obj.swaptotal)}
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Used</td>
-                  <td>{Tools.getHumanSize(obj.swapused)}</td>
-                </tr>
-                <tr>
-                  <td>Free</td>
-                  <td>{Tools.getHumanSize(obj.swapfree)}</td>
-                </tr>
-                <tr>
-                  <td>Total</td>
-                  <td>{Tools.getHumanSize(obj.swaptotal)}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        )
-        return (
-          <div>
-            <table className="table table-striped table-sm">
+        let memory = [
+          <table className="table table-striped table-sm">
             <tbody>
               <tr>
-                <td>Memory&nbsp;%</td>
-                <td className="w-100">
+                <td colspan="4">
                   <div className="progress">
                     {Tools.getProgressBar(obj.active/obj.total)}
                     {Tools.getProgressBar(obj.buffcache/obj.total, 'info')}
@@ -200,25 +170,47 @@ class Box extends Component {
               </tr>
               <tr>
                 <td>Used</td>
-                <td>{Tools.getHumanSize(obj.active)}</td>
-              </tr>
-              <tr>
                 <td>Cached</td>
-                <td>{Tools.getHumanSize(obj.buffcache)}</td>
-              </tr>
-              <tr>
                 <td>Free</td>
-                <td>{Tools.getHumanSize(obj.free)}</td>
+                <td>Total</td>
               </tr>
               <tr>
-                <td>Total</td>
+                <td>{Tools.getHumanSize(obj.active)}</td>
+                <td>{Tools.getHumanSize(obj.buffcache)}</td>
+                <td>{Tools.getHumanSize(obj.free)}</td>
                 <td>{Tools.getHumanSize(obj.total)}</td>
               </tr>
             </tbody>
           </table>
-          {obj.swaptotal ? swap : ''}
-          </div>
+        ]
+        if(obj.swaptotal) memory.push(
+          <table className="table table-striped table-sm">
+            <tbody>
+              <tr>
+                <td colspan="4">
+                  <div className="progress">
+                    {Tools.getProgressBar(obj.swapused/obj.swaptotal)}
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>&nbsp;</td>
+                <td>Used</td>
+                <td>Free</td>
+                <td>Total</td>
+              </tr>
+              <tr>
+                <td>Swap</td>
+                <td>{Tools.getHumanSize(obj.swapused)}</td>
+                <td>{Tools.getHumanSize(obj.swapfree)}</td>
+                <td>{Tools.getHumanSize(obj.swaptotal)}</td>
+              </tr>
+              <tr>
+              </tr>
+            </tbody>
+          </table>
         )
+        return memory
       case 'loadAverage':
         var time = [15, 5, 1]
         return (

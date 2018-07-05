@@ -12,7 +12,7 @@ app.get('/os/memory', function (req, res) {
     "active": 613232640,
     "available": 220889088,
     "buffcache": 268042240,
-    "swaptotal": 0,
+    "swaptotal": 1996484608,
     "swapused": 546840576,
     "swapfree": 1449644032
   })
