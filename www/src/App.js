@@ -10,7 +10,10 @@ class App extends Component {
     super(props)
 
     this.state = {
-      date: new Date()
+      date: new Date(),
+      inited: false,
+      firstRun: false,
+      error: false,
     }
   }
 
@@ -18,9 +21,33 @@ class App extends Component {
     this.setState({ date: new Date() })
   }
 
-  render() {
 
-    return (
+  firstRun() {
+    this.setState({ firstRun: true })
+    fetch(API + 'system', { credentials: 'same-origin' })
+    .then(response => {
+      if (response.ok) {
+        return response.json()
+      } else {
+        throw new Error('Something went wrong ...')
+      }
+    })
+    .then(data => this.setState({ inited: true}))
+    .catch(error => this.setState({ error: true}))
+  }
+
+
+  render() {
+    if(!this.state.inited) {
+      if(!this.state.firstRun) this.firstRun()
+      return (
+        <div className="App">
+          <div className="container-fluid">
+            <h3>{!this.state.error ? 'Loading...' : 'Connection error'}</h3>
+          </div>
+        </div>
+      )
+    } else return (
       <div className="App">
         <nav className="navbar navbar-light bg-light justify-content-between sticky-top">
           <a className="navbar-brand" href="/">Status</a>
