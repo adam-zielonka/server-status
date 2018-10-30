@@ -10,6 +10,14 @@ const path = require('path')
 const app = express()
 app.use(express.static(path.join(__dirname, '../www/build/')))
 
+if(config.web.cross_origin) {
+  app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*")
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+    next()
+  })
+}
+
 app.get('/os/memory', function (req, res) {
   si.mem().then(data => res.send(data))
     .catch(error => res.status(500).send(error))
