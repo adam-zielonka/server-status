@@ -312,6 +312,7 @@ class Box extends Component {
                 pm2_app.monit.cpu += app.monit.cpu
                 pm2_app.online += app.pm2_env.status === 'online' ? 1 : 0
                 pm2_app.pm2_env.status = app.pm2_env.status === 'online' ? 'online' : 'stopped'
+                if(app.pm2_env.watch) pm2_app.pm2_env.watch = true
                 pm2_app.pm2_env.pm_uptime = Math.min(pm2_app.pm2_env.pm_uptime, app.pm2_env.pm_uptime)
                 pm2_app.apps.push(app)
             }
@@ -330,7 +331,8 @@ class Box extends Component {
                 pm2_env: {
                   status: app.pm2_env.status === 'online' ? 'online' : 'stopped',
                   exec_mode: 'cluster_mode',
-                  pm_uptime: app.pm2_env.pm_uptime
+                  pm_uptime: app.pm2_env.pm_uptime,
+                  watch: app.pm2_env.watch
                 }
               }) 
             } else {
@@ -382,7 +384,7 @@ class Box extends Component {
                       </td>
                       <td>{app.pm2_env.restart_time}</td>
                       <td>{Tools.getHumanTime((obj.time - app.pm2_env.pm_uptime) / 1000)}</td>
-                      <td>{app.monit.cpu}%</td>
+                      <td>{Tools.round(app.monit.cpu, 1)}%</td>
                       <td>{Tools.getHumanSize(app.monit.memory)}</td>
                       <td>{app.pm2_env.uid === undefined ? 'root' : app.pm2_env.uid}</td>
                       <td>
