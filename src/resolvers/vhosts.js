@@ -3,7 +3,7 @@ import request from 'request-promise'
 import { exec } from '../tools'
 
 export async function getVHosts() {
-  const { stdout } = await exec('apache2ctl -t -D DUMP_VHOSTS', { shell: true })
+  const { stdout } = await exec('apache2ctl -t -D DUMP_VHOSTS')
 
   const vhosts = []
   const rows = stdout.split('\n').filter(row => row.match(/^\s.*port/))

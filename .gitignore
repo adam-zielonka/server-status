@@ -1,5 +1,6 @@
 # Server status
 config.js
+dist/
 
 # Logs
 logs

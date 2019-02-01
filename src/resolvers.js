@@ -9,6 +9,7 @@ import {
 } from 'systeminformation'
 import { loadavg } from 'os'
 import { getVHosts, checkVHost } from './resolvers/vhosts'
+import { exec } from './tools'
 
 export const Query = {
   memory: () => mem(),
@@ -19,6 +20,10 @@ export const Query = {
   network: () => networkInterfaces(),
   loadAverage: () => loadavg(),
   vhosts: () => getVHosts(),
+  pm2: async () => {
+    const { stdout } = await exec('pm2 jlist')
+    return JSON.parse(stdout)
+  }
 }
 
 export const Network = {

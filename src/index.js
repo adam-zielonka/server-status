@@ -1,3 +1,5 @@
+import "@babel/polyfill"
+
 import { ApolloServer } from 'apollo-server'
 import typeDefs from './types'
 import * as resolvers from './resolvers'

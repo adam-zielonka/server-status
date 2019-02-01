@@ -71,14 +71,35 @@ export default gql`
     statusCode: String,
   }
 
+  type PM2_ENV {
+    exec_mode: String,
+    status: String,
+    watch: Boolean,
+    pm_uptime: Float,
+    restart_time: Float,
+  }
+
+  type PM2_monit {
+    memory: Float,
+    cpu: Float,
+  }
+
+  type PM2 {
+    name: String,
+    pm2_env: PM2_ENV,
+    monit: PM2_monit,
+    pm_id: Float,
+  }
+
   type Query {
-    memory: Memory
+    memory: Memory,
     fs: [FileSystem],
     system: System,
     cpu: CPU,
     time: Time,
     network: [Network],
-    loadAverage: [Float]
-    vhosts: [VHost]
+    loadAverage: [Float],
+    vhosts: [VHost],
+    pm2: [PM2]
   }
 `

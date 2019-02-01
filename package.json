@@ -4,7 +4,9 @@
   "description": "api for retrieving server status information",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon --exec babel-node src/index.js"
+    "start": "nodemon --exec babel-node src/index.js",
+    "build": "babel src --out-dir dist",
+    "serve": "node dist/index.js"
   },
   "keywords": [],
   "author": "Adam Zielonka",
@@ -14,6 +16,7 @@
     "url": "https://adam-zielonka@bitbucket.org/adam-zielonka-pro/pancake-api.git"
   },
   "dependencies": {
+    "@babel/polyfill": "^7.2.5",
     "apollo-server": "^2.3.2",
     "graphql": "^14.1.1",
     "request": "^2.88.0",
