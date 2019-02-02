@@ -9,6 +9,7 @@ import {
 } from 'systeminformation'
 import { loadavg } from 'os'
 import { getVHosts, checkVHost } from './resolvers/vhosts'
+import { getServices, getHosts, checkPort } from './resolvers/services'
 import { exec } from './tools'
 
 export const Query = {
@@ -20,6 +21,7 @@ export const Query = {
   network: () => networkInterfaces(),
   loadAverage: () => loadavg(),
   vhosts: () => getVHosts(),
+  services: () => getServices(),
   pm2: async () => {
     const { stdout } = await exec('pm2 jlist')
     return JSON.parse(stdout)
@@ -32,4 +34,12 @@ export const Network = {
 
 export const VHost = {
   statusCode: ({ name, port }) => checkVHost(name, port)
+}
+
+export const Service = {
+  hosts: ({ name, port }) => getHosts(name, port)
+}
+
+export const Host = {
+  open: ({ name, port }) => checkPort(name, port)
 }

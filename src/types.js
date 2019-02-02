@@ -91,6 +91,19 @@ export default gql`
     pm_id: Float,
   }
 
+  type Host {
+    name: String,
+    port: Float,
+    open: Boolean,
+  }
+
+  type Service {
+    name: String,
+    port: Float,
+    link: String,
+    hosts: [Host],
+  }
+
   type Query {
     memory: Memory,
     fs: [FileSystem],
@@ -100,6 +113,7 @@ export default gql`
     network: [Network],
     loadAverage: [Float],
     vhosts: [VHost],
-    pm2: [PM2]
+    pm2: [PM2],
+    services: [Service],
   }
 `
