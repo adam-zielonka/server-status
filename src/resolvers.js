@@ -11,8 +11,13 @@ import { loadavg } from 'os'
 import { getVHosts, checkVHost } from './resolvers/vhosts'
 import { getServices, getHosts, checkPort } from './resolvers/services'
 import { exec } from './tools'
+import { auth } from './user'
 
 export const Query = {
+  sysinfo: (a,b,c) => auth(c)
+}
+
+export const SysInfo = {
   memory: () => mem(),
   fs: () => fsSize(),
   system: () => osInfo(),
