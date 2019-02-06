@@ -1,13 +1,12 @@
 import * as jwt from 'jsonwebtoken'
 import { APP_SECRET, USERS } from './config';
 
-export function auth(context) {
+export function auth(parent, args, context) {
     if(!context.name) throw new Error('Not authenticated')
     return { auth : true }
 }
 
 export function getUserName(context) {
-    console.log(context.req.headers.authorization)
     const Authorization = context && context.req && context.req.headers.authorization
     if (Authorization) {
         const token = Authorization.replace('Bearer ', '')
