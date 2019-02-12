@@ -1,4 +1,4 @@
-import config from '../config'
+import { getConfig } from '../tools'
 import request from 'request-promise'
 import { exec } from '../tools'
 
@@ -27,9 +27,9 @@ export async function getVHosts() {
 }
 
 function auth() {
-  return config.vhost && config.vhost.user ? {
-    user: config.vhost.user,
-    pass: config.vhost.pass,
+  return getConfig().VHOST && getConfig().VHOST.user ? {
+    user: getConfig().VHOST.user,
+    pass: getConfig().VHOST.pass,
     sendImmediately: false
   } : {}
 }

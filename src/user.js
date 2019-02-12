@@ -1,5 +1,5 @@
 import * as jwt from 'jsonwebtoken'
-import { APP_SECRET, USERS } from './config';
+import { getConfig } from './tools'
 
 export function auth(parent, args, context) {
     if(!context.name) throw new Error('Not authenticated')
@@ -10,13 +10,15 @@ export function getUserName(context) {
     const Authorization = context && context.req && context.req.headers.authorization
     if (Authorization) {
         const token = Authorization.replace('Bearer ', '')
-        const { name } = jwt.verify(token, APP_SECRET)
-        return { name }
+        const { name } = jwt.verify(token, getConfig().APP_SECRET)
+        const user = getUser(name)
+        if(user) return { name }
+        else return null
     }
 }
 
 export function getUser(name) {
-    return USERS.find(user => user.name === name)
+    return getConfig().USERS.find(user => user.name === name)
 }
 
 export async function login(parent, args, context) {
@@ -30,7 +32,7 @@ export async function login(parent, args, context) {
     }
   
     return {
-      token: jwt.sign({ name: user.name }, APP_SECRET),
+      token: jwt.sign({ name: user.name }, getConfig().APP_SECRET),
       user,
     }
 }
