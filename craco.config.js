@@ -47,4 +47,9 @@ module.exports = {
   plugins: [
     { plugin: getCracoLoaderPlugin({ name: 'stylus', extension: /\.styl$/, loaders: ['style', 'css', 'stylus'] }) },
   ],
+  babel: {
+    plugins: [
+      ['@babel/plugin-proposal-decorators', { legacy: true }],
+    ],
+  },
 }
