@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "dependencies": {
     "@babel/plugin-proposal-decorators": "^7.6.0",
+    "@blueprintjs/core": "^3.19.1",
     "@craco/craco": "^5.5.0",
     "eslint-config-airbnb": "^18.0.1",
     "mobx": "^5.14.2",
