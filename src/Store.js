@@ -1,10 +1,17 @@
 import { createContext, useContext } from 'react'
-import { observable } from 'mobx'
+import { observable, action } from 'mobx'
+import api from './api'
 
 export class Store {
   @observable user = {
-    name: false,
-    token: false,
+    name: '',
+    token: '',
+  }
+
+  @action login = async (username, password) => {
+    const response = await api.login({ username, password })
+
+    return 'Not implement yet'
   }
 }
 
