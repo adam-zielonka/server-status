@@ -1,6 +1,25 @@
+// eslint-disable-next-line object-curly-newline
+async function apiFetch({ url, token, query, variables }) {
+  const auth = token ? { Authorization: `Bearer ${token}` } : {}
+  return fetch(url, {
+    body: JSON.stringify({ query, variables }),
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...auth },
+  }).then(res => res.text())
+    .then(res => {
+      try {
+        return JSON.parse(res)
+      } catch (error) {
+        return { errors: [{ message: typeof res === 'string' ? res : error.message }] }
+      }
+    })
+    .catch(error => ({ errors: [{ message: error.message }] }))
+}
+
+
 class API {
-  login = async ({ url, username, password }) => {
-    const query = `
+  login = async ({ url, username, password }) => apiFetch({
+    url, variables: { username, password }, query: `
       mutation($username: String!, $password: String!) {
         login(name: $username, pass: $password) {
           token
@@ -8,28 +27,10 @@ class API {
             name
           }
         }
-      }
-    `
+      }`,
+  })
 
-    const response = await fetch(url, {
-      body: JSON.stringify({
-        query,
-        variables: { username, password },
-      }),
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    }).then(res => res.text())
-      .then(res => {
-        try {
-          return JSON.parse(res)
-        } catch (error) {
-          return { errors: [{ message: typeof res === 'string' ? res : error.message }] }
-        }
-      })
-      .catch(error => ({ errors: [{ message: error.message }] }))
-
-    return response
-  }
+  getData = async props => apiFetch(props)
 }
 
 export default new API()
