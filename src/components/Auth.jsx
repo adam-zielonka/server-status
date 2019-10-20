@@ -1,3 +1,4 @@
+/* eslint-disable react/no-array-index-key */
 import React, { useState } from 'react'
 import {
   ControlGroup, InputGroup, Dialog, Classes, Button, Callout,
@@ -7,7 +8,7 @@ import { useStore } from '../Store'
 
 function useInput(initValue) {
   const [value, setValue] = useState(initValue)
-  return [value, (event) => setValue(event.target.value)]
+  return [value, event => setValue(event.target.value)]
 }
 
 function useLoading(fun) {
@@ -18,9 +19,11 @@ function useLoading(fun) {
 export const AuthForm = observer(() => {
   const { user, login } = useStore()
   const [username, onUsernameChange] = useInput(user.name)
+  const [url, onUrlChange] = useInput(user.url)
   const [pass, onPassChange] = useInput()
-  const [error, setError] = useState('')
-  const [loading, handleLogin] = useLoading(async () => setError(await login(username, pass)))
+  const [loading, handleLogin] = useLoading(async () => login(url, username, pass))
+
+  const cannotLogin = () => !url || !username || !pass
 
   return (
     <Dialog
@@ -30,21 +33,16 @@ export const AuthForm = observer(() => {
       isCloseButtonShown={false}
     >
       <div className={Classes.DIALOG_BODY}>
-        {error && (
-          <p>
-            <Callout intent="danger">
-              {error}
-            </Callout>
-          </p>
-        )}
+        {user.errors.map((error, key) => <Callout key={key} intent="danger">{error.message}</Callout>)}
         <ControlGroup vertical>
-          <InputGroup placeholder="Username" value={username} onChange={onUsernameChange} autoFocus />
-          <InputGroup type="password" placeholder="Password" value={pass} onChange={onPassChange} />
+          <InputGroup leftIcon="globe-network" placeholder="API URL" value={url} onChange={onUrlChange} autoFocus />
+          <InputGroup leftIcon="user" placeholder="Username" value={username} onChange={onUsernameChange} autoFocus />
+          <InputGroup leftIcon="key" type="password" placeholder="Password" value={pass} onChange={onPassChange} />
         </ControlGroup>
       </div>
       <div className={Classes.DIALOG_FOOTER}>
         <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-          <Button loading={loading} onClick={handleLogin}>Login</Button>
+          <Button disabled={cannotLogin()} loading={loading} onClick={handleLogin}>Login</Button>
         </div>
       </div>
     </Dialog>

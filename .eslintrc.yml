@@ -46,3 +46,4 @@ rules:
   react/prop-types:
     - 0
   import/prefer-default-export: off
+  arrow-parens: ["error", "as-needed"]

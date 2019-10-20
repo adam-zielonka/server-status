@@ -10,13 +10,13 @@ const getCracoLoaderPlugin = ({ extension, name, loaders }) => ({
 
     const newRule = {
       test: extension,
-      use: loaders.map((l) => ({
+      use: loaders.map(l => ({
         loader: require.resolve(`${l}-loader`),
         options: pluginOptions[`${l}LoaderOptions`] || {},
       })),
     }
 
-    const oneOfRule = webpackConfig.module.rules.find((rule) => rule.oneOf)
+    const oneOfRule = webpackConfig.module.rules.find(rule => rule.oneOf)
 
     if (!oneOfRule) {
       throwError(
