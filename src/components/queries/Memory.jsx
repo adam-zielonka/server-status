@@ -1,6 +1,8 @@
 import React from 'react'
 import Query from '../Query'
 import { Tools } from '../Tools'
+import { ProgressBar, ProgressMeter } from '../ProgressBar'
+import { Colors } from '@blueprintjs/core'
 
 const Memory = () => {
   const query = 'memory { total free used active available buffcache swaptotal swapused swapfree }'
@@ -9,13 +11,15 @@ const Memory = () => {
     <Query query={query} title="Memory">
       {obj => {
         const memory = [
-          <table className="table table-striped table-sm">
+          <table key="mem" className="table table-striped table-sm">
             <tbody>
               <tr>
                 <td colSpan="4">
                   <div className="progress">
-                    {Tools.getProgressBar(obj.active / obj.total)}
-                    {Tools.getProgressBar(obj.buffcache / obj.total, 'info')}
+                    <ProgressBar>
+                      <ProgressMeter value={obj.active / obj.total + obj.buffcache / obj.total} color={Colors.BLUE3} />
+                      <ProgressMeter value={obj.active / obj.total} />
+                    </ProgressBar>
                   </div>
                 </td>
               </tr>
@@ -35,7 +39,7 @@ const Memory = () => {
           </table>,
         ]
         if (obj.swaptotal) {memory.push(
-          <table className="table table-striped table-sm">
+          <table key="swap" className="table table-striped table-sm">
             <tbody>
               <tr>
                 <td colSpan="4">

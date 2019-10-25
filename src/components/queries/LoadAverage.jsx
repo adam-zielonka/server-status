@@ -1,6 +1,6 @@
 import React from 'react'
 import Query from '../Query'
-import { Tools } from '../Tools'
+import { ProgressBar, ProgressMeter } from '../ProgressBar'
 
 const LoadAverage = () => {
   const query = 'loadAverage'
@@ -12,15 +12,15 @@ const LoadAverage = () => {
         let time = [15, 5, 1]
         return (
           <div>
-            <table className="table table-striped table-sm">
+            <table>
               <tbody>
                 {array.map((avg, i) => (
                   <tr key={i}>
                     <td>{time.pop()}&nbsp;min</td>
-                    <td className="w-100">
-                      <div className="progress">
-                        {Tools.getProgressBar(avg)}
-                      </div>
+                    <td width="99%">
+                      <ProgressBar>
+                        <ProgressMeter value={avg} />
+                      </ProgressBar>
                     </td>
                   </tr>
                 ))}
