@@ -12,6 +12,8 @@ export class Store {
     url: '',
   }
 
+  @observable date = new Date()
+
   constructor() { autoSave(this) }
 
   @action login = async (url, username, password) => {
@@ -24,6 +26,8 @@ export class Store {
       this.user.url = url
     }
   }
+
+  @action reload = () => this.date = new Date()
 
   getData = async ({ query, variables }) => {
     const { url, token } = this.user
