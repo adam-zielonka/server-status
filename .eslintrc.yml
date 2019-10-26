@@ -6,7 +6,7 @@ env:
 extends:
   - 'eslint:recommended'
   - 'plugin:react/recommended'
-  - 'airbnb'
+  # - 'airbnb'
 globals:
   Atomics: readonly
   SharedArrayBuffer: readonly

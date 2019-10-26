@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite'
 import { useStore } from '../Store'
 
 const Query = observer(({ title, query, children }) => {
-  const { getData, date } = useStore()
+  const { date, getData } = useStore()
   const [data, setData] = useState({})
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(false)

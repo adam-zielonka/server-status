@@ -16,24 +16,26 @@ function useLoading(fun) {
   return [loading, async () => { setLoading(true); await fun(); setLoading(false) }]
 }
 
-export const AuthForm = observer(() => {
-  const { user, login } = useStore()
-  const [username, onUsernameChange] = useInput(user.name)
-  const [url, onUrlChange] = useInput(user.url)
+export const AuthForm = observer(({ connection }) => {
+  const { login, ID, deleteConnection } = useStore()
+  const [username, onUsernameChange] = useInput(connection.name)
+  const [url, onUrlChange] = useInput(connection.url)
   const [pass, onPassChange] = useInput()
-  const [loading, handleLogin] = useLoading(async () => login(url, username, pass))
+  const [loading, handleLogin] = useLoading(async () => login(connection, url, username, pass))
 
   const cannotLogin = () => !url || !username || !pass
 
+  console.log({...connection})
+
   return (
     <Dialog
-      title="Authorization required"
-      isOpen={!user.token}
+      title="Connection"
+      isOpen={!!connection}
       intent="primary"
       isCloseButtonShown={false}
     >
       <div className={Classes.DIALOG_BODY}>
-        {user.errors.map((error, key) => <Callout key={key} intent="danger">{error.message}</Callout>)}
+        {connection.errors.map((error, key) => <Callout key={key} intent="danger">{error.message}</Callout>)}
         <ControlGroup vertical>
           <InputGroup leftIcon="globe-network" placeholder="API URL" value={url} onChange={onUrlChange} autoFocus />
           <InputGroup leftIcon="user" placeholder="Username" value={username} onChange={onUsernameChange} autoFocus />
@@ -42,6 +44,8 @@ export const AuthForm = observer(() => {
       </div>
       <div className={Classes.DIALOG_FOOTER}>
         <div className={Classes.DIALOG_FOOTER_ACTIONS}>
+          <Button icon='trash' onClick={deleteConnection} />
+          <Button onClick={() => ID.edit = null}>Exit</Button>
           <Button disabled={cannotLogin()} loading={loading} onClick={handleLogin}>Login</Button>
         </div>
       </div>

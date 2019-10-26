@@ -1,36 +1,68 @@
 /* eslint-disable object-curly-newline */
 import { createContext, useContext } from 'react'
-import { observable, action } from 'mobx'
+import { observable, action, computed } from 'mobx'
 import api from './api'
 import autoSave from './autoSave'
 
-export class Store {
-  @observable user = {
-    name: '',
-    token: '',
-    errors: [],
-    url: '',
-  }
+export class Connection {
+  @observable name = ''
+  @observable token = ''
+  @observable errors = []
+  @observable url = ''
+}
 
+export class Store {
   @observable date = new Date()
+  @observable ID = {
+    edit: null,
+    connection: null,
+  }
+  @observable connections = []
 
   constructor() { autoSave(this) }
 
-  @action login = async (url, username, password) => {
-    const { data, errors } = await api.login({ url, username, password })
+  @computed get connection() {
+    return this.ID.connection !== null && this.connections[this.ID.connection]
+  }
 
-    if (errors) this.user.errors = errors
-    else if (data && data.login) {
-      this.user.token = data.login.token
-      this.user.name = data.login.user.name
-      this.user.url = url
-    }
+  @computed get edit() {
+    return this.ID.edit !== null && this.connections[this.ID.edit]
   }
 
   @action reload = () => this.date = new Date()
 
+  @action addConnection = () => {
+    this.connections.push(new Connection())
+    this.ID.edit = this.connections.length - 1
+  }
+
+  @action editConnection = id => this.ID.edit = id
+
+  @action selectConnection = id => {
+    this.ID.connection = id
+    this.reload()
+  }
+
+  @action deleteConnection = () => {
+    this.connections = this.connections.filter((_, i) => i !== this.ID.edit)
+    this.ID.edit = null
+    this.ID.connection = null
+  }
+
+  @action login = async (connection, url, username, password) => {
+    const { data, errors } = await api.login({ url, username, password })
+
+    if (errors) connection.errors = errors
+    else if (data && data.login) {
+      connection.token = data.login.token
+      connection.name = username
+      connection.url = url
+      this.ID.edit = null
+    }
+  }
+
   getData = async ({ query, variables }) => {
-    const { url, token } = this.user
+    const { url, token } = this.connections[this.ID.connection]
     return api.getData({ url, token, query, variables })
   }
 }
