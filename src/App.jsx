@@ -12,8 +12,8 @@ function App() {
     <div className="App">
       <nav className="nav">
         <ButtonGroup>
-          {connections.map((con, i) => <Button active={i === ID.connection} key={i} icon="panel-stats" onClick={() => selectConnection(i)} >
-            {con.url} <Button icon="edit" onClick={() => editConnection(i)} />
+          {connections.map((con, i) => <Button active={i === ID.connection} key={i} icon="unresolve" onClick={() => selectConnection(i)} >
+            {con.name} <Button icon="edit" onClick={() => editConnection(i)} />
           </Button>)}
           <Button icon="add" onClick={addConnection} />
         </ButtonGroup> 

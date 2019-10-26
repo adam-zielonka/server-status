@@ -6,6 +6,7 @@ import autoSave from './autoSave'
 
 export class Connection {
   @observable name = ''
+  @observable user = ''
   @observable token = ''
   @observable errors = []
   @observable url = ''
@@ -49,14 +50,16 @@ export class Store {
     this.ID.connection = null
   }
 
-  @action login = async (connection, url, username, password) => {
-    const { data, errors } = await api.login({ url, username, password })
+  @action login = async ({ connection, url, user, pass, name }) => {
+    const { data, errors } = await api.login({ url, username: user, password: pass })
 
     if (errors) connection.errors = errors
     else if (data && data.login) {
       connection.token = data.login.token
-      connection.name = username
+      connection.user = user
+      connection.name = name
       connection.url = url
+      connection.errors = []
       this.ID.edit = null
     }
   }

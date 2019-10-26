@@ -18,12 +18,13 @@ function useLoading(fun) {
 
 export const AuthForm = observer(({ connection }) => {
   const { login, ID, deleteConnection } = useStore()
-  const [username, onUsernameChange] = useInput(connection.name)
+  const [name, onNameChange] = useInput(connection.name)
+  const [user, onUserChange] = useInput(connection.user)
   const [url, onUrlChange] = useInput(connection.url)
   const [pass, onPassChange] = useInput()
-  const [loading, handleLogin] = useLoading(async () => login(connection, url, username, pass))
+  const [loading, handleLogin] = useLoading(async () => login({ connection, url, user, pass, name }))
 
-  const cannotLogin = () => !url || !username || !pass
+  const cannotLogin = () => !url || !user || !pass
 
   console.log({...connection})
 
@@ -37,8 +38,9 @@ export const AuthForm = observer(({ connection }) => {
       <div className={Classes.DIALOG_BODY}>
         {connection.errors.map((error, key) => <Callout key={key} intent="danger">{error.message}</Callout>)}
         <ControlGroup vertical>
-          <InputGroup leftIcon="globe-network" placeholder="API URL" value={url} onChange={onUrlChange} autoFocus />
-          <InputGroup leftIcon="user" placeholder="Username" value={username} onChange={onUsernameChange} autoFocus />
+          <InputGroup leftIcon="unresolve" placeholder="Connection name" value={name} onChange={onNameChange} autoFocus />
+          <InputGroup leftIcon="globe-network" placeholder="API URL" value={url} onChange={onUrlChange} />
+          <InputGroup leftIcon="user" placeholder="Username" value={user} onChange={onUserChange} />
           <InputGroup leftIcon="key" type="password" placeholder="Password" value={pass} onChange={onPassChange} />
         </ControlGroup>
       </div>
