@@ -1,6 +1,7 @@
 import React from 'react'
 import Query from '../Query'
 import { Tools } from '../Tools'
+import { ProgressBar, ProgressMeter } from '../ProgressBar'
 
 const FilesSystem = () => {
   const query = 'fs { fs type size used use mount }'
@@ -9,13 +10,17 @@ const FilesSystem = () => {
     <Query query={query} title="Files System">
       {props => {
         const array = Array.isArray(props) ? props : []
+        const [size, used] = array.reduce(([size, used], c) => [size + c.size, used + c.used], [0, 0])
         return (
           <div>
+            <ProgressBar>
+              <ProgressMeter value={used/size} />
+              <ProgressMeter value={1 - used/size} color='#dee2e6' />
+            </ProgressBar>
             <table className="table table-sm">
               <thead>
                 <tr>
                   <th>mount</th>
-                  <th className="w-100">use</th>
                   <th>type</th>
                   <th>size</th>
                   <th>used</th>
@@ -26,11 +31,6 @@ const FilesSystem = () => {
                 {array.map(fs => (
                   <tr key={fs.mount}>
                     <td>{fs.mount}</td>
-                    <td>
-                      <div className="progress">
-                        {Tools.getProgressBar(fs.use/100)}
-                      </div>
-                    </td>
                     <td>{fs.type}</td>
                     <td>{Tools.getHumanSize(fs.size)}</td>
                     <td>{Tools.getHumanSize(fs.used)}</td>

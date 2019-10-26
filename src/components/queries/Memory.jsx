@@ -2,7 +2,6 @@ import React from 'react'
 import Query from '../Query'
 import { Tools } from '../Tools'
 import { ProgressBar, ProgressMeter } from '../ProgressBar'
-import { Colors } from '@blueprintjs/core'
 
 const Memory = () => {
   const query = 'memory { total free used active available buffcache swaptotal swapused swapfree }'
@@ -11,18 +10,13 @@ const Memory = () => {
     <Query query={query} title="Memory">
       {obj => {
         const memory = [
+          <ProgressBar key='mem-bar'>
+            <ProgressMeter value={obj.active / obj.total} />
+            <ProgressMeter value={obj.buffcache / obj.total} color="royalblue" />
+            <ProgressMeter value={1 - obj.active / obj.total - obj.buffcache / obj.total} color='#dee2e6' />
+          </ProgressBar>,
           <table key="mem" className="table table-striped table-sm">
             <tbody>
-              <tr>
-                <td colSpan="4">
-                  <div className="progress">
-                    <ProgressBar>
-                      <ProgressMeter value={obj.active / obj.total + obj.buffcache / obj.total} color={Colors.BLUE3} />
-                      <ProgressMeter value={obj.active / obj.total} />
-                    </ProgressBar>
-                  </div>
-                </td>
-              </tr>
               <tr>
                 <td>Used</td>
                 <td>Cached</td>
@@ -38,35 +32,36 @@ const Memory = () => {
             </tbody>
           </table>,
         ]
-        if (obj.swaptotal) {memory.push(
-          <table key="swap" className="table table-striped table-sm">
-            <tbody>
-              <tr>
-                <td colSpan="4">
-                  <div className="progress">
-                    <ProgressBar>
-                      <ProgressMeter value={obj.swapused/obj.swaptotal} />
-                    </ProgressBar>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>&nbsp;</td>
-                <td>Used</td>
-                <td>Free</td>
-                <td>Total</td>
-              </tr>
-              <tr>
-                <td>Swap</td>
-                <td>{Tools.getHumanSize(obj.swapused)}</td>
-                <td>{Tools.getHumanSize(obj.swapfree)}</td>
-                <td>{Tools.getHumanSize(obj.swaptotal)}</td>
-              </tr>
-              <tr>
-              </tr>
-            </tbody>
-          </table>
-        )}
+        if (obj.swaptotal) {
+
+          memory.push(
+            <ProgressBar key='swap-bar'>
+              <ProgressMeter value={obj.swapused/obj.swaptotal} />
+              <ProgressMeter value={1 - obj.swapused/obj.swaptotal} color='#dee2e6' />
+            </ProgressBar>
+          )
+          
+          memory.push(
+            <table key="swap" className="table table-striped table-sm">
+              <tbody>
+                <tr>
+                  <td>&nbsp;</td>
+                  <td>Used</td>
+                  <td>Free</td>
+                  <td>Total</td>
+                </tr>
+                <tr>
+                  <td>Swap</td>
+                  <td>{Tools.getHumanSize(obj.swapused)}</td>
+                  <td>{Tools.getHumanSize(obj.swapfree)}</td>
+                  <td>{Tools.getHumanSize(obj.swaptotal)}</td>
+                </tr>
+                <tr>
+                </tr>
+              </tbody>
+            </table>
+          )
+        }
         return memory
       }}
     </Query>
