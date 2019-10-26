@@ -90,7 +90,7 @@ const PM2 = () => {
                   <th>mode</th>
                   <th>status</th>
                   <th>restart</th>
-                  <th>uptime</th>
+                  {/* <th>uptime</th> */}
                   <th>cpu</th>
                   <th>mem</th>
                   <th>user</th>

@@ -44,7 +44,9 @@ const Memory = () => {
               <tr>
                 <td colSpan="4">
                   <div className="progress">
-                    {Tools.getProgressBar(obj.swapused/obj.swaptotal)}
+                    <ProgressBar>
+                      <ProgressMeter value={obj.swapused/obj.swaptotal} />
+                    </ProgressBar>
                   </div>
                 </td>
               </tr>

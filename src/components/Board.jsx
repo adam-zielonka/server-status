@@ -12,14 +12,24 @@ function Board() {
 
   return (
     <div className="board">
-      <System />
-      <Memory />
-      <LoadAverage />
-      <PM2 />
-      <FilesSystem />
-      <Services />
-      <Network />
-      <VirtualHosts />
+      <div>
+        <System />
+        <LoadAverage />
+        <Memory />
+      </div>
+      <div>
+        <PM2 />
+        <div className="board-2">
+          <div>
+            <FilesSystem />
+            <Services />
+          </div>
+          <div>
+            <Network />
+            <VirtualHosts />
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
