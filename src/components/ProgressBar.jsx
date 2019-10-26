@@ -9,10 +9,12 @@ function getColor(percent) {
 }
 
 export const ProgressMeter = ({ value = 0, color }) => {
-  const percent = !isNaN(value) ? Math.round(value * 100) : 0
+  const newValue = !isNaN(value) ? value * 100 : 0
+  const percent = Math.round(newValue)
+  const width = (newValue > 100 ? 100 : newValue) + '%'
 
   return (
-    <div className='progress-meter' style={{ backgroundColor: color || getColor(percent), width: (value*100 > 100 ? 100 : value*100) + '%'}}>{percent}%</div>
+    <div className='progress-meter' style={{ backgroundColor: color || getColor(percent), width }}>{percent}%</div>
   )
 }
 
