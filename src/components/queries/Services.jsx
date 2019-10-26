@@ -1,6 +1,6 @@
 import React from 'react'
 import Query from '../Query'
-import { Tools } from '../Tools'
+import { Badge } from '../Badge'
 
 const Services = () => {
   const query = `services {
@@ -18,14 +18,7 @@ const Services = () => {
     <Query query={query} title="Services">
       {props => {
         const array = Array.isArray(props) ? props : []
-        // eslint-disable-next-line no-case-declarations
-        const getBadgeColor = open => (open ? {
-          background: 'green',
-          color: 'white',
-        } : {
-          background: 'red',
-          color: 'white',
-        })
+        const getBadgeColor = open => open ? 'green' : 'red'
 
         return (
           <div>
@@ -42,14 +35,7 @@ const Services = () => {
                   <tr key={i}>
                     <td>{service.port}</td>
                     <td>
-                      {service.hosts.map(host =>
-                        <>
-                          <span style={getBadgeColor(host.open)} className={'ml-1 badge badge-' + (host.open ? 'success' : 'danger')}>
-                      &nbsp;{host.name}&nbsp;
-                          </span>
-                      &nbsp; &nbsp;
-                        </>
-                      )}
+                      {service.hosts.map(host => <Badge key={host.name} color={getBadgeColor(host.open)}>{host.name}</Badge> )}
                     </td>
                     <td>{service.name}</td>
                   </tr>

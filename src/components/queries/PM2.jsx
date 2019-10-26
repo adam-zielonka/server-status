@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import Query from '../Query'
 import { Tools } from '../Tools'
+import { Badge } from '../Badge'
 
 const PM2 = () => {
   const query = `pm2 {
@@ -112,9 +113,9 @@ const PM2 = () => {
                     <td>{app.pm_id}</td>
                     <td>{app.pm2_env.exec_mode}</td>
                     <td>
-                      <span className={'badge badge-' + (app.pm2_env.status === 'online' ? 'success' : 'danger')}>
+                      <Badge color={app.pm2_env.status === 'online' ? 'green' : 'red'} >
                         {app.counter ? Tools.round((app.online/app.counter)*100, 0) + '%' : ''} {app.pm2_env.status.toUpperCase()}
-                      </span>
+                      </Badge>
                     </td>
                     <td>{app.pm2_env.restart_time}</td>
                     {/* <td>{Tools.getHumanTime((obj.time - app.pm2_env.pm_uptime) / 1000)}</td> */}
@@ -122,9 +123,9 @@ const PM2 = () => {
                     <td>{Tools.getHumanSize(app.monit.memory)}</td>
                     <td>{app.pm2_env.uid === undefined ? 'root' : app.pm2_env.uid}</td>
                     <td>
-                      <span className={'badge badge-' + (app.pm2_env.watch ? 'success' : 'secondary')}>
+                      <Badge color={app.pm2_env.watch ? 'green' : 'gray'} >
                         {(app.pm2_env.watch ? 'enabled' : 'disabled').toUpperCase()}
-                      </span>
+                      </Badge>
                     </td>
                   </tr>
                 )) : ''}

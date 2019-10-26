@@ -1,6 +1,25 @@
 import React from 'react'
 import Query from '../Query'
-import { Tools } from '../Tools'
+import { Badge } from '../Badge'
+
+const Th = ({ align, children }) => {
+  return <th style={{ textAlign: align }}>{children}</th>
+}
+
+const Td = ({ align, children }) => {
+  return <td style={{ textAlign: align }}>{children}</td>
+}
+
+function getColorByCode(code) { 
+  switch (Math.floor(code/100)) {
+  case 1: return 'blue'
+  case 2: return 'green'
+  case 3: return 'orange'
+  case 4: return 'black'
+  case 5: return 'red'
+  default: return 'gray'
+  }
+}
 
 const VirtualHosts = () => {
   const query = 'vhosts { port name statusCode }'
@@ -14,9 +33,9 @@ const VirtualHosts = () => {
             <table className="table table-sm">
               <thead>
                 <tr>
-                  <th>port</th>
-                  <th>name</th>
-                  <th>status code</th>
+                  <Th align='left'>port</Th>
+                  <Th align='left'>name</Th>
+                  <Th align='right'>code</Th>
                 </tr>
               </thead>
               <tbody>
@@ -26,11 +45,9 @@ const VirtualHosts = () => {
                     <td>
                       <a href={"http://"+(host.name)}>{host.name}</a>
                     </td>
-                    <td>
-                      <span className={"badge badge-" + (Tools.getColorByCode(host.statusCode))}>
-                        {host.statusCode}
-                      </span>
-                    </td>
+                    <Td align='right'>
+                      <Badge color={getColorByCode(host.statusCode)}>{host.statusCode}</Badge>
+                    </Td>
                   </tr>
                 ))}
               </tbody>
