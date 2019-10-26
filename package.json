@@ -2,6 +2,7 @@
   "name": "server-status-app",
   "version": "0.1.0",
   "dependencies": {
+    "@babel/cli": "^7.6.4",
     "@babel/plugin-proposal-decorators": "^7.6.0",
     "@blueprintjs/core": "^3.19.1",
     "@craco/craco": "^5.5.0",
@@ -22,10 +23,16 @@
     "test": "craco test",
     "test-coverage": "craco test --coverage",
     "lint": "eslint --ext .js --ext .jsx .",
-    "lint-fix": "eslint --ext .js --ext .jsx . --fix"
+    "lint-fix": "eslint --ext .js --ext .jsx . --fix",
+    "publish:npm": "rm -rf dist && mkdir dist && babel src/components -d dist --copy-files"
   },
   "eslintConfig": {
     "extends": "react-app"
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-react"
+    ]
   },
   "browserslist": {
     "production": [
