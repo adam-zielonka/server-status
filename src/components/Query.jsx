@@ -37,9 +37,7 @@ const Query = observer(({ title, query, children }) => {
   }, [queryDate, date])
 
   const style = {
-    boxShadow: '0 1px rgba(16,22,26,.15)',
-    paddingRight: '10px',
-    paddingLeft: '10px',
+    boxShadow: '0 1px rgba(16,22,26,.15)',  
     height: '30px',
   }
 
@@ -55,7 +53,7 @@ const Query = observer(({ title, query, children }) => {
     <Card className='item' elevation={Elevation.TWO} style={cardStyle}>
       <div style={style}>
         <h3>
-          {title}
+          <span style={{margin: '5px'}}>{title}</span>
           <Button loading={loading} intent={error ? 'danger' : 'none'} minimal icon={error ? 'warning-sign' : 'refresh'} style={{ float: 'right' }} onClick={onClickHandler} />
         </h3>
       </div>
