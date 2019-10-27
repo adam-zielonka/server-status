@@ -1,6 +1,6 @@
 {
   "name": "@server-status/api",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "api for retrieving server status information",
   "main": "./dist/index.js",
   "scripts": {
