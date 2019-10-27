@@ -34,6 +34,7 @@ const Query = observer(({ title, query, children }) => {
       setQueryDate(date)
       onClickHandler()
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryDate, date])
 
   const style = {
