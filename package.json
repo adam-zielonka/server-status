@@ -4,9 +4,9 @@
   "description": "api for retrieving server status information",
   "main": "./dist/index.js",
   "scripts": {
-    "start": "nodemon --exec babel-node src/index.js",
+    "start": "nodemon --exec babel-node src/start.js",
     "build": "babel src --out-dir dist",
-    "serve": "node dist/index.js"
+    "serve": "node dist/start.js"
   },
   "keywords": [
     "server",

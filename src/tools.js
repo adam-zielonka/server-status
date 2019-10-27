@@ -12,9 +12,8 @@ const DEFAULT_CONFIG = {
     SERVICES: [],
     VHOST: {},
     WEB: {
-        host: 'localhost',
+        localhost: false,
         port: 4000,
-        cross_origin: true
     },
     HOSTS: [
         `localhost`,
@@ -22,10 +21,18 @@ const DEFAULT_CONFIG = {
     
 }
 
+let CONFIG = null
+
 export function getConfig() {
+    if (CONFIG) return CONFIG
     try {
         return {...DEFAULT_CONFIG, ...require('./config')}
     } catch (e) {
         return DEFAULT_CONFIG
     }
+}
+
+export function setConfig(config) {
+    CONFIG = {...DEFAULT_CONFIG, ...config}
+    return CONFIG
 }
