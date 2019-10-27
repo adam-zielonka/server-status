@@ -1,19 +1,24 @@
 {
-  "name": "pancake-api",
-  "version": "1.0.0",
+  "name": "@server-status/api",
+  "version": "0.0.1",
   "description": "api for retrieving server status information",
-  "main": "index.js",
+  "main": "./dist/index.js",
   "scripts": {
     "start": "nodemon --exec babel-node src/index.js",
     "build": "babel src --out-dir dist",
     "serve": "node dist/index.js"
   },
-  "keywords": [],
-  "author": "Adam Zielonka",
+  "keywords": [
+    "server",
+    "status",
+    "monitor",
+    "stats"
+  ],
+  "author": "Adam Zielonka <root@adamzielonka.pro>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://adam-zielonka@bitbucket.org/adam-zielonka-pro/pancake-api.git"
+    "url": "https://gitlab.com/server-status/server-status-api"
   },
   "dependencies": {
     "@babel/polyfill": "^7.2.5",
