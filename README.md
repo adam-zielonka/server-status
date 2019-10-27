@@ -4,6 +4,17 @@ API for retrieving server status information
 
 ## Use
 
+Add `@server-status/api` to dependencies in package.json
+
+```bash
+$ npm install @server-status/api
+```
+or
+```bash
+$ yarn add @server-status/api
+```
+
+Create file e.g. `index.js`
 ```js
 const config = {
   USERS: [
@@ -45,10 +56,15 @@ const server = require('@server-status/api').default(config /*, apolloServerConf
 
 server.listen()
 ```
+And run server
+```bash
+$ node index.js
+```
+
 
 ## Frontend app
 
-[gitlab.com/server-status/server-status-app](https://gitlab.com/server-status/server-status-app)
+Go to [gitlab.com/server-status/server-status-app](https://gitlab.com/server-status/server-status-app)
 
 ## Licence
 
