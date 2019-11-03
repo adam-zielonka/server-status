@@ -1,40 +1,66 @@
-import "@babel/polyfill"
+import { ApolloServer, gql } from 'apollo-server'
 
-import { ApolloServer } from 'apollo-server'
-import typeDefs from './types'
-import * as Queries from './resolvers/sysinfo'
-import { auth, login, getUserName } from './user'
-import { setConfig } from "./tools"
+const ServerStatus = ({ plugins = [], listen = {}, apolloServerConfig = {} }) => {
+  if (!plugins.length) {
+    console.error('[ERROR] ⚠  You need to add min one plugin to run server')
+    return { 
+      listen: () => console.error('[ERROR] ⚠  Cannot listen of undefined')
+    }
+  }
 
-const Query = {
-  sysinfo: auth
-}
+  const Query = {}
+  const resolversList = [{ Query }]
+  const rootQueries = []
+  const typeDefs = []
+  const contextResolvers = []
+  const rootResolvers = []
 
-const Mutation = {
-  login
-}
+  const rootResolver = (parent, args, context, info) => (
+    rootResolvers.reduce((result, resolver) => (
+      {...result, ...resolver(parent, args, context, info, result)}), {}
+    )
+  )
+  const context = (context) => contextResolvers.reduce((context, resolver) => resolver(context), context)
+  const push = (array, element) => element && array.push(element)
+  const rootQuery = ({ name, args, type }) => (name && type && `${name}${args && `(${args})` || ''}: ${type}`) || ''
+  
+  for (const pluginParams of plugins) {
+    const plugin = pluginParams.plugin || require(pluginParams.name)
+    const { query, config } = plugin
+    if(pluginParams.config && config) config.setConfig(pluginParams.config)
+    if(query && query.name) {
+      Query[query.name] = (...args) => {
+        return query.resolver && query.resolver(...args, rootResolver(...args)) || rootResolver(...args)
+      }
+      push(rootQueries, rootQuery(query))
+    }
+    push(resolversList, plugin.resolvers)
+    push(typeDefs, plugin.types)
+    push(contextResolvers, plugin.context)
+    push(rootResolvers, plugin.root)
+  }
 
-const resolvers = {
-  Query,
-  ...Queries,
-  Mutation
-}
+  typeDefs.push(gql`
+    type Query {
+      ${rootQueries.join(' ')}
+    }
+  `)
 
-const ServerStatus = (config, apolloServerConfig = {}) => {
-  const CONFIG = setConfig(config)
-
-  const server = new ApolloServer({ typeDefs, resolvers, context: getUserName, ...apolloServerConfig })
-
-  const listenProps = CONFIG.WEB.localhost ? { host: 'localhost' } : {}
+  const resolvers = resolversList.reduce((a, b) => ({...a, ...b}))
+  const server = new ApolloServer({ typeDefs, resolvers, context, ...apolloServerConfig })
 
   return {
-    listen: (props = {}) => {
-      server.listen({ port: CONFIG.WEB.port,  ...props}).then(({ url }) => {
+    listen: (args) => {
+      server.listen({ ...{ port: 4000 }, ...listen, ...args }).then(({ url }) => {
         console.log(`Server ready at ${url}`)
       })
-    }
+    },
   }
 }
 
+ServerStatus.default = () => {
+  console.warn('[WARN] ⚠ You try to use deleted way two run server')
+  console.warn('[WARN] ⚠ Last version with ".default" is 0.0.3')
+} 
 
-export default ServerStatus
+module.exports = ServerStatus

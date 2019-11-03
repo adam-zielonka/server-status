@@ -10,7 +10,7 @@ import {
 import { loadavg } from 'os'
 import { getVHosts, checkVHost } from './vhosts'
 import { getServices, getHosts, checkPort } from './services'
-import { exec } from '../tools'
+import { exec } from '../../tools'
 
 export const SysInfo = {
   memory: () => mem(),

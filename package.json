@@ -1,12 +1,14 @@
 {
   "name": "@server-status/api",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "api for retrieving server status information",
   "main": "./dist/index.js",
   "scripts": {
     "start": "nodemon --exec babel-node src/start.js",
-    "build": "babel src --out-dir dist",
-    "serve": "node dist/start.js"
+    "build": "yarn clear && babel src --out-dir dist",
+    "serve": "node dist/start.js",
+    "clear": "rm -fr dist",
+    "lint": "eslint ."
   },
   "keywords": [
     "server",
@@ -21,21 +23,20 @@
     "url": "https://gitlab.com/server-status/server-status-api"
   },
   "dependencies": {
-    "@babel/polyfill": "^7.2.5",
-    "@types/jsonwebtoken": "^8.3.0",
-    "apollo-server": "^2.3.2",
-    "graphql": "^14.1.1",
-    "is-port-reachable": "^2.0.0",
-    "jsonwebtoken": "^8.4.0",
+    "apollo-server": "^2.9.7",
+    "graphql": "^14.5.8",
+    "is-port-reachable": "^2.0.1",
+    "jsonwebtoken": "^8.5.1",
     "request": "^2.88.0",
-    "request-promise": "^4.2.2",
-    "systeminformation": "^3.54.0"
+    "request-promise": "^4.2.4",
+    "systeminformation": "^4.14.17"
   },
   "devDependencies": {
-    "@babel/cli": "^7.2.3",
-    "@babel/core": "^7.2.2",
-    "@babel/node": "^7.2.2",
-    "@babel/preset-env": "^7.3.1",
-    "nodemon": "^1.18.9"
+    "@babel/cli": "^7.6.4",
+    "@babel/core": "^7.6.4",
+    "@babel/node": "^7.6.3",
+    "@babel/preset-env": "^7.6.3",
+    "eslint": "^6.6.0",
+    "nodemon": "^1.19.4"
   }
 }

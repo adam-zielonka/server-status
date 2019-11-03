@@ -1,6 +1,6 @@
-import { getConfig } from '../tools'
 import request from 'request-promise'
-import { exec } from '../tools'
+import { getConfig } from './config'
+import { exec } from './utils'
 
 export async function getVHosts() {
   const { stdout } = await exec('apache2ctl -t -D DUMP_VHOSTS')
@@ -12,12 +12,12 @@ export async function getVHosts() {
     let property = null
     for(let value of row.split(' ')) {
       switch (property) {
-        case "port":
-          vhost.port = value
-          break
-        case "namevhost":
-          vhost.name = value
-          break
+      case 'port':
+        vhost.port = value
+        break
+      case 'namevhost':
+        vhost.name = value
+        break
       }
       property = value
     }
@@ -27,11 +27,9 @@ export async function getVHosts() {
 }
 
 function auth() {
-  return getConfig().VHOST && getConfig().VHOST.user ? {
-    user: getConfig().VHOST.user,
-    pass: getConfig().VHOST.pass,
-    sendImmediately: false
-  } : {}
+  const { user, pass } = getConfig()
+
+  return user ? { user, pass, sendImmediately: false } : {}
 }
 
 export async function checkVHost(name, port) {
