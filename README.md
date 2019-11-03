@@ -16,7 +16,7 @@ $ yarn add @server-status/api
 
 Create file e.g. `index.js`
 ```js
-const ServerStatus = require('./index')
+const ServerStatus = require('@server-status/api')
 
 const config = {
   plugins: [
