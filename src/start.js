@@ -3,7 +3,8 @@ const ServerStatus = require('./index')
 const config = {
   plugins: [
     {
-      name: './plugins/auth',
+      name: 'auth',
+      plugin: require('../../api-plugin-auth'),
       config: {
         users: [
           {
@@ -16,7 +17,7 @@ const config = {
     },
     {
       name: 'systeminformation',
-      plugin: require('./plugins/systeminformation'),
+      plugin: require('../../api-plugin-systeminformation'),
     },
     {
       name: './plugins/apache2',
@@ -27,9 +28,6 @@ const config = {
     {
       name: './plugins/pm2',
     },
-    // {
-    //   name: './plugins/legacy',
-    // }
   ],
   listen: {
     port: 4000,

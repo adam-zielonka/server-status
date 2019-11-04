@@ -1,4 +1,5 @@
 import { ApolloServer, gql } from 'apollo-server'
+import fs from 'fs'
 
 const ServerStatus = ({ plugins = [], listen = {}, apolloServerConfig = {} }) => {
   if (!plugins.length) {
@@ -36,6 +37,7 @@ const ServerStatus = ({ plugins = [], listen = {}, apolloServerConfig = {} }) =>
     }
     push(resolversList, plugin.resolvers)
     push(typeDefs, plugin.types)
+    push(typeDefs, plugin.typesPath && fs.readFileSync(plugin.typesPath, 'utf8'))
     push(contextResolvers, plugin.context)
     push(rootResolvers, plugin.root)
   }
