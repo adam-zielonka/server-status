@@ -6,8 +6,10 @@
   "scripts": {
     "start": "nodemon --exec babel-node src/start.js",
     "build": "yarn clear && babel src --out-dir dist",
+    "prepublish": "yarn build",
     "serve": "node dist/start.js",
     "clear": "rm -fr dist",
+    "test": "jest",
     "lint": "eslint ."
   },
   "keywords": [
@@ -36,6 +38,7 @@
     "@babel/node": "^7.6.3",
     "@babel/preset-env": "^7.6.3",
     "eslint": "^6.6.0",
+    "jest": "^24.9.0",
     "nodemon": "^1.19.4"
   }
 }
