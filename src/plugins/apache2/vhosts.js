@@ -1,12 +1,12 @@
 import request from 'request-promise'
 import { getConfig } from './config'
-import { exec } from './utils'
+import { execSync } from 'child_process'
 
 export async function getVHosts() {
-  const { stdout } = await exec('apache2ctl -t -D DUMP_VHOSTS')
+  const out = await execSync('apache2ctl -t -D DUMP_VHOSTS')
 
   const vhosts = []
-  const rows = stdout.split('\n').filter(row => row.match(/^\s.*port/))
+  const rows = out.split('\n').filter(row => row.match(/^\s.*port/))
   for (let row of rows) {
     let vhost = {}
     let property = null

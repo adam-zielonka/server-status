@@ -1,15 +1,11 @@
-import types from './types'
-import { exec } from './utils'
+import { execSync } from 'child_process'
 
 module.exports = {
-  types,
+  typesPath: __dirname + '/types.gql',
   query: {
     name: 'pm2',
     type: '[PM2]',
-    resolver: async () => {
-      const { stdout } = await exec('pm2 jlist')
-      return JSON.parse(stdout)
-    }
+    resolver: async () => JSON.parse(await execSync('pm2 jlist')),
   }
 }
 

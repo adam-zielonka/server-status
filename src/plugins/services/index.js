@@ -1,10 +1,9 @@
-import types from './types'
 import * as resolvers from './resolvers'
 import { getServices } from './services'
 import * as config from './config'
 
 module.exports = {
-  types,
+  typesPath: __dirname + '/types.gql',
   resolvers,
   config,
   query: {
