@@ -20,13 +20,16 @@ const config = {
       plugin: require('../../api-plugin-systeminformation'),
     },
     {
-      name: './plugins/apache2',
+      name: 'apache2',
+      plugin: require('../../api-plugin-apache2'),
     },
     {
-      name: './plugins/services',
+      name: 'services',
+      plugin: require('../../api-plugin-services'),
     },
     {
-      name: './plugins/pm2',
+      name: 'pm2',
+      plugin: require('../../api-plugin-pm2'),
     },
   ],
   listen: {
