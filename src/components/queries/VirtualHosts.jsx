@@ -22,12 +22,14 @@ function getColorByCode(code) {
 }
 
 const VirtualHosts = () => {
-  const query = 'vhosts { port name statusCode }'
+  const query = '{ a2: apache2 { vhosts { port name statusCode } } }'
 
   return (
     <Query query={query} title="VirtualHosts">
-      {props => {
-        const array = Array.isArray(props) ? props : []
+      {response => {
+        let array = []
+        if(response && response.a2 && response.a2.vhosts)
+          array = Array.isArray(response.a2.vhosts) ? response.a2.vhosts : []
         return (
           <div>
             <table className="table table-sm">
@@ -43,7 +45,7 @@ const VirtualHosts = () => {
                   <tr key={i}>
                     <td>{host.port}</td>
                     <td>
-                      <a href={"http://"+(host.name)}>{host.name}</a>
+                      <a href={'http://'+(host.name)}>{host.name}</a>
                     </td>
                     <Td align='right'>
                       <Badge color={getColorByCode(host.statusCode)}>{host.statusCode}</Badge>

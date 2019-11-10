@@ -4,20 +4,22 @@ import { Tools } from '../Tools'
 import { Badge } from '../Badge'
 
 const PM2 = () => {
-  const query = `pm2 {
-    name
-    pm2_env {
-      exec_mode
-      status
-      watch
-      pm_uptime
-      restart_time
+  const query = `{ 
+    pm2 {
+      name
+      pm2_env {
+        exec_mode
+        status
+        watch
+        pm_uptime
+        restart_time
+      }
+      monit { 
+        memory
+        cpu
+      }
+      pm_id
     }
-    monit { 
-      memory
-      cpu
-    }
-    pm_id
   }`
 
   const [state, setState] = useState({ apps: {} })
@@ -30,8 +32,10 @@ const PM2 = () => {
 
   return (
     <Query query={query} title="PM2">
-      {props => {
-        const array = Array.isArray(props) ? props : []
+      {response => {
+        let array = []
+        if (response && response.pm2)
+          array = Array.isArray(response.pm2) ? response.pm2 : []
         const pm2_ls = []
         const pm2_ls_all = []
         if (array) {

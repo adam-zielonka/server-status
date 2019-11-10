@@ -3,27 +3,46 @@ import Query from '../Query'
 import { Tools } from '../Tools'
 
 const Network = () => {
-  const query = `network {
-    iface
-    ip4
-    ip6
-    mac
-    internal
-    networkStats { 
-      iface
-      operstate
-      rx
-      tx
-      rx_sec
-      tx_sec
-      ms
+  const query = `{
+    si: systeminformation {
+      network {
+        iface
+        ifaceName
+        ip4
+        ip6
+        mac
+        internal
+        virtual
+        operstate
+        type
+        duplex
+        mtu
+        speed
+        carrierChanges
+        stats: networkStats {
+          iface
+          operstate
+          rx_bytes
+          rx_dropped
+          rx_errors
+          tx_bytes
+          tx_dropped
+          tx_errors
+          rx_sec
+          tx_sec
+          ms
+        }
+      }
     }
   }`
 
   return (
     <Query query={query} title="Network">
-      {props => {
-        const array = Array.isArray(props) ? props : []
+      {response => {
+        let array = []
+        if(response && response.si && response.si.network) {
+          array = Array.isArray(response.si.network) ? response.si.network : []
+        }
         return (
           <div>
             <table className="table table-sm">
@@ -40,8 +59,8 @@ const Network = () => {
                   <tr key={net.iface}>
                     <td>{net.iface}</td>
                     <td>{net.ip4} {net.ip6}</td>
-                    <td>{net.networkStats ? Tools.getHumanSize(net.networkStats.rx) : ''}</td>
-                    <td>{net.networkStats ? Tools.getHumanSize(net.networkStats.tx) : ''}</td>
+                    <td>{net.stats ? Tools.getHumanSize(net.stats.rx_bytes) : ''}</td>
+                    <td>{net.stats ? Tools.getHumanSize(net.stats.tx_bytes) : ''}</td>
                   </tr>
                 ))}
               </tbody>

@@ -13,17 +13,12 @@ const Query = observer(({ title, query, children }) => {
   const onClickHandler = async () => {
     if (!loading) {
       setLoading(true)
-      const allQuery = `{
-        sysinfo {
-          data: ${query}
-        }
-      }`
 
-      const { data, errors } = await getData({ query: allQuery })
+      const { data, errors } = await getData({ query })
       if (errors && errors.length) setError(true)
-      else if (data && data.sysinfo) {
+      else if (data) {
         setError(false)
-        setData(data.sysinfo.data)
+        setData(data)
       }
       setLoading(false)
     }

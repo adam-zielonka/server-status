@@ -1,31 +1,67 @@
 import React from 'react'
 import Query from '../Query'
+import { Tools } from '../Tools'
 
 const System = () => {
-  const query = 'system { platform distro release codename arch hostname kernel }'
+  const query = `{
+    si: systeminformation {
+      system {
+        platform
+        distro
+        release
+        codename
+        kernel
+        arch
+        hostname
+      }
+      cpu {
+        manufacturer
+        brand
+        speed
+        cores
+      }
+      time {
+        current
+        uptime
+        timezone
+        timezoneName
+      }
+    }
+  }`
 
   return (
     <Query query={query} title="System">
-      {({ platform, distro, release, codename, arch, hostname, kernel }) => (
-        <table>
+      {response => {
+        const system = (response.si && response.si.system) || {}
+        const cpu = (response.si && response.si.cpu) || {}
+        const time = (response.si && response.si.time) || {}
+        return <table>
           <tbody>
             <tr>
               <td>Hostname</td>
-              <td>{hostname}</td>
+              <td>{system.hostname}</td>
             </tr>
             <tr>
               <td>OS</td>
               <td>
-                {distro} {release}
+                {system.distro} {system.release}
               </td>
             </tr>
             <tr>
               <td>Kernel version</td>
-              <td>{kernel}</td>
+              <td>{system.kernel}</td>
+            </tr>
+            <tr>
+              <td>Uptime</td>
+              <td>{time && Tools.getHumanTime(time.uptime)}</td>
+            </tr>
+            <tr>
+              <td>CPU</td>
+              <td>{cpu.cores}{cpu.cores && 'x'} {cpu.manufacturer} {cpu.brand} {cpu.speed && '@'} {cpu.speed}</td>
             </tr>
           </tbody>
         </table>
-      )}
+      }}
     </Query>
   )
 }

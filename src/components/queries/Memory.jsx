@@ -4,11 +4,15 @@ import { Tools } from '../Tools'
 import { ProgressBar, ProgressMeter } from '../ProgressBar'
 
 const Memory = () => {
-  const query = 'memory { total free used active available buffcache swaptotal swapused swapfree }'
+  const query = '{ si: systeminformation { memory { total free used active available buffcache swaptotal swapused swapfree } } }'
 
   return (
     <Query query={query} title="Memory">
-      {obj => {
+      {response => {
+        let obj = {}
+        if (response && response.si && response.si.memory)
+          obj = response.si.memory
+
         const memory = [
           <ProgressBar key='mem-bar'>
             <ProgressMeter value={obj.active / obj.total} />

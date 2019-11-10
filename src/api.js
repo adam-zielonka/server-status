@@ -20,7 +20,7 @@ async function apiFetch({ url, token, query, variables }) {
 class API {
   login = async ({ url, username, password }) => apiFetch({
     url, variables: { username, password }, query: `
-      mutation($username: String!, $password: String!) {
+      query($username: String!, $password: String!) {
         login(name: $username, pass: $password) {
           token
           user {

@@ -3,12 +3,14 @@ import Query from '../Query'
 import { ProgressBar, ProgressMeter } from '../ProgressBar'
 
 const LoadAverage = () => {
-  const query = 'loadAverage'
+  const query = '{ si: systeminformation { loadAverage } }'
 
   return (
     <Query query={query} title="Load Average">
-      {props => {
-        const array = Array.isArray(props) ? props : [0,0,0]
+      {response => {
+        let array = [0,0,0]
+        if (response && response.si && response.si.loadAverage)
+          array = Array.isArray(response.si.loadAverage) ? response.si.loadAverage : [0,0,0]
         let time = [15, 5, 1]
         return (
           <div>
