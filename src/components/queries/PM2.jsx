@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import Query from '../Query'
-import { Tools } from '../Tools'
+import * as Tools from '../Tools'
 import { Badge } from '../Badge'
 
 const PM2 = () => {
@@ -20,6 +20,11 @@ const PM2 = () => {
       }
       pm_id
     }
+    si: systeminformation {
+      time {
+        current
+      }
+    }
   }`
 
   const [state, setState] = useState({ apps: {} })
@@ -36,6 +41,7 @@ const PM2 = () => {
         let array = []
         if (response && response.pm2)
           array = Array.isArray(response.pm2) ? response.pm2 : []
+        const time = response && response.si && response.si.time && response.si.time.current
         const pm2_ls = []
         const pm2_ls_all = []
         if (array) {
@@ -95,10 +101,9 @@ const PM2 = () => {
                   <th>mode</th>
                   <th>status</th>
                   <th>restart</th>
-                  {/* <th>uptime</th> */}
+                  <th>uptime</th>
                   <th>cpu</th>
                   <th>mem</th>
-                  <th>user</th>
                   <th>watching</th>
                 </tr>
               </thead>
@@ -122,10 +127,9 @@ const PM2 = () => {
                       </Badge>
                     </td>
                     <td>{app.pm2_env.restart_time}</td>
-                    {/* <td>{Tools.getHumanTime((obj.time - app.pm2_env.pm_uptime) / 1000)}</td> */}
+                    <td>{Tools.getHumanTime((time - app.pm2_env.pm_uptime) / 1000)}</td>
                     <td>{Tools.round(app.monit.cpu, 1)}%</td>
                     <td>{Tools.getHumanSize(app.monit.memory)}</td>
-                    <td>{app.pm2_env.uid === undefined ? 'root' : app.pm2_env.uid}</td>
                     <td>
                       <Badge color={app.pm2_env.watch ? 'green' : 'gray'} >
                         {(app.pm2_env.watch ? 'enabled' : 'disabled').toUpperCase()}

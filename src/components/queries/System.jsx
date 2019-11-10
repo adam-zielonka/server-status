@@ -1,6 +1,6 @@
 import React from 'react'
 import Query from '../Query'
-import { Tools } from '../Tools'
+import * as Tools from '../Tools'
 
 const System = () => {
   const query = `{
