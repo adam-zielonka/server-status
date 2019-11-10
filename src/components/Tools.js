@@ -29,11 +29,11 @@ export function getHumanTime(seconds) {
   return result.join(' ')
 }
 
-export function getHumanSize(bytes = 0, prefix = '') {
+export function getHumanSize(bytes) {
   if(isNaN(bytes)) return '0\u00A0B'
 
-  ;['K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
-    .some(newPrefix => !(bytes >= 1024 && (bytes /= 1024) && (prefix = newPrefix)))
+  const prefix = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
+    .find(p => p === 'Y' || !(bytes >= 1024 && (bytes /= 1024)))
   
-  return `${round(bytes)}\u00A0${prefix}B`
+  return [round(bytes), '\u00A0', prefix, 'B'].join('')
 }
