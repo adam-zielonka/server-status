@@ -26,8 +26,6 @@ export const AuthForm = observer(({ connection }) => {
 
   const cannotLogin = () => !url || !user || !pass
 
-  console.log({...connection})
-
   return (
     <Dialog
       title="Connection"
