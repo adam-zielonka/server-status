@@ -1,4 +1,4 @@
-import { getHumanSize } from './Tools'
+import { getHumanSize, getHumanTime } from './Tools'
 
 describe('getHumanSize()', () => {
   const compare = {
@@ -36,5 +36,23 @@ describe('getHumanSize()', () => {
 
   Object.entries(compare).map(([input, output]) => {
     it(`${input} => ${output}`, () => expect(getHumanSize(input)).toBe(escape(output)))
+  })
+})
+
+describe('getHumanTime()', () => {
+  const compare = {
+    0: '',
+    1: '1 second',
+    60: '1 minute',
+    3600: '1 hour',
+    86400: '1 day',
+    31536000: '1 year',
+    2006605937: '63 years 229 days 14 hours 32 minutes 17 seconds',
+    2006605: '23 days 5 hours 23 minutes 25 seconds',
+    6577179: '76 days 2 hours 59 minutes 39 seconds',
+  }
+  
+  Object.entries(compare).map(([input, output]) => {
+    it(`${input} => ${output}`, () => expect(getHumanTime(input, 5)).toBe(output))
   })
 })

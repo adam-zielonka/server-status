@@ -2,31 +2,24 @@ export function round(value, precision = 2) {
   return Math.round(value*(10**precision))/(10**precision)
 }
 
-export function getHumanTime(seconds) {
+export function getHumanTime(seconds, depth = 2) {
   if(!seconds) return ''
   const units = {
     'year': 365 * 86400,
     'day': 86400,
     'hour': 3600,
     'minute': 60,
-    //'second': 1
+    'second': 1,
   }
-    
-  const result = []
-    
-  for (const unit in units) {
-    const divisor = units[unit]
-    const div = Math.floor(seconds / divisor)
-    
-    if (div === 0) continue
-    else {
-      if (div === 1) result.push(div + ' ' + unit)
-      else result.push(div + ' ' + unit + 's')
-      seconds %= divisor
-    }
-  }
-    
-  return result.join(' ')
+
+  return Object.entries(units).reduce(([arr, sec], [unit, divisor]) => (
+    [[...arr, [Math.floor(sec / divisor), unit]], sec % divisor]
+  ), [[], seconds])[0].map(([value, unit]) => (
+    !value ? '' : value + ' ' + unit + (value !== 1 ? 's' : '')
+  )).reduce((arr, curr) => {
+    if(arr.length === depth || !curr) return arr
+    return [...arr, curr]
+  }, []).filter(f => f).join(' ')
 }
 
 export function getHumanSize(bytes) {
