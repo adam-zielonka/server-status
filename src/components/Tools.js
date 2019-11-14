@@ -12,14 +12,16 @@ export function getHumanTime(seconds, depth = 2) {
     'second': 1,
   }
 
-  return Object.entries(units).reduce(([arr, sec], [unit, divisor]) => (
-    [[...arr, [Math.floor(sec / divisor), unit]], sec % divisor]
-  ), [[], seconds])[0].map(([value, unit]) => (
-    !value ? '' : value + ' ' + unit + (value !== 1 ? 's' : '')
-  )).reduce((arr, curr) => {
-    if(arr.length === depth || !curr) return arr
-    return [...arr, curr]
-  }, []).filter(f => f).join(' ')
+  const spreadTime = ([arr, sec], [unit, divisor]) => [[...arr, [Math.floor(sec / divisor), unit]], sec % divisor]
+  const addDescription = ([value, unit]) => !value ? '' : value + ' ' + unit + (value !== 1 ? 's' : '')
+  const selectForDepth = (arr, curr) => arr.length === depth || !curr ? arr : [...arr, curr]
+
+  return Object.entries(units)
+    .reduce(spreadTime, [[], seconds])[0]
+    .map(addDescription)
+    .reduce(selectForDepth, [])
+    .filter(f => f)
+    .join(' ')
 }
 
 export function getHumanSize(bytes) {
