@@ -50,7 +50,12 @@ describe('getHumanTime()', () => {
     2006605937: '63 years 229 days 14 hours 32 minutes 17 seconds',
     2006605: '23 days 5 hours 23 minutes 25 seconds',
     6577179: '76 days 2 hours 59 minutes 39 seconds',
+    'ala': ''
   }
+
+  ;['', undefined, null, [1,2,3]].map(input => {
+    it(`${input} => 0 B`, () => expect(getHumanTime(input)).toBe(''))
+  })
   
   Object.entries(compare).map(([input, output]) => {
     it(`${input} => ${output}`, () => expect(getHumanTime(input, 5)).toBe(output))
