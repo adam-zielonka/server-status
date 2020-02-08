@@ -2,7 +2,7 @@
 
 Server Status is a nodejs script for server monitoring. Tested only on Debian. Inspired by [eZ Server Monitor (eSM) `Web](https://www.ezservermonitor.com/esm-web/features).
 
-![](https://screenshots.firefoxusercontent.com/images/1a773f64-85a7-4f93-9a90-e8dc37aaf54d.png)
+![](img/fake-status.png)
 
 ## Configuration
 
