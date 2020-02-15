@@ -16,8 +16,8 @@ const Memory = () => {
         const memory = [
           <ProgressBar key='mem-bar'>
             <ProgressMeter value={obj.active / obj.total} />
-            <ProgressMeter value={obj.buffcache / obj.total} color="royalblue" />
-            <ProgressMeter value={1 - obj.active / obj.total - obj.buffcache / obj.total} color='#dee2e6' />
+            <ProgressMeter value={(obj.used - obj.active) / obj.total} color="royalblue" />
+            <ProgressMeter value={1 - (obj.active / obj.total) - ((obj.used - obj.active) / obj.total)} color='#dee2e6' />
           </ProgressBar>,
           <table key="mem" className="table table-striped table-sm">
             <tbody>
@@ -29,7 +29,7 @@ const Memory = () => {
               </tr>
               <tr>
                 <td>{Tools.getHumanSize(obj.active)}</td>
-                <td>{Tools.getHumanSize(obj.buffcache)}</td>
+                <td>{Tools.getHumanSize(obj.used - obj.active)}</td>
                 <td>{Tools.getHumanSize(obj.free)}</td>
                 <td>{Tools.getHumanSize(obj.total)}</td>
               </tr>
