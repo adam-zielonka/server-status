@@ -3,19 +3,38 @@ import { Button, Card, Elevation } from '@blueprintjs/core'
 import { observer } from 'mobx-react-lite'
 import { useStore } from '../Store'
 
-const Query = observer(({ title, query, children }) => {
+const Query = observer(({ title, query, query2, children }) => {
   const { date, getData } = useStore()
   const [data, setData] = useState({})
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(false)
   const [queryDate, setQueryDate] = useState()
+  const [sQuery, setSQuery] = useState(query)
 
   const onClickHandler = async () => {
     if (!loading) {
       setLoading(true)
 
-      const { data, errors } = await getData({ query })
-      if (errors && errors.length) setError(true)
+      let { data, errors } = await getData({ query: sQuery })
+      if (errors && errors.length && query2) {
+        const response = await getData({ query: query2 })
+        data = response.data
+        errors = response.errors
+        if (!(errors && errors.length)) {
+          setSQuery(query2)
+        }
+      }
+      if (errors && errors.length && query) {
+        const response = await getData({ query: query })
+        data = response.data
+        errors = response.errors
+        if (!(errors && errors.length)) {
+          setSQuery(query)
+        }
+      }
+      if (errors && errors.length) {
+        setError(true)
+      }
       else if (data) {
         setError(false)
         setData(data)

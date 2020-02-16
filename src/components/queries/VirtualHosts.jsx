@@ -23,9 +23,10 @@ function getColorByCode(code) {
 
 const VirtualHosts = () => {
   const query = '{ a2: apache2 { vhosts { port name statusCode } } }'
+  const query2 = '{ a2: apache2 { vhosts { port name statusCode { in out } } } }'
 
   return (
-    <Query query={query} title="VirtualHosts">
+    <Query query={query} query2={query2} title="VirtualHosts">
       {response => {
         let array = []
         if(response && response.a2 && response.a2.vhosts)
@@ -37,7 +38,12 @@ const VirtualHosts = () => {
                 <tr>
                   <Th align='left'>port</Th>
                   <Th align='left'>name</Th>
-                  <Th align='right'>code</Th>
+                  {array.length && typeof array[0].statusCode === 'string' ? <>
+                    <Th align='right'>code</Th>
+                  </> : <>
+                    <Th align='right'>in</Th>
+                    <Th align='right'>out</Th>
+                  </>}
                 </tr>
               </thead>
               <tbody>
@@ -47,9 +53,18 @@ const VirtualHosts = () => {
                     <td>
                       <a href={'http://'+(host.name)}>{host.name}</a>
                     </td>
-                    <Td align='right'>
-                      <Badge color={getColorByCode(host.statusCode)}>{host.statusCode}</Badge>
-                    </Td>
+                    {typeof host.statusCode === 'string' ? <>
+                      <Td align='right'>
+                        <Badge color={getColorByCode(host.statusCode)}>{host.statusCode}</Badge>
+                      </Td>
+                    </> : <>
+                      <Td align='right'>
+                        <Badge color={getColorByCode(host.statusCode.in)}>{host.statusCode.in}</Badge>
+                      </Td>
+                      <Td align='right'>
+                        <Badge color={getColorByCode(host.statusCode.out)}>{host.statusCode.out}</Badge>
+                      </Td>
+                    </>}
                   </tr>
                 ))}
               </tbody>
