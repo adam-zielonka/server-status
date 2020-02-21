@@ -23,12 +23,13 @@ function getColorByCode(code) {
 
 const VirtualHosts = () => {
   const query = '{ a2: apache2 { vhosts { port name statusCode } } }'
-  const query2 = '{ a2: apache2 { vhosts { port name statusCode { in out } } } }'
+  const query2 = '{ a2: caddy { vhosts { port name statusCode externalStatusCode } } }'
 
   return (
     <Query query={query} query2={query2} title="VirtualHosts">
       {response => {
         let array = []
+        console.log(response)
         if(response && response.a2 && response.a2.vhosts)
           array = Array.isArray(response.a2.vhosts) ? response.a2.vhosts : []
         return (
@@ -53,16 +54,16 @@ const VirtualHosts = () => {
                     <td>
                       <a href={'http://'+(host.name)}>{host.name}</a>
                     </td>
-                    {typeof host.statusCode === 'string' ? <>
+                    {!host.externalStatusCode ? <>
                       <Td align='right'>
                         <Badge color={getColorByCode(host.statusCode)}>{host.statusCode}</Badge>
                       </Td>
                     </> : <>
                       <Td align='right'>
-                        <Badge color={getColorByCode(host.statusCode.in)}>{host.statusCode.in}</Badge>
+                        <Badge color={getColorByCode(host.statusCode)}>{host.statusCode}</Badge>
                       </Td>
                       <Td align='right'>
-                        <Badge color={getColorByCode(host.statusCode.out)}>{host.statusCode.out}</Badge>
+                        <Badge color={getColorByCode(host.externalStatusCode)}>{host.externalStatusCode}</Badge>
                       </Td>
                     </>}
                   </tr>
