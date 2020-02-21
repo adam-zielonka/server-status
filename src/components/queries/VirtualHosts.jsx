@@ -29,7 +29,6 @@ const VirtualHosts = () => {
     <Query query={query} query2={query2} title="VirtualHosts">
       {response => {
         let array = []
-        console.log(response)
         if(response && response.a2 && response.a2.vhosts)
           array = Array.isArray(response.a2.vhosts) ? response.a2.vhosts : []
         return (
