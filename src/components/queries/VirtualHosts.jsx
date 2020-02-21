@@ -38,7 +38,7 @@ const VirtualHosts = () => {
                 <tr>
                   <Th align='left'>port</Th>
                   <Th align='left'>name</Th>
-                  {array.length && typeof array[0].statusCode === 'string' ? <>
+                  {array.length && !array[0].externalStatusCode ? <>
                     <Th align='right'>code</Th>
                   </> : <>
                     <Th align='right'>in</Th>
