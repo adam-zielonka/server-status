@@ -19,9 +19,13 @@ const config = {
       name: 'systeminformation',
       plugin: require('../../api-plugin-systeminformation'),
     },
+    // {
+    //   name: 'apache2',
+    //   plugin: require('../../api-plugin-apache2'),
+    // },
     {
-      name: 'apache2',
-      plugin: require('../../api-plugin-apache2'),
+      name: 'caddy',
+      plugin: require('../../api-plugin-caddy'),
     },
     {
       name: 'services',

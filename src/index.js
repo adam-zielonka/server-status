@@ -15,6 +15,7 @@ const ServerStatus = ({ plugins = [], listen = {}, apolloServerConfig = {} }) =>
   const typeDefs = []
   const contextResolvers = []
   const rootResolvers = []
+  const loadedPlugins = []
 
   const rootResolver = (parent, args, context, info) => (
     rootResolvers.reduce((result, resolver) => (
@@ -26,6 +27,7 @@ const ServerStatus = ({ plugins = [], listen = {}, apolloServerConfig = {} }) =>
   const rootQuery = ({ name, args, type }) => (name && type && `${name}${args && `(${args})` || ''}: ${type}`) || ''
   
   for (const pluginParams of plugins) {
+    push(loadedPlugins, pluginParams.name)
     const plugin = pluginParams.plugin || require(pluginParams.name)
     const { query, config } = plugin
     if(pluginParams.config && config) config.setConfig(pluginParams.config)
@@ -42,11 +44,31 @@ const ServerStatus = ({ plugins = [], listen = {}, apolloServerConfig = {} }) =>
     push(rootResolvers, plugin.root)
   }
 
+  Query.server = (...args) => rootResolver(...args)
+
   typeDefs.push(gql`
+    type Plugin {
+      name: String
+    }
+
+    type ServerStatus {
+      plugins: [Plugin]
+    }
+
     type Query {
       ${rootQueries.join(' ')}
+      server: ServerStatus
     }
   `)
+
+  push(resolversList, { 
+    ServerStatus: {
+      plugins: () => {
+        console.log(loadedPlugins.map(name => name))
+        return loadedPlugins.map(name => ({ name }))
+      }
+    } 
+  })
 
   const resolvers = resolversList.reduce((a, b) => ({...a, ...b}))
   const server = new ApolloServer({ typeDefs, resolvers, context, ...apolloServerConfig })
