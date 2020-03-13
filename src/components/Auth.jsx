@@ -16,7 +16,7 @@ function useLoading(fun) {
   return [loading, async () => { setLoading(true); await fun(); setLoading(false) }]
 }
 
-export const AuthForm = observer(({ connection }) => {
+export const AuthForm = observer(({ connection, errors }) => {
   const { login } = useStore()
   const [user, onUserChange] = useInput(connection.user)
   const [pass, onPassChange] = useInput()
@@ -33,7 +33,7 @@ export const AuthForm = observer(({ connection }) => {
       icon="globe-network"
     >
       <div className={Classes.DIALOG_BODY}>
-        {connection.errors.map((error, key) => <Callout key={key} intent="danger">{error.message}</Callout>)}
+        {errors.map((error, key) => <Callout key={key} intent="danger">{error.message}</Callout>)}
         <ControlGroup vertical>
           <InputGroup leftIcon="user" placeholder="Username" value={user} onChange={onUserChange} />
           <InputGroup leftIcon="key" type="password" placeholder="Password" value={pass} onChange={onPassChange} />

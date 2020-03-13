@@ -7,14 +7,14 @@ import autoSave from './autoSave'
 export class Connection {
   @observable user = ''
   @observable token = ''
-  @observable errors = []
-  @observable url = '/api/'
-  @observable conf = null
 }
 
 export class Store {
   @observable date = new Date()
   @observable connection = new Connection()
+  @observable errors = []
+  @observable url = '/api/'
+  @observable conf = null
 
   constructor() { 
     autoSave(this) 
@@ -31,27 +31,26 @@ export class Store {
     }`
 
     const { data, errors } = await this.getData({ query })
-    this.connection.conf = data && data.serverstatus
-    this.connection.errors = errors || []
+    this.conf = data && data.serverstatus
+    this.errors = errors || []
   }
 
   @action reload = () => this.date = new Date()
 
   @action login = async ({ user, pass }) => {
-    const connection = this.connection
-    const { data, errors } = await api.login({ url: connection.url, username: user, password: pass })
+    const { data, errors } = await api.login({ url: this.url, username: user, password: pass })
 
-    if (errors) connection.errors = errors
+    if (errors) this.errors = errors
     else if (data && data.login) {
-      connection.token = data.login.token
-      connection.user = user
+      this.connection.token = data.login.token
+      this.connection.user = user
       await this.loadConf()
     }
   }
 
   getData = async ({ query, variables }) => {
-    const { url, token } = this.connection
-    return api.getData({ url, token, query, variables })
+    const { token } = this.connection
+    return api.getData({ url: this.url, token, query, variables })
   }
 }
 

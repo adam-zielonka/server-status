@@ -8,15 +8,15 @@ import { Button, Navbar, Alignment } from '@blueprintjs/core'
 const Logo = () => <img className='logo' src={require('./img/server-status.png')} alt='Logo' />
 
 function App() {
-  const { reload, connection } = useStore()
+  const { reload, connection, errors, conf } = useStore()
 
-  if (connection.errors.length) {
+  if (errors.length) {
     return <div className="App">
-      <AuthForm connection={connection} />
+      <AuthForm connection={connection} errors={errors} />
     </div>
   }
 
-  if (!connection.conf) {
+  if (!conf) {
     return <div className="App">
       Loading...
     </div>
