@@ -1,11 +1,13 @@
 {
   "name": "@server-status/api",
-  "version": "0.1.6",
+  "version": "0.1.9",
   "description": "api for retrieving server status information",
   "main": "./dist/index.js",
   "scripts": {
     "start": "nodemon --exec babel-node src/start.js",
-    "build": "yarn clear && babel src --out-dir dist",
+    "build": "babel src --out-dir dist",
+    "prebuild": "yarn clear",
+    "postbuild": "find src/ -type f | grep -i .gql$ | cut -c 5- | xargs -i cp src/{} dist/{}",
     "prepublish": "yarn build",
     "serve": "node dist/start.js",
     "clear": "rm -fr dist",
