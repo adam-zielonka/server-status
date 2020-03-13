@@ -2,18 +2,17 @@
   "name": "server-status-app",
   "version": "0.1.0",
   "dependencies": {
-    "@babel/cli": "^7.6.4",
-    "@babel/plugin-proposal-decorators": "^7.6.0",
-    "@blueprintjs/core": "^3.19.1",
-    "@craco/craco": "^5.5.0",
-    "enzyme": "^3.10.0",
-    "enzyme-adapter-react-16": "^1.15.1",
-    "eslint-config-airbnb": "^18.0.1",
-    "mobx": "^5.14.2",
-    "mobx-react-lite": "^1.5.0",
-    "react": "^16.10.2",
-    "react-dom": "^16.10.2",
-    "react-scripts": "3.2.0",
+    "@babel/cli": "^7.8.4",
+    "@babel/plugin-proposal-decorators": "^7.8.3",
+    "@blueprintjs/core": "^3.24.0",
+    "@craco/craco": "^5.6.3",
+    "enzyme": "^3.11.0",
+    "enzyme-adapter-react-16": "^1.15.2",
+    "mobx": "^5.15.4",
+    "mobx-react-lite": "^1.5.2",
+    "react": "^16.13.0",
+    "react-dom": "^16.13.0",
+    "react-scripts": "^3.4.0",
     "stylus": "^0.54.7",
     "stylus-loader": "^3.0.2"
   },
@@ -23,8 +22,7 @@
     "test": "craco test",
     "test-coverage": "craco test --coverage",
     "lint": "eslint --ext .js --ext .jsx .",
-    "lint-fix": "eslint --ext .js --ext .jsx . --fix",
-    "publish:npm": "rm -rf dist && mkdir dist && babel src/components -d dist --copy-files"
+    "lint-fix": "eslint --ext .js --ext .jsx . --fix"
   },
   "eslintConfig": {
     "extends": "react-app"
