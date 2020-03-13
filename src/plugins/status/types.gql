@@ -1,0 +1,7 @@
+type Plugin {
+  name: String
+}
+
+type ServerStatus {
+  plugins: [Plugin]
+}

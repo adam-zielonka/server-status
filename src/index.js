@@ -1,4 +1,5 @@
 import { ApolloServer, gql } from 'apollo-server'
+import sysPlugins from './plugins'
 import fs from 'fs'
 
 const ServerStatus = ({ plugins = [], listen = {}, apolloServerConfig = {} }) => {
@@ -8,6 +9,8 @@ const ServerStatus = ({ plugins = [], listen = {}, apolloServerConfig = {} }) =>
       listen: () => console.error('[ERROR] ⚠  Cannot listen of undefined')
     }
   }
+
+  plugins.push(...sysPlugins)
 
   const Query = {}
   const resolversList = [{ Query }]
@@ -44,31 +47,13 @@ const ServerStatus = ({ plugins = [], listen = {}, apolloServerConfig = {} }) =>
     push(rootResolvers, plugin.root)
   }
 
-  Query.server = (...args) => rootResolver(...args)
-
   typeDefs.push(gql`
-    type Plugin {
-      name: String
-    }
-
-    type ServerStatus {
-      plugins: [Plugin]
-    }
-
     type Query {
       ${rootQueries.join(' ')}
-      server: ServerStatus
     }
   `)
 
-  push(resolversList, { 
-    ServerStatus: {
-      plugins: () => {
-        console.log(loadedPlugins.map(name => name))
-        return loadedPlugins.map(name => ({ name }))
-      }
-    } 
-  })
+  push(contextResolvers, (context) => ({...context, plugins: loadedPlugins.map(name => ({ name }))}))
 
   const resolvers = resolversList.reduce((a, b) => ({...a, ...b}))
   const server = new ApolloServer({ typeDefs, resolvers, context, ...apolloServerConfig })
