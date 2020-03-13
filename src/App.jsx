@@ -8,7 +8,7 @@ import { Button, Navbar, Alignment } from '@blueprintjs/core'
 const Logo = () => <img className='logo' src={require('./img/server-status.png')} alt='Logo' />
 
 function App() {
-  const { reload, connection, errors, conf } = useStore()
+  const { reload, connection, errors, conf, logout } = useStore()
 
   if (errors.length) {
     return <div className="App">
@@ -31,6 +31,7 @@ function App() {
           <h3 className="bp3-heading" style={{ paddingTop: '5px' }}>ServerStatus</h3>
         </Navbar.Group>
         <Navbar.Group align={Alignment.RIGHT}>
+          <Button minimal icon="log-out" style={{ float: 'right' }} onClick={logout} />
           <Button minimal icon="refresh" style={{ float: 'right' }} onClick={reload} />
         </Navbar.Group>
       </Navbar>

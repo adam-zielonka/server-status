@@ -48,6 +48,12 @@ export class Store {
     }
   }
 
+  @action logout = () => {
+    this.connection.token = ''
+    this.conf = null
+    this.errors = [{ message: 'Logout' }]
+  }
+
   getData = async ({ query, variables }) => {
     const { token } = this.connection
     return api.getData({ url: this.url, token, query, variables })
