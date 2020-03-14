@@ -1,6 +1,13 @@
+import { fakeApi } from './fakeApi'
+
 // eslint-disable-next-line object-curly-newline
 async function apiFetch({ url, token, query, variables }) {
   const auth = token ? { Authorization: `Bearer ${token}` } : {}
+
+  if (process.env.REACT_APP_FAKE_API) {
+    return await fakeApi()
+  }
+
   return fetch(url, {
     body: JSON.stringify({ query, variables }),
     method: 'POST',
@@ -15,7 +22,6 @@ async function apiFetch({ url, token, query, variables }) {
     })
     .catch(error => ({ errors: [{ message: error.message }] }))
 }
-
 
 class API {
   login = async ({ url, username, password }) => apiFetch({
