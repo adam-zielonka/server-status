@@ -3,7 +3,7 @@ import { observer } from 'mobx-react-lite'
 import { AuthForm } from './components/Auth'
 import { useStore } from './Store'
 import Board from './components/Board'
-import { Button, Navbar, Alignment } from '@blueprintjs/core'
+import { Button, Navbar, Alignment, Spinner } from '@blueprintjs/core'
 
 const Logo = () => <img className='logo' src={require('./img/server-status.png')} alt='Logo' />
 
@@ -17,8 +17,8 @@ function App() {
   }
 
   if (!conf) {
-    return <div className="App">
-      Loading...
+    return <div className="spinner">
+      <Spinner size='100' intent="primary" />
     </div>
   }
 
