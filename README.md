@@ -2,6 +2,8 @@
 
 Frontend app for [`@server-status/api`](https://gitlab.com/server-status/server-status-api)
 
+![](./img/server-status.png)
+
 ## Build
 
 Default endpoint is '/api/', if you want to use different use env `REACT_APP_API_URL`.
