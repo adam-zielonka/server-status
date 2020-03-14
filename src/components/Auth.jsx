@@ -16,36 +16,31 @@ function useLoading(fun) {
   return [loading, async () => { setLoading(true); await fun(); setLoading(false) }]
 }
 
-export const AuthForm = observer(({ connection }) => {
-  const { login, ID, deleteConnection } = useStore()
-  const [name, onNameChange] = useInput(connection.name)
+export const AuthForm = observer(({ connection, errors }) => {
+  const { login } = useStore()
   const [user, onUserChange] = useInput(connection.user)
-  const [url, onUrlChange] = useInput(connection.url)
   const [pass, onPassChange] = useInput()
-  const [loading, handleLogin] = useLoading(async () => login({ connection, url, user, pass, name }))
+  const [loading, handleLogin] = useLoading(async () => login({ user, pass }))
 
-  const cannotLogin = () => !url || !user || !pass
+  const cannotLogin = () => !user || !pass
 
   return (
     <Dialog
       title="Connection"
-      isOpen={!!connection}
+      isOpen={true}
       intent="primary"
       isCloseButtonShown={false}
+      icon="globe-network"
     >
       <div className={Classes.DIALOG_BODY}>
-        {connection.errors.map((error, key) => <Callout key={key} intent="danger">{error.message}</Callout>)}
+        {errors.map((error, key) => <Callout key={key} intent="danger">{error.message}</Callout>)}
         <ControlGroup vertical>
-          <InputGroup leftIcon="unresolve" placeholder="Connection name" value={name} onChange={onNameChange} autoFocus />
-          <InputGroup leftIcon="globe-network" placeholder="API URL" value={url} onChange={onUrlChange} />
           <InputGroup leftIcon="user" placeholder="Username" value={user} onChange={onUserChange} />
           <InputGroup leftIcon="key" type="password" placeholder="Password" value={pass} onChange={onPassChange} />
         </ControlGroup>
       </div>
       <div className={Classes.DIALOG_FOOTER}>
         <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-          <Button icon='trash' onClick={deleteConnection} />
-          <Button onClick={() => ID.edit = null}>Exit</Button>
           <Button disabled={cannotLogin()} loading={loading} onClick={handleLogin}>Login</Button>
         </div>
       </div>

@@ -1,71 +1,62 @@
 /* eslint-disable object-curly-newline */
 import { createContext, useContext } from 'react'
-import { observable, action, computed } from 'mobx'
+import { observable, action } from 'mobx'
 import api from './api'
 import autoSave from './autoSave'
 
+const url = process.env.REACT_APP_API_URL || '/api/'
+
 export class Connection {
-  @observable name = ''
   @observable user = ''
   @observable token = ''
-  @observable errors = []
-  @observable url = ''
 }
 
 export class Store {
   @observable date = new Date()
-  @observable ID = {
-    edit: null,
-    connection: null,
-  }
-  @observable connections = []
+  @observable connection = new Connection()
+  @observable errors = []
+  @observable conf = null
 
-  constructor() { autoSave(this) }
-
-  @computed get connection() {
-    return this.ID.connection !== null && this.connections[this.ID.connection]
+  constructor() { 
+    autoSave(this) 
+    this.loadConf()
   }
 
-  @computed get edit() {
-    return this.ID.edit !== null && this.connections[this.ID.edit]
+  @action loadConf = async () => {
+    const query = `{
+      serverstatus {
+        plugins {
+          name
+        }
+      }
+    }`
+
+    const { data, errors } = await this.getData({ query })
+    this.conf = data && data.serverstatus
+    this.errors = errors || []
   }
 
   @action reload = () => this.date = new Date()
 
-  @action addConnection = () => {
-    this.connections.push(new Connection())
-    this.ID.edit = this.connections.length - 1
-  }
-
-  @action editConnection = id => this.ID.edit = id
-
-  @action selectConnection = id => {
-    this.ID.connection = id
-    this.reload()
-  }
-
-  @action deleteConnection = () => {
-    this.connections = this.connections.filter((_, i) => i !== this.ID.edit)
-    this.ID.edit = null
-    this.ID.connection = null
-  }
-
-  @action login = async ({ connection, url, user, pass, name }) => {
+  @action login = async ({ user, pass }) => {
     const { data, errors } = await api.login({ url, username: user, password: pass })
 
-    if (errors) connection.errors = errors
+    if (errors) this.errors = errors
     else if (data && data.login) {
-      connection.token = data.login.token
-      connection.user = user
-      connection.name = name
-      connection.url = url
-      connection.errors = []
-      this.ID.edit = null
+      this.connection.token = data.login.token
+      this.connection.user = user
+      await this.loadConf()
     }
   }
 
+  @action logout = () => {
+    this.connection.token = ''
+    this.conf = null
+    this.errors = [{ message: 'Logout' }]
+  }
+
   getData = async ({ query, variables }) => {
-    const { url, token } = this.connections[this.ID.connection]
+    const { token } = this.connection
     return api.getData({ url, token, query, variables })
   }
 }

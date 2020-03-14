@@ -1,19 +1,18 @@
 /* eslint-disable no-param-reassign */
 import { autorun } from 'mobx'
 
-const STORAGE_NAME = 'beta_connections'
+const STORAGE_NAME = 'beta_connection'
 
 export default function (_this) {
   let firstRun = true
 
   autorun(() => {
     if (firstRun) {
-      const connections = JSON.parse(localStorage.getItem(STORAGE_NAME))
-      if (connections) _this.connections = connections
-      if (connections && connections.length) _this.ID.connection = 0
+      const connection = JSON.parse(localStorage.getItem(STORAGE_NAME))
+      if (connection) _this.connection = connection
     }
 
-    localStorage.setItem(STORAGE_NAME, JSON.stringify(_this.connections))
+    localStorage.setItem(STORAGE_NAME, JSON.stringify(_this.connection))
   })
 
   firstRun = false
