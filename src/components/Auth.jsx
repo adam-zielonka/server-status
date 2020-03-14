@@ -1,7 +1,7 @@
 /* eslint-disable react/no-array-index-key */
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
-  ControlGroup, InputGroup, Dialog, Classes, Button, Callout,
+  FormGroup, InputGroup, Dialog, Classes, Button, Callout,
 } from '@blueprintjs/core'
 import { observer } from 'mobx-react-lite'
 import { useStore } from '../Store'
@@ -24,20 +24,34 @@ export const AuthForm = observer(({ connection, errors }) => {
 
   const cannotLogin = () => !user || !pass
 
+  useEffect(() => {
+    const onDocumentKeyDownHandler = (e) => {
+      if (!cannotLogin() && !loading && 'Enter' === e.key) {
+        handleLogin()
+      }
+    }
+    document.addEventListener('keydown', onDocumentKeyDownHandler)
+    return () => document.removeEventListener('keydown', onDocumentKeyDownHandler)
+  })
+
   return (
     <Dialog
-      title="Connection"
+      title="ServerStatus"
       isOpen={true}
       intent="primary"
       isCloseButtonShown={false}
-      icon="globe-network"
+      backdropClassName="backdrop"
+      // className="auth-dialog"
+      icon={<img className='auth-logo' src={require('../img/server-status.png')} alt='Logo' />}
     >
       <div className={Classes.DIALOG_BODY}>
         {errors.map((error, key) => <Callout key={key} intent="danger">{error.message}</Callout>)}
-        <ControlGroup vertical>
-          <InputGroup leftIcon="user" placeholder="Username" value={user} onChange={onUserChange} />
-          <InputGroup leftIcon="key" type="password" placeholder="Password" value={pass} onChange={onPassChange} />
-        </ControlGroup>
+        <FormGroup vertical>
+          <div style={{padding: '5px'}}></div>
+          <InputGroup autoFocus={!user} disabled={loading} leftIcon="user" placeholder="Username" value={user} onChange={onUserChange} />
+          <div style={{padding: '5px'}}></div>
+          <InputGroup autoFocus={!!user} disabled={loading} leftIcon="key" type="password" placeholder="Password" value={pass} onChange={onPassChange} />
+        </FormGroup>
       </div>
       <div className={Classes.DIALOG_FOOTER}>
         <div className={Classes.DIALOG_FOOTER_ACTIONS}>
