@@ -1,7 +1,7 @@
 {
   "name": "@server-status/app",
   "description": "app for presentation server status information",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "dependencies": {
     "@babel/cli": "^7.8.4",
     "@babel/plugin-proposal-decorators": "^7.8.3",
@@ -39,6 +39,12 @@
     "monitor",
     "stats"
   ],
+  "author": "Adam Zielonka <root@adamzielonka.pro>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/server-status/server-status-app"
+  },
   "browserslist": {
     "production": [
       ">0.2%",
