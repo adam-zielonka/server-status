@@ -1,5 +1,6 @@
 {
-  "name": "server-status-app",
+  "name": "@server-status/app",
+  "description": "app for presentation server status information",
   "version": "0.1.0",
   "dependencies": {
     "@babel/cli": "^7.8.4",
@@ -32,6 +33,12 @@
       "@babel/preset-react"
     ]
   },
+  "keywords": [
+    "server",
+    "status",
+    "monitor",
+    "stats"
+  ],
   "browserslist": {
     "production": [
       ">0.2%",
