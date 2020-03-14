@@ -13,9 +13,15 @@ function Board() {
   return (
     <div className="board">
       <div>
-        <System />
-        <LoadAverage />
-        <Memory />
+        <div className="board-3">
+          <div>
+            <System />
+            <LoadAverage />
+          </div>
+          <div>
+            <Memory />
+          </div>
+        </div>
       </div>
       <div>
         <PM2 />

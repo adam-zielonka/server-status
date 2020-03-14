@@ -62,7 +62,7 @@ const Query = observer(({ title, query, query2, children }) => {
 
   const contentStyle = {
     padding: '10px',
-    opacity: loading ? 0.4 : 1
+    opacity: loading || error ? 0.4 : 1
   }
 
   return (
