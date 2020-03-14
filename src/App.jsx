@@ -28,7 +28,9 @@ function App() {
         <Navbar.Group align={Alignment.LEFT}>
           <Logo />
           <Navbar.Divider />
-          <h3 className="bp3-heading" style={{ paddingTop: '5px' }}>ServerStatus</h3>
+          <div className="center-parent">
+            <h3 className="bp3-heading center-child">ServerStatus</h3>
+          </div>
         </Navbar.Group>
         <Navbar.Group align={Alignment.RIGHT}>
           <Button minimal icon="log-out" style={{ float: 'right' }} onClick={logout} />

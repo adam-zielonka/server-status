@@ -62,14 +62,16 @@ const Query = observer(({ title, query, query2, children }) => {
 
   const contentStyle = {
     padding: '10px',
-    opacity: loading || error ? 0.4 : 1
+    opacity: loading || error ? 0.4 : 1,
+    overflow: 'auto',
+    whiteSpace: 'nowrap',
   }
 
   return (
     <Card className='item' elevation={Elevation.TWO} style={cardStyle}>
       <div style={style}>
-        <h3>
-          <span style={{margin: '5px'}}>{title}</span>
+        <h3 className="center-parent" style={{width: '100%', paddingLeft: '5px'}}>
+          <span className="center-child">{title}</span>
           <Button loading={loading} intent={error ? 'danger' : 'none'} minimal icon={error ? 'warning-sign' : 'refresh'} style={{ float: 'right' }} onClick={onClickHandler} />
         </h3>
       </div>
