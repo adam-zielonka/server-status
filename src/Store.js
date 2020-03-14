@@ -4,6 +4,8 @@ import { observable, action } from 'mobx'
 import api from './api'
 import autoSave from './autoSave'
 
+const url = process.env.REACT_APP_API_URL || '/api/'
+
 export class Connection {
   @observable user = ''
   @observable token = ''
@@ -13,7 +15,6 @@ export class Store {
   @observable date = new Date()
   @observable connection = new Connection()
   @observable errors = []
-  @observable url = '/api/'
   @observable conf = null
 
   constructor() { 
@@ -38,7 +39,7 @@ export class Store {
   @action reload = () => this.date = new Date()
 
   @action login = async ({ user, pass }) => {
-    const { data, errors } = await api.login({ url: this.url, username: user, password: pass })
+    const { data, errors } = await api.login({ url, username: user, password: pass })
 
     if (errors) this.errors = errors
     else if (data && data.login) {
@@ -56,7 +57,7 @@ export class Store {
 
   getData = async ({ query, variables }) => {
     const { token } = this.connection
-    return api.getData({ url: this.url, token, query, variables })
+    return api.getData({ url, token, query, variables })
   }
 }
 
