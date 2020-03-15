@@ -54,9 +54,9 @@ export async function fakeApi() {
           'timezoneName': 'Greenwich Mean Time'
         },
         'loadAverage': [
-          0.84,
-          0.59,
-          0.16
+          0.76 + Math.floor(Math.random() * 30)/100,
+          0.51 + Math.floor(Math.random() * 24)/100,
+          0.01 + Math.floor(Math.random() * 49)/100,
         ],
         'memory': {
           'total': 1034330112,
@@ -195,6 +195,23 @@ export async function fakeApi() {
       ],
       'services': [
         {
+          'name': 'SSH',
+          'port': 22,
+          'link': null,
+          'hosts': [
+            {
+              'name': 'localhost',
+              'port': 22,
+              'open': true
+            },
+            {
+              'name': '218.108.149.373',
+              'port': 22,
+              'open': true
+            }
+          ]
+        },
+        {
           'name': 'Web',
           'port': 80,
           'link': null,
@@ -224,23 +241,6 @@ export async function fakeApi() {
             {
               'name': '218.108.149.373',
               'port': 443,
-              'open': true
-            }
-          ]
-        },
-        {
-          'name': 'SSH',
-          'port': 22,
-          'link': null,
-          'hosts': [
-            {
-              'name': 'localhost',
-              'port': 22,
-              'open': true
-            },
-            {
-              'name': '218.108.149.373',
-              'port': 22,
               'open': true
             }
           ]
@@ -296,23 +296,6 @@ export async function fakeApi() {
             }
           ]
         },
-        {
-          'name': 'step-ca',
-          'port': 8443,
-          'link': null,
-          'hosts': [
-            {
-              'name': 'localhost',
-              'port': 8443,
-              'open': true
-            },
-            {
-              'name': '218.108.149.373',
-              'port': 8443,
-              'open': false
-            }
-          ]
-        }
       ],
       'a2': {
         'vhosts': [
