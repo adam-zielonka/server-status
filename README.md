@@ -2,7 +2,7 @@
 
 Frontend app for [`@server-status/api`](https://gitlab.com/server-status/server-status-api)
 
-![](./img/server-status.png)
+![](img/server-status.png)
 
 ## Build
 

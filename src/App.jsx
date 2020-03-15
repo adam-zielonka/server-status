@@ -8,11 +8,11 @@ import { Button, Navbar, Alignment, Spinner } from '@blueprintjs/core'
 const Logo = () => <img className='logo' src={require('./img/server-status.png')} alt='Logo' />
 
 function App() {
-  const { reload, connection, errors, conf, logout } = useStore()
+  const { reload, errors, conf, logout } = useStore()
 
   if (errors.length) {
     return <div className="App">
-      <AuthForm connection={connection} errors={errors} />
+      <AuthForm />
     </div>
   }
 
