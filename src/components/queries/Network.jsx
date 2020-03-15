@@ -58,7 +58,7 @@ const Network = () => {
                 {array.map(net => (
                   <tr key={net.iface}>
                     <td>{net.iface}</td>
-                    <td>{net.ip4} {net.ip6}</td>
+                    <td style={{whiteSpace: 'break-spaces'}}>{net.ip4} {net.ip6}</td>
                     <td>{net.stats ? Tools.getHumanSize(net.stats.rx_bytes) : ''}</td>
                     <td>{net.stats ? Tools.getHumanSize(net.stats.tx_bytes) : ''}</td>
                   </tr>
