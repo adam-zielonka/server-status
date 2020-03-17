@@ -3,6 +3,9 @@ stages:
 - test
 - deploy
 
+variables:
+  REACT_APP_FAKE_API: 'true'
+
 test:
   image: node:alpine
   stage: test
@@ -12,6 +15,8 @@ test:
   cache:
     paths:
     - node_modules
+  except:
+    - schedules
 
 lint:
   image: node:alpine
@@ -23,6 +28,8 @@ lint:
   cache:
     paths:
     - node_modules
+  except:
+    - schedules
 
 build:
   image: node:alpine
@@ -53,3 +60,12 @@ pages:
     - public
   only:
     - master
+  except:
+    - schedules
+
+include:
+  - template: Dependency-Scanning.gitlab-ci.yml
+
+dependency_scanning:
+  only:
+    - schedules
