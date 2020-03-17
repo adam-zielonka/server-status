@@ -44,6 +44,8 @@ build:
   cache:
     paths:
     - node_modules
+  except:
+    - schedules
 
 pages:
   image: alpine
