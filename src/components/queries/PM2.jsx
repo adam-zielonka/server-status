@@ -41,6 +41,11 @@ const PM2 = () => {
         let array = []
         if (response && response.pm2)
           array = Array.isArray(response.pm2) ? response.pm2 : []
+        array.sort((a, b) => {
+          if(a.pm2_env.status === 'online') return -1
+          if(b.pm2_env.status === 'online') return 1
+          return 0
+        })
         const time = response && response.si && response.si.time && response.si.time.current
         const pm2_ls = []
         const pm2_ls_all = []
