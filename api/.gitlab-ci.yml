@@ -7,7 +7,7 @@ test-api:
     - yarn test --coverage
   cache:
     paths:
-    - node_modules
+    - api/node_modules
 
 lint-api:
   image: node:alpine
@@ -19,7 +19,7 @@ lint-api:
     - yarn lint
   cache:
     paths:
-    - node_modules
+    - api/node_modules
 
 build-api:
   image: node:alpine
@@ -31,7 +31,7 @@ build-api:
   artifacts:
     expire_in: 1 week
     paths:
-      - dist
+      - api/dist
   cache:
     paths:
-    - node_modules
+    - api/node_modules

@@ -10,7 +10,7 @@ test-app:
     - yarn test-coverage
   cache:
     paths:
-    - node_modules
+    - app/node_modules
 
 lint-app:
   image: node:alpine
@@ -22,7 +22,7 @@ lint-app:
     - yarn lint
   cache:
     paths:
-    - node_modules
+    - app/node_modules
 
 build-app:
   image: node:alpine
@@ -34,10 +34,10 @@ build-app:
   artifacts:
     expire_in: 1 week
     paths:
-      - build
+      - app/build
   cache:
     paths:
-    - node_modules
+    - app/node_modules
 
 pages:
   image: alpine
@@ -47,8 +47,7 @@ pages:
   stage: deploy
   dependencies: ["build-app"]
   script:
-    - cd app
-    - mv build public
+    - mv app/build public
   artifacts:
     expire_in: 1 week
     paths:
