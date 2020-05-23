@@ -1,0 +1,9 @@
+type VHost {
+  port: String
+  name: String
+  statusCode: String
+}
+
+type Apache2 {
+  vhosts: [VHost]
+}

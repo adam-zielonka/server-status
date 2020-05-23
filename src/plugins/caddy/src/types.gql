@@ -1,0 +1,10 @@
+type VHost {
+  port: String
+  name: String
+  statusCode: String
+  externalStatusCode: String
+}
+
+type Caddy {
+  vhosts: [VHost]
+}

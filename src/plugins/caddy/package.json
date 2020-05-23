@@ -1,0 +1,47 @@
+{
+  "name": "@server-status/api-plugin-caddy",
+  "version": "0.0.1",
+  "description": "information about running vhosts via caddy server",
+  "main": "./dist/index.js",
+  "scripts": {
+    "start": "nodemon --exec babel-node dev/server.js",
+    "build": "babel src --out-dir dist",
+    "prebuild": "yarn clear",
+    "postbuild": "find src/ -type f | grep -i .gql$ | xargs -i cp {} dist/",
+    "prepublish": "yarn build",
+    "serve": "PROD=1 node dev/server.js",
+    "clear": "rm -fr dist",
+    "lint": "eslint ."
+  },
+  "keywords": [
+    "server",
+    "status",
+    "monitor",
+    "stats",
+    "caddy",
+    "vhost"
+  ],
+  "author": "Adam Zielonka <root@adamzielonka.pro>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/server-status/api-plugin-caddy"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.8.4",
+    "@babel/node": "^7.8.4",
+    "@babel/preset-env": "^7.8.4",
+    "eslint": "^6.8.0",
+    "nodemon": "^2.0.2"
+  },
+  "peerDependencies": {
+    "@server-status/api": "^0.1.6"
+  },
+  "dependencies": {
+    "@server-status/api": "^0.1.6",
+    "regenerator-runtime": "^0.13.3",
+    "request": "^2.88.2",
+    "request-promise": "^4.2.5"
+  }
+}

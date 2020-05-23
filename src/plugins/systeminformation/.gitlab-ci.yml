@@ -1,0 +1,42 @@
+stages:
+- build
+- test
+- deploy
+
+lint:
+  image: node:alpine
+  stage: test
+  allow_failure: true
+  script:
+    - yarn
+    - yarn lint
+  cache:
+    paths:
+    - node_modules
+
+build:
+  image: node:alpine
+  stage: build
+  script:
+    - yarn
+    - yarn build
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - dist
+  cache:
+    paths:
+    - node_modules
+
+publish:
+  image: node:alpine
+  stage: deploy
+  script:
+    - yarn
+    - yarn publish
+  cache:
+    paths:
+    - node_modules
+  when: manual
+  only:
+    - master
