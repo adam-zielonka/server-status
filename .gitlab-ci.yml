@@ -1,0 +1,3 @@
+include:
+  - '/app/.gitlab-ci.yml'
+  - '/api/.gitlab-ci.yml'

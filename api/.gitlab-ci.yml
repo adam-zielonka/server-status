@@ -2,7 +2,7 @@ stages:
 - build
 - test
 
-test:
+test-api:
   image: node:alpine
   stage: test
   script:
@@ -12,7 +12,7 @@ test:
     paths:
     - node_modules
 
-lint:
+lint-api:
   image: node:alpine
   stage: test
   allow_failure: true
@@ -23,7 +23,7 @@ lint:
     paths:
     - node_modules
 
-build:
+build-api:
   image: node:alpine
   stage: build
   script:

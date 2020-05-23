@@ -6,7 +6,7 @@ stages:
 variables:
   REACT_APP_FAKE_API: 'true'
 
-test:
+test-app:
   image: node:alpine
   stage: test
   script:
@@ -15,10 +15,8 @@ test:
   cache:
     paths:
     - node_modules
-  except:
-    - schedules
 
-lint:
+lint-app:
   image: node:alpine
   stage: test
   allow_failure: true
@@ -28,10 +26,8 @@ lint:
   cache:
     paths:
     - node_modules
-  except:
-    - schedules
 
-build:
+build-app:
   image: node:alpine
   stage: build
   script:
@@ -44,8 +40,6 @@ build:
   cache:
     paths:
     - node_modules
-  except:
-    - schedules
 
 pages:
   image: alpine
@@ -53,7 +47,7 @@ pages:
     GIT_STRATEGY: none
     GIT_CHECKOUT: "false"
   stage: deploy
-  dependencies: ["build"]
+  dependencies: ["build-app"]
   script:
     - mv build public
   artifacts:
@@ -61,13 +55,4 @@ pages:
     paths:
     - public
   only:
-    - master
-  except:
-    - schedules
-
-include:
-  - template: Dependency-Scanning.gitlab-ci.yml
-
-dependency_scanning:
-  only:
-    - schedules
+    - graphql
