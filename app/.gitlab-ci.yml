@@ -1,0 +1,73 @@
+stages:
+- build
+- test
+- deploy
+
+variables:
+  REACT_APP_FAKE_API: 'true'
+
+test:
+  image: node:alpine
+  stage: test
+  script:
+    - yarn
+    - yarn test-coverage
+  cache:
+    paths:
+    - node_modules
+  except:
+    - schedules
+
+lint:
+  image: node:alpine
+  stage: test
+  allow_failure: true
+  script:
+    - yarn
+    - yarn lint
+  cache:
+    paths:
+    - node_modules
+  except:
+    - schedules
+
+build:
+  image: node:alpine
+  stage: build
+  script:
+    - yarn
+    - yarn build
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - build
+  cache:
+    paths:
+    - node_modules
+  except:
+    - schedules
+
+pages:
+  image: alpine
+  variables:
+    GIT_STRATEGY: none
+    GIT_CHECKOUT: "false"
+  stage: deploy
+  dependencies: ["build"]
+  script:
+    - mv build public
+  artifacts:
+    expire_in: 1 week
+    paths:
+    - public
+  only:
+    - master
+  except:
+    - schedules
+
+include:
+  - template: Dependency-Scanning.gitlab-ci.yml
+
+dependency_scanning:
+  only:
+    - schedules
