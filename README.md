@@ -57,7 +57,7 @@ $ node index.js
 
 ## Built-in plugins
 
-- ### apache2
+### apache2
 Plugin for retrieving information about running virtual host via apache2.
 ```js
 const config = {
@@ -72,7 +72,7 @@ const config = {
   ],
 }
 ```
-- ### auth
+### auth
 Plugin for for simple authorization to server-status
 ```js
 const config = {
@@ -92,7 +92,7 @@ const config = {
   ],
 }
 ```
-- ### caddy
+### caddy
 Plugin for retrieving information about running virtual host via [Caddy Server](https://caddyserver.com/).
 ```js
 const config = {
@@ -108,7 +108,7 @@ const config = {
   ],
 }
 ```
-- ### pm2
+### pm2
 Plugin for retrieving information about running app via [PM2](https://pm2.io/).
 ```js
 const config = {
@@ -119,7 +119,7 @@ const config = {
   ],
 }
 ```
-- ### service
+### service
 Plugin for retrieving information about running services.
 ```js
 const config = {
@@ -145,7 +145,7 @@ const config = {
   ],
 }
 ```
-- ### systeminformation
+### systeminformation
 Plugin for retrieving server system information from package [systeminformation](https://systeminformation.io/).  
 ```js
 const config = {
@@ -156,10 +156,10 @@ const config = {
   ],
 }
 ```
-- ### status
+### status
 Plugin for retrieving information about running plugins. Auto loaded.
 
-### Using YAML instead of JSON
+## Using YAML instead of JSON
 
 ```bash
 yarn add @server-status/api yaml
