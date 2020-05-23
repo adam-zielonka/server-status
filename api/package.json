@@ -1,6 +1,6 @@
 {
   "name": "@server-status/api",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "api for retrieving server status information",
   "main": "./dist/index.js",
   "scripts": {
@@ -24,7 +24,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://gitlab.com/server-status/server-status-api"
+    "url": "https://gitlab.com/adam-zielonka-pro/server-status"
   },
   "dependencies": {
     "apollo-server": "^2.13.1",
