@@ -1,7 +1,3 @@
-stages:
-- build
-- test
-
 test-api:
   image: node:alpine
   stage: test
