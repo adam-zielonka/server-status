@@ -2,6 +2,14 @@ import { ApolloServer, gql } from 'apollo-server'
 import sysPlugins from './plugins'
 import fs from 'fs'
 
+function myRequire(plugin) {
+  try {
+    return require(plugin)
+  } catch(e) {
+    return false
+  }
+}
+
 const ServerStatus = ({ plugins = [], listen = {}, apolloServerConfig = {} }) => {
   if (!plugins.length) {
     console.error('[ERROR] ⚠  You need to add min one plugin to run server')
@@ -31,7 +39,7 @@ const ServerStatus = ({ plugins = [], listen = {}, apolloServerConfig = {} }) =>
   
   for (const pluginParams of plugins) {
     push(loadedPlugins, pluginParams.name)
-    const plugin = pluginParams.plugin || require(pluginParams.name)
+    const plugin = pluginParams.plugin || myRequire(pluginParams.name) || require(`./plugins/${pluginParams.name}/`)
     const { query, config } = plugin
     if(pluginParams.config && config) config.setConfig(pluginParams.config)
     if(query && query.name) {

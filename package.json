@@ -4,7 +4,7 @@
   "description": "api for retrieving server status information",
   "main": "./dist/index.js",
   "scripts": {
-    "start": "nodemon --exec babel-node src/start.js",
+    "start": "nodemon -e js,ts,gql --watch src --exec \"yarn build && yarn serve\"",
     "build": "babel src --out-dir dist",
     "prebuild": "yarn clear",
     "postbuild": "find src/ -type f | grep -i .gql$ | cut -c 5- | xargs -i cp src/{} dist/{}",
@@ -27,16 +27,22 @@
     "url": "https://gitlab.com/server-status/server-status-api"
   },
   "dependencies": {
-    "apollo-server": "^2.9.7",
-    "graphql": "^14.5.8"
+    "apollo-server": "^2.13.1",
+    "graphql": "^15.0.0",
+    "is-port-reachable": "^3.0.0",
+    "jsonwebtoken": "^8.5.1",
+    "regenerator-runtime": "^0.13.5",
+    "request": "^2.88.2",
+    "request-promise": "^4.2.5",
+    "systeminformation": "^4.26.4"
   },
   "devDependencies": {
-    "@babel/cli": "^7.6.4",
-    "@babel/core": "^7.6.4",
-    "@babel/node": "^7.6.3",
-    "@babel/preset-env": "^7.6.3",
-    "eslint": "^6.6.0",
-    "jest": "^24.9.0",
-    "nodemon": "^1.19.4"
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.9.6",
+    "@babel/node": "^7.8.7",
+    "@babel/preset-env": "^7.9.6",
+    "eslint": "^7.1.0",
+    "jest": "^26.0.1",
+    "nodemon": "^2.0.4"
   }
 }
