@@ -5,6 +5,7 @@ test-app:
   image: node:alpine
   stage: test
   script:
+    - cd app
     - yarn
     - yarn test-coverage
   cache:
@@ -16,6 +17,7 @@ lint-app:
   stage: test
   allow_failure: true
   script:
+    - cd app
     - yarn
     - yarn lint
   cache:
@@ -26,6 +28,7 @@ build-app:
   image: node:alpine
   stage: build
   script:
+    - cd app
     - yarn
     - yarn build
   artifacts:
@@ -44,6 +47,7 @@ pages:
   stage: deploy
   dependencies: ["build-app"]
   script:
+    - cd app
     - mv build public
   artifacts:
     expire_in: 1 week

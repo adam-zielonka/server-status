@@ -2,6 +2,7 @@ test-api:
   image: node:alpine
   stage: test
   script:
+    - cd api
     - yarn
     - yarn test --coverage
   cache:
@@ -13,6 +14,7 @@ lint-api:
   stage: test
   allow_failure: true
   script:
+    - cd api
     - yarn
     - yarn lint
   cache:
@@ -23,6 +25,7 @@ build-api:
   image: node:alpine
   stage: build
   script:
+    - cd api
     - yarn
     - yarn build
   artifacts:
