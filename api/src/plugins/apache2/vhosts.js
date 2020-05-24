@@ -34,7 +34,7 @@ function auth() {
 
 export async function checkVHost(name, port) {
   const options = {
-    uri: `http://${name}:${port}`,
+    uri: `http${port === 443 ? 's' : ''}://${name}:${port}`,
     auth: auth(),
     resolveWithFullResponse: true,
     headers: {
