@@ -11,7 +11,7 @@ export async function getVHosts() {
   const vhosts = []
 
   for (const key in servers) {
-    if (servers.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(servers, key)) {
       const element = servers[key]
       const port = element.listen[0].replace(':','')
       for (const route of element.routes) {
@@ -37,7 +37,7 @@ function rootCA() {
   } : null
 }
 
-export async function checkVHost(name, port) {
+export async function checkVHost(name) {
   const options = {
     uri: `http://${name}`,
     auth: auth(),
@@ -56,7 +56,7 @@ export async function checkVHost(name, port) {
 
 }
 
-export async function checkVHost2(name, port) {
+export async function checkVHost2(name) {
   const { external } = getConfig()
 
   if(!external) return 'Need setup'
