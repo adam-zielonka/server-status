@@ -1,0 +1,34 @@
+plugins:
+  - name: "auth"
+    config:
+      users:
+        - name: dragon
+          pass: dragon
+      secret: pancake-is-the-best-dragon
+  - name: "systeminformation"
+  - name: "pm2"
+  # - name: "apache2"
+  - name: "caddy"
+  - name: "services"
+    config:
+      services:
+        - name: Web
+          port: "80"
+        - name: Web
+          port: "443"
+        - name: SSH
+          port: "22"
+        - name: MariaDB
+          port: "3306"
+        - name: Server Status
+          port: "4000"
+        - name: Caddy
+          port: "2019"
+        - name: step-ca
+          port: "8443"
+      hosts:
+        - localhost
+        - 218.108.149.373
+listen:
+  port: 4000
+  host: localhost
