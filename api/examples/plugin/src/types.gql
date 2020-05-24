@@ -1,0 +1,11 @@
+type MyArray {
+  name: String
+  value: String
+}
+
+type SomePlugin {
+  important: String
+  name: String
+  code: String
+  array: [MyArray]
+}
