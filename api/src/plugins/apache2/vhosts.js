@@ -23,6 +23,16 @@ export async function getVHosts() {
     }
     vhosts.push(vhost)
   }
+  return vhosts.length ? vhosts : await getVHostsNewApacheVersion(out)
+}
+
+export async function getVHostsNewApacheVersion(out = '') {
+  const vhosts = []
+  const rows = out.split('\n').filter(row => row.match(/^\*/))
+  for (let row of rows) {
+    const [ port, name ] = row.split(' ').filter(f => f)
+    vhosts.push({ port: port.slice(2), name })
+  }
   return vhosts
 }
 
@@ -34,7 +44,7 @@ function auth() {
 
 export async function checkVHost(name, port) {
   const options = {
-    uri: `http${port === 443 ? 's' : ''}://${name}:${port}`,
+    uri: `http${port === '443' ? 's' : ''}://${name}:${port}`,
     auth: auth(),
     resolveWithFullResponse: true,
     headers: {
