@@ -1,6 +1,3 @@
-variables:
-  REACT_APP_FAKE_API: 'true'
-
 test-app:
   image: node:alpine
   stage: test
@@ -31,6 +28,10 @@ build-app:
     - cd app
     - yarn
     - yarn build
+    - cd build
+    - tar -czvf ../public/server-status-app.tar.gz *
+    - cd ..
+    - REACT_APP_FAKE_API=true yarn build
   artifacts:
     expire_in: 1 week
     paths:
