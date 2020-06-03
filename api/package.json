@@ -3,16 +3,24 @@
   "version": "0.1.17",
   "description": "api for retrieving server status information",
   "main": "./dist/index.js",
+  "bin": "./dist/bin.js",
+  "pkg": {
+    "assets": [
+      "dist/plugins/**/*"
+    ]
+  },
   "scripts": {
     "start": "nodemon -e js,ts,gql --watch src --exec \"yarn build && yarn serve\"",
     "build": "babel src --out-dir dist",
     "prebuild": "yarn clear",
     "postbuild": "find src/ -type f | grep -i .gql$ | cut -c 5- | xargs -i cp src/{} dist/{}",
     "prepublish": "yarn build",
+    "pkg": "yarn build && pkg . --out-path ./bin",
     "serve": "node dist/start.js",
     "clear": "rm -fr dist",
     "test": "jest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "a": "pkg --help"
   },
   "keywords": [
     "server",
@@ -43,6 +51,8 @@
     "@babel/preset-env": "^7.9.6",
     "eslint": "^7.1.0",
     "jest": "^26.0.1",
-    "nodemon": "^2.0.4"
+    "nodemon": "^2.0.4",
+    "pkg": "^4.4.8",
+    "yaml": "^1.10.0"
   }
 }

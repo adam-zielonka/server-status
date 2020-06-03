@@ -39,19 +39,3 @@ build-app:
   cache:
     paths:
     - app/node_modules
-
-pages:
-  image: alpine
-  variables:
-    GIT_STRATEGY: none
-    GIT_CHECKOUT: "false"
-  stage: deploy
-  dependencies: ["build-app"]
-  script:
-    - mv app/build public
-  artifacts:
-    expire_in: 1 week
-    paths:
-    - public
-  only:
-    - graphql

@@ -27,11 +27,12 @@ build-api:
   script:
     - cd api
     - yarn
-    - yarn build
+    - yarn pkg
   artifacts:
     expire_in: 1 week
     paths:
       - api/dist
+      - api/bin
   cache:
     paths:
     - api/node_modules

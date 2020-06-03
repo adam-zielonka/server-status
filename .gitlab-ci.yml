@@ -6,3 +6,20 @@ stages:
 include:
   - '/app/.gitlab-ci.yml'
   - '/api/.gitlab-ci.yml'
+
+pages:
+  image: alpine
+  variables:
+    GIT_STRATEGY: none
+    GIT_CHECKOUT: "false"
+  stage: deploy
+  dependencies: ["build-app", "build-api"]
+  script:
+    - mv app/build public
+    - mv api/bin public/bin
+  artifacts:
+    expire_in: 1 week
+    paths:
+    - public
+  only:
+    - graphql
