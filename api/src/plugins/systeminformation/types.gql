@@ -49,7 +49,7 @@ type Time {
 
 
 type NetworkStats {
-  "interface"
+  "Floaterface"
   iface: String
   "up / down"
   operstate: String
@@ -81,14 +81,14 @@ type NetworkStats {
   The first time you are calling one of this functions, you will get -1 for transfer rates. The second time, you should then get statistics based on the time between the two calls ...
   """
   tx_sec: Float
-  "interval length (for per second values)"
+  "Floaterval length (for per second values)"
   ms: Float
 }
 
 type Network {
-  "interface"
+  "Floaterface"
   iface: String
-  "interface name"
+  "Floaterface name"
   ifaceName: String
   "ip4 address"
   ip4: String
@@ -96,9 +96,9 @@ type Network {
   ip6: String
   "MAC address"
   mac: String
-  "true if internal interface"
-  internal: Boolean
-  "true if virtual interface"
+  "true if Floaternal Floaterface"
+  Floaternal: Boolean
+  "true if virtual Floaterface"
   virtual: Boolean
   "up / down"
   operstate: String
@@ -112,9 +112,136 @@ type Network {
   speed: Float
   "# changes up/down"
   carrierChanges: Float
-  "Current network stats of given interface"
+  "Current network stats of given Floaterface"
   networkStats: NetworkStats
 }
+
+
+type ThrottlingData { periods: Float
+  throttled_periods: Float
+  throttled_time: Float }
+
+type BlockIo { r: Float w: Float }
+
+type NetIo { rx: Float wx: Float }
+
+type Mounts { Type: String
+  Name: String
+  Source: String
+  Destination: String
+  Driver: String
+  Mode: String
+  RW: Boolean
+  Propagation: String }
+
+type Processes { pid_host: String
+  ppid: String
+  pgid: String
+  user: String
+  ruser: String
+  group: String
+  rgroup: String
+  stat: String
+  time: String
+  elapsed: String
+  nice: String
+  rss: String
+  vsz: String
+  command: String }
+
+type Eth0 { rx_bytes: Float
+  rx_packets: Float
+  rx_errors: Float
+  rx_dropped: Float
+  tx_bytes: Float
+  tx_packets: Float
+  tx_errors: Float
+  tx_dropped: Float }
+
+type Networks { eth0: Eth0 }
+
+type Stats { active_anon: Float
+  active_file: Float
+  cache: Float
+  dirty: Float
+  hierarchical_memory_limit: Float
+  hierarchical_memsw_limit: Float
+  inactive_anon: Float
+  inactive_file: Float
+  mapped_file: Float
+  pgfault: Float
+  pgmajfault: Float
+  pgpgin: Float
+  pgpgout: Float
+  rss: Float
+  rss_huge: Float
+  total_active_anon: Float
+  total_active_file: Float
+  total_cache: Float
+  total_dirty: Float
+  total_inactive_anon: Float
+  total_inactive_file: Float
+  total_mapped_file: Float
+  total_pgfault: Float
+  total_pgmajfault: Float
+  total_pgpgin: Float
+  total_pgpgout: Float
+  total_rss: Float
+  total_rss_huge: Float
+  total_unevictable: Float
+  total_writeback: Float
+  unevictable: Float
+  writeback: Float }
+
+type MemoryStats { usage: Float max_usage: Float limit: Float stats: Stats }
+
+type CpuUsage { total_usage: Float
+  usage_in_kernelmode: Float
+  usage_in_usermode: Float
+  percpu_usage: [Float ] }
+
+type PrecpuStats { system_cpu_usage: Float
+  online_cpus: Float
+  throttling_data: ThrottlingData
+  cpu_usage: CpuUsage }
+
+type CpuStats { system_cpu_usage: Float
+  online_cpus: Float
+  throttling_data: ThrottlingData
+  cpu_usage: CpuUsage }
+
+type Ports { PrivatePort: Float Type: String }
+
+type Docker { id: String
+  name: String
+  image: String
+  imageID: String
+  command: String
+  created: Float
+  started: Float
+  finished: Float
+  createdAt: String
+  startedAt: String
+  finishedAt: String
+  state: String
+  restartCount: Float
+  platform: String
+  driver: String
+  mem_usage: Float
+  mem_limit: Float
+  mem_percent: Float
+  cpu_percent: Float
+  pids: Float
+  processes: [Processes ]
+  networks: Networks
+  memory_stats: MemoryStats
+  precpu_stats: PrecpuStats
+  cpu_stats: CpuStats
+  blockIO: BlockIo
+  netIO: NetIo
+  mounts: [Mounts ]
+  ports: [Ports ] }
+
 
 type SystemInformation {
   memory: Memory
@@ -122,7 +249,8 @@ type SystemInformation {
   system: System
   cpu: CPU
   time: Time
-  "array of network interfaces"
+  "array of network Floaterfaces"
   network: [Network]
   loadAverage: [Float]
+  docker: [Docker]
 }

@@ -41,6 +41,88 @@ export async function fakeApi() {
           'arch': 'x64',
           'hostname': 'example.com'
         },
+        'docker': [
+          {
+            'name': 'saper_game_1',
+            'state': 'exited',
+            'mem_usage': 0,
+            'mem_limit': 0,
+            'mem_percent': 0,
+            'cpu_percent': 0,
+            'created': 1591039387,
+            'started': 1591039389,
+            'finished': 1591039495,
+            'netIO': {
+              'rx': 0,
+              'wx': 0
+            },
+            'blockIO': {
+              'r': 0,
+              'w': 0
+            },
+            'pids': 0
+          },
+          {
+            'name': 'saper_caddy_1',
+            'state': 'exited',
+            'mem_usage': 0,
+            'mem_limit': 0,
+            'mem_percent': 0,
+            'cpu_percent': 0,
+            'created': 1591039387,
+            'started': 1591039389,
+            'finished': 1591039495,
+            'netIO': {
+              'rx': 0,
+              'wx': 0
+            },
+            'blockIO': {
+              'r': 0,
+              'w': 0
+            },
+            'pids': 0
+          },
+          {
+            'name': 'deska_caddy_1',
+            'state': 'running',
+            'mem_usage': 16814080,
+            'mem_limit': 13335937024,
+            'mem_percent': 0.1260809793098195,
+            'cpu_percent': 0,
+            'created': 1591039128,
+            'started': 1591632576,
+            'finished': 1591631417,
+            'netIO': {
+              'rx': 1954,
+              'wx': null
+            },
+            'blockIO': {
+              'r': 0,
+              'w': 0
+            },
+            'pids': 9
+          },
+          {
+            'name': 'deska_game_1',
+            'state': 'running',
+            'mem_usage': 12369920,
+            'mem_limit': 13335937024,
+            'mem_percent': 0.09275628684912422,
+            'cpu_percent': 0,
+            'created': 1591039128,
+            'started': 1591632576,
+            'finished': 1591631418,
+            'netIO': {
+              'rx': 1774,
+              'wx': null
+            },
+            'blockIO': {
+              'r': 0,
+              'w': 0
+            },
+            'pids': 3
+          }
+        ],
         'cpu': {
           'manufacturer': 'Intel®',
           'brand': 'Xeon® E5-2650L v4',
@@ -48,7 +130,7 @@ export async function fakeApi() {
           'cores': 1
         },
         'time': {
-          'current': 1584211997894,
+          'current': 1591632860624,
           'uptime': 190131200,
           'timezone': 'GMT+0000',
           'timezoneName': 'Greenwich Mean Time'

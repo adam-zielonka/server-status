@@ -7,6 +7,7 @@ import FilesSystem from './queries/FilesSystem'
 import Services from './queries/Services'
 import Network from './queries/Network'
 import VirtualHosts from './queries/VirtualHosts'
+import Docker from './queries/Docker'
 
 function Board() {
 
@@ -20,18 +21,19 @@ function Board() {
           </div>
           <div>
             <Memory />
+            <FilesSystem />
           </div>
         </div>
       </div>
       <div>
         <PM2 />
+        <Docker />
         <div className="board-2">
           <div>
-            <FilesSystem />
+            <Network />
             <Services />
           </div>
           <div>
-            <Network />
             <VirtualHosts />
           </div>
         </div>

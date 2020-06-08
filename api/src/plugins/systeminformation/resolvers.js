@@ -6,6 +6,7 @@ import {
   time,
   networkInterfaces,
   networkStats,
+  dockerAll,
 } from 'systeminformation'
 import { loadavg } from 'os'
 
@@ -17,6 +18,7 @@ export const SystemInformation = {
   time: () => time(),
   network: () => networkInterfaces(),
   loadAverage: () => loadavg(),
+  docker: () => dockerAll(),
 }
 
 export const Network = {
