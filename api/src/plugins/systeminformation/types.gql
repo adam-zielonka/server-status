@@ -49,7 +49,7 @@ type Time {
 
 
 type NetworkStats {
-  "Floaterface"
+  "interface"
   iface: String
   "up / down"
   operstate: String
@@ -81,14 +81,14 @@ type NetworkStats {
   The first time you are calling one of this functions, you will get -1 for transfer rates. The second time, you should then get statistics based on the time between the two calls ...
   """
   tx_sec: Float
-  "Floaterval length (for per second values)"
+  "interval length (for per second values)"
   ms: Float
 }
 
 type Network {
-  "Floaterface"
+  "interface"
   iface: String
-  "Floaterface name"
+  "interface name"
   ifaceName: String
   "ip4 address"
   ip4: String
@@ -96,9 +96,9 @@ type Network {
   ip6: String
   "MAC address"
   mac: String
-  "true if Floaternal Floaterface"
-  Floaternal: Boolean
-  "true if virtual Floaterface"
+  "true if internal interface"
+  internal: Boolean
+  "true if virtual interface"
   virtual: Boolean
   "up / down"
   operstate: String
@@ -112,7 +112,7 @@ type Network {
   speed: Float
   "# changes up/down"
   carrierChanges: Float
-  "Current network stats of given Floaterface"
+  "Current network stats of given interface"
   networkStats: NetworkStats
 }
 
@@ -249,7 +249,7 @@ type SystemInformation {
   system: System
   cpu: CPU
   time: Time
-  "array of network Floaterfaces"
+  "array of network interfaces"
   network: [Network]
   loadAverage: [Float]
   docker: [Docker]
