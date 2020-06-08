@@ -72,8 +72,8 @@ const Docker = () => {
                       </Badge>
                     </td>
                     <td>{Tools.getHumanTime((time - dockerTime(app)*1000) / 1000)}</td>
-                    <td>{Tools.round(app.cpu_percent, 1)}%</td>
-                    <td>{Tools.getHumanSize(app.mem_percent)}%</td>
+                    <td>{Tools.round(app.cpu_percent, 2)}%</td>
+                    <td>{Tools.round(app.mem_percent, 2)}%</td>
                     <td>{Tools.getHumanSize(app.mem_usage)}/{Tools.getHumanSize(app.mem_limit)}</td>
                     <td>{Tools.getHumanSize(app.netIO.rx)}/{Tools.getHumanSize(app.netIO.wx)}</td>
                     <td>{Tools.getHumanSize(app.blockIO.r)}/{Tools.getHumanSize(app.blockIO.w)}</td>
