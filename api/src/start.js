@@ -1,40 +1,12 @@
-const ServerStatus = require('./index')
+const ServerStatus = require('.')
+const YAML = require('yaml')
+const fs = require('fs')
 
-const config = {
-  plugins: [
-    {
-      name: 'auth',
-      config: {
-        users: [
-          {
-            name: 'dragon',
-            pass: 'dragon',
-          }
-        ],
-        secret: 'pancake-is-the-best-dragon',
-      }
-    },
-    {
-      name: 'systeminformation',
-    },
-    // {
-    //   name: 'apache2',
-    // },
-    {
-      name: 'caddy',
-    },
-    {
-      name: 'services',
-    },
-    {
-      name: 'pm2',
-    },
-  ],
-  listen: {
-    port: 4000,
-    host: 'localhost',
-  },
-  // apolloServerConfig: {},
+try {
+  const config = YAML.parse(fs.readFileSync('./src/config.yml', 'utf8'))
+
+  ServerStatus(config).listen()
+} catch (e) {
+  console.log(e)
 }
 
-ServerStatus(config).listen()

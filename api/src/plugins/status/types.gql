@@ -4,4 +4,5 @@ type Plugin {
 
 type ServerStatus {
   plugins: [Plugin]
+  layout: String
 }

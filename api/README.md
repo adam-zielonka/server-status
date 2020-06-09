@@ -78,7 +78,7 @@ Plugin for for simple authorization to server-status
 const config = {
   plugins: [
     {
-      name: '@server-status/api-plugin-auth',
+      name: 'auth',
       config: {
         users: [
           {
@@ -98,7 +98,7 @@ Plugin for retrieving information about running virtual host via [Caddy Server](
 const config = {
   plugins: [
     {
-      name: '@server-status/api-plugin-caddy',
+      name: 'caddy',
       // config: {
       //   user: 'username',
       //   pass: 'password',
@@ -114,7 +114,7 @@ Plugin for retrieving information about running app via [PM2](https://pm2.io/).
 const config = {
   plugins: [
     {
-      name: '@server-status/api-plugin-pm2',
+      name: 'pm2',
     },
   ],
 }
@@ -125,7 +125,7 @@ Plugin for retrieving information about running services.
 const config = {
   plugins: [
     {
-      name: '@server-status/api-plugin-services',
+      name: 'services',
       config: {
         services: [
           {
@@ -151,13 +151,63 @@ Plugin for retrieving server system information from package [systeminformation]
 const config = {
   plugins: [
     {
-      name: '@server-status/api-plugin-systeminformation',
+      name: 'systeminformation',
     },
   ],
 }
 ```
 ### status
-Plugin for retrieving information about running plugins. Auto loaded.
+Plugin for retrieving information about running plugins. Auto loaded. You can manually add to specify frontend layout. 
+```js
+const config = {
+  plugins: [
+    {
+      name: 'status',
+      config: {
+        layout: [
+          {
+            "board-3": [
+              {
+                "div": [
+                  "system",
+                  "loadAverage"
+                ]
+              },
+              {
+                "div": [
+                  "memory",
+                  "fileSystem"
+                ]
+              }
+            ]
+          },
+          {
+            "div": [
+              "pm2",
+              "docker",
+              {
+                "board-2": [
+                  {
+                    "div": [
+                      "network",
+                      "services"
+                    ]
+                  },
+                  {
+                    "div": [
+                      "virtualHosts"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+  ],
+}
+```
 
 ## Using YAML instead of JSON
 

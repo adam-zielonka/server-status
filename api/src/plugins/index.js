@@ -1,5 +1,5 @@
 import status from './status'
 
 export default [
-  { plugin: status },
+  { name: 'status', plugin: status },
 ]

@@ -19,7 +19,13 @@ const ServerStatus = ({ plugins = [], listen = {}, apolloServerConfig = {} }) =>
     }
   }
 
-  plugins.push(...sysPlugins)
+  for (const sysPlugin of sysPlugins) {
+    let loaded = false
+    for (const plugin of plugins) {
+      if(plugin.name === sysPlugin.name) loaded = true
+    }
+    if(!loaded) plugins.push(sysPlugin)
+  }
 
   const Query = {}
   const resolversList = [{ Query }]
