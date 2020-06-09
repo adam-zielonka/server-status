@@ -15,12 +15,11 @@
     "prebuild": "yarn clear",
     "postbuild": "find src/ -type f | grep -i .gql$ | cut -c 5- | xargs -i cp src/{} dist/{}",
     "prepublish": "yarn build",
-    "pkg": "yarn build && pkg . --out-path ./bin",
+    "pkg": "yarn build && pkg . --out-path ./bin --targets linux",
     "serve": "node dist/start.js",
     "clear": "rm -fr dist",
     "test": "jest",
-    "lint": "eslint .",
-    "a": "pkg --help"
+    "lint": "eslint ."
   },
   "keywords": [
     "server",
