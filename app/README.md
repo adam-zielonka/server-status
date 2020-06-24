@@ -1,6 +1,6 @@
 # Server Status App
 
-Frontend app for [`@server-status/api`](https://gitlab.com/server-status/server-status-api)
+Frontend app for [`@server-status/api`](https://gitlab.com/adam-zielonka-pro/server-status/-/tree/master/api)
 
 ![](img/server-status.png)
 
