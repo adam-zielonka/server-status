@@ -48,7 +48,7 @@ const ServerStatus = ({ plugins = [], listen = {}, apolloServerConfig = {} }) =>
     push(loadedPlugins, pluginParams.name)
     const plugin = pluginParams.plugin || myRequire(pluginParams.name)
     const { query, config } = plugin
-    if(pluginParams.config && config) config.setConfig(pluginParams.config)
+    if(pluginParams && config) config.setConfig(pluginParams.config || pluginParams)
     if(query && query.name) {
       Query[query.name] = (...args) => {
         return query.resolver && query.resolver(...args, rootResolver(...args)) || rootResolver(...args)
