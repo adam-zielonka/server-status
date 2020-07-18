@@ -13,7 +13,6 @@ pages:
     GIT_STRATEGY: none
     GIT_CHECKOUT: "false"
   stage: deploy
-  dependencies: ["build-app", "build-api"]
   script:
     - mv app/build public
     - mv api/bin public/bin
@@ -23,3 +22,10 @@ pages:
     - public
   only:
     - master
+  needs:
+    - job: build-api
+      artifacts: true
+    - job: build-app
+      artifacts: true
+    - test-api
+    - test-app

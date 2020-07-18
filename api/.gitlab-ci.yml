@@ -8,6 +8,8 @@ test-api:
   cache:
     paths:
     - api/node_modules
+  needs:
+    - build-api
 
 lint-api:
   image: node:alpine
@@ -20,6 +22,8 @@ lint-api:
   cache:
     paths:
     - api/node_modules
+  needs:
+    - build-api
 
 build-api:
   image: node:alpine

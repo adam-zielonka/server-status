@@ -8,6 +8,8 @@ test-app:
   cache:
     paths:
     - app/node_modules
+  needs:
+    - build-app
 
 lint-app:
   image: node:alpine
@@ -20,6 +22,8 @@ lint-app:
   cache:
     paths:
     - app/node_modules
+  needs:
+    - build-app
 
 build-app:
   image: node:alpine
