@@ -1,5 +1,6 @@
+image: node:14.20.1
+
 test-api:
-  image: node:alpine
   stage: test
   script:
     - cd api
@@ -12,7 +13,6 @@ test-api:
     - build-api
 
 lint-api:
-  image: node:alpine
   stage: test
   allow_failure: true
   script:
@@ -26,7 +26,6 @@ lint-api:
     - build-api
 
 build-api:
-  image: node:alpine
   stage: build
   script:
     - cd api

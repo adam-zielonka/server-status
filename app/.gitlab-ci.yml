@@ -1,5 +1,6 @@
+image: node:14.20.1
+
 test-app:
-  image: node:alpine
   stage: test
   script:
     - cd app
@@ -12,7 +13,6 @@ test-app:
     - build-app
 
 lint-app:
-  image: node:alpine
   stage: test
   allow_failure: true
   script:
@@ -26,7 +26,6 @@ lint-app:
     - build-app
 
 build-app:
-  image: node:alpine
   stage: build
   script:
     - cd app

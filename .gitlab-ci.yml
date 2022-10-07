@@ -21,7 +21,7 @@ pages:
     paths:
     - public
   only:
-    - master
+    - main
   needs:
     - job: build-api
       artifacts: true
