@@ -2,7 +2,7 @@
 
 GraphQL API server for retrieving server status information and web application to visualize this information.
 
-See fake server-status on [fake-status.adamzielonka.pro](https://fake-status.adamzielonka.pro/)
+See fake server-status on [fake-status](https://adam-zielonka.github.io/server-status/)
 
 ![](app/img/server-status.png)
 
