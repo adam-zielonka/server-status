@@ -31,7 +31,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://gitlab.com/adam-zielonka-pro/server-status"
+    "url": "https://github.com/adam-zielonka/server-status"
   },
   "dependencies": {
     "apollo-server": "^2.13.1",
