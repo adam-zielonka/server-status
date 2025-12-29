@@ -16,21 +16,17 @@ type SystemInfo struct {
 }
 
 func system() SystemInfo {
-	var result SystemInfo
-
 	info, _ := host.Info()
 	cpuInfo, _ := cpu.Info()
 
 	osName := fmt.Sprintf("%s %s", info.Platform, info.PlatformVersion)
 	cpuName := fmt.Sprintf("%s @ %.0f Mhz", cpuInfo[0].ModelName, cpuInfo[0].Mhz)
 
-	result = SystemInfo{
+	return SystemInfo{
 		Hostname: info.Hostname,
 		OS:       osName,
 		Kernel:   info.KernelVersion,
 		Uptime:   info.Uptime,
 		CPU:      cpuName,
 	}
-
-	return result
 }

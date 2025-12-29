@@ -17,11 +17,9 @@ type Memory struct {
 }
 
 func memory() Memory {
-	var result Memory
-
 	memory, _ := mem.VirtualMemory()
 
-	result = Memory{
+	return Memory{
 		Active:    memory.Active,
 		Available: memory.Available,
 		Buffcache: memory.Buffers + memory.Cached,
@@ -32,6 +30,4 @@ func memory() Memory {
 		Total:     memory.Total,
 		Used:      memory.Used,
 	}
-
-	return result
 }

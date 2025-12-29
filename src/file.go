@@ -14,10 +14,9 @@ type FileSystem struct {
 }
 
 func fileSystem() []FileSystem {
-	var result []FileSystem
-
 	partitions, _ := disk.Partitions(true)
 
+	var result []FileSystem
 	for _, p := range partitions {
 		usage, _ := disk.Usage(p.Mountpoint)
 
