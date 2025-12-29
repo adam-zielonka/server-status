@@ -21,9 +21,10 @@ func wrapper(f func() any) http.HandlerFunc {
 }
 
 func main() {
-	fmt.Println("http://localhost:8090/system")
+	fmt.Println("http://localhost:8090/")
 
 	http.HandleFunc("/system", wrapper(func() any { return system() }))
 	http.HandleFunc("/memory", wrapper(func() any { return memory() }))
+	http.HandleFunc("/load-average", wrapper(func() any { return loadAvg() }))
 	http.ListenAndServe(":8090", nil)
 }
