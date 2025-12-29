@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func toJSON(s SystemInfo) string {
+func toJSON(s any) string {
 	if b, err := json.Marshal(s); err != nil {
 		return "{}"
 	} else {
@@ -14,7 +14,7 @@ func toJSON(s SystemInfo) string {
 	}
 }
 
-func wrapper(f func() SystemInfo) http.HandlerFunc {
+func wrapper(f func() any) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "%s", toJSON(f()))
 	}
@@ -23,6 +23,7 @@ func wrapper(f func() SystemInfo) http.HandlerFunc {
 func main() {
 	fmt.Println("http://localhost:8090/system")
 
-	http.HandleFunc("/system", wrapper(system))
+	http.HandleFunc("/system", wrapper(func() any { return system() }))
+	http.HandleFunc("/memory", wrapper(func() any { return memory() }))
 	http.ListenAndServe(":8090", nil)
 }
