@@ -26,5 +26,6 @@ func main() {
 	http.HandleFunc("/system", wrapper(func() any { return system() }))
 	http.HandleFunc("/memory", wrapper(func() any { return memory() }))
 	http.HandleFunc("/load-average", wrapper(func() any { return loadAvg() }))
+	http.HandleFunc("/file-system", wrapper(func() any { return fileSystem() }))
 	http.ListenAndServe(":8090", nil)
 }
