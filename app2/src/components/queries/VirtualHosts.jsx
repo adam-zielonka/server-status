@@ -1,4 +1,3 @@
-import React from 'react'
 import Query from '../Query'
 import { Badge } from '../Badge'
 
@@ -22,11 +21,10 @@ function getColorByCode(code) {
 }
 
 const VirtualHosts = () => {
-  const query = '{ a2: apache2 { vhosts { port name statusCode } } }'
-  const query2 = '{ a2: caddy { vhosts { port name statusCode externalStatusCode } } }'
+  const query = '{ a2: caddy { vhosts { port name statusCode externalStatusCode } } }'
 
   return (
-    <Query query={query} query2={query2} title="VirtualHosts">
+    <Query query={query} title="VirtualHosts">
       {response => {
         let array = []
         if(response && response.a2 && response.a2.vhosts)

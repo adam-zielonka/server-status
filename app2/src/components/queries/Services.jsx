@@ -1,4 +1,3 @@
-import React from 'react'
 import Query from '../Query'
 import { Badge } from '../Badge'
 

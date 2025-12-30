@@ -1,4 +1,3 @@
-import React from 'react'
 import System from './queries/System'
 import Memory from './queries/Memory'
 import LoadAverage from './queries/LoadAverage'
