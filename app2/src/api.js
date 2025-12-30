@@ -24,12 +24,12 @@ async function apiFetch({ url, token, query, variables }) {
     .catch(error => ({ errors: [{ message: error.message }] }))
 }
 
-async function apiFetch2(path) {
+async function apiFetch2(path, headers = {}) {
   const token = window.store?.connection?.token
   const auth = token ? { Authorization: `Bearer ${token}` } : {}
   return fetch(url + path, {
     method: 'GET',
-    headers: { 'Content-Type': 'application/json', ...auth },
+    headers: { 'Content-Type': 'application/json', ...auth, ...headers },
   }).then(res => res.text())
     .then(res => {
       try {
@@ -42,19 +42,9 @@ async function apiFetch2(path) {
 }
 
 class API {
-  // login = async ({ url, username, password }) => apiFetch({
-  //   url, variables: { username, password }, query: `
-  //     query($username: String!, $password: String!) {
-  //       login(name: $username, pass: $password) {
-  //         token
-  //         user {
-  //           name
-  //         }
-  //       }
-  //     }`,
-  // })
-
-  login = async () => apiFetch2('auth')
+  login = async ({ username, password }) => {
+    return apiFetch2('auth', { 'Authorization': 'Basic ' + btoa(username + ':' + password) })
+  }
 
   getData = async props => apiFetch(props)
 

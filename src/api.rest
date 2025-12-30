@@ -1,9 +1,0 @@
-
-
-###
-GET http://localhost:8090/api/auth
-
-###
-GET http://localhost:8090/api/system
-Authorization: Bearer abcdef12345
-

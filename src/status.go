@@ -21,9 +21,10 @@ type Response struct {
 
 func wrapper(f func() any) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		token := r.Header.Get("Authorization")
+		auth := r.Header.Get("Authorization")
+		token := auth[len("Bearer "):]
 
-		if token == "" {
+		if err := validateToken(token); err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			response := Response{
 				Errors: []string{"Not authenticated"},
@@ -39,18 +40,6 @@ func wrapper(f func() any) http.HandlerFunc {
 
 		fmt.Fprintf(w, "%s", toJSON(response))
 	}
-}
-
-type Auth struct {
-	Token string `json:"token"`
-}
-
-func auth(w http.ResponseWriter, req *http.Request) {
-	response := Response{
-		Data:   Auth{Token: "secret-token"},
-		Errors: []string{},
-	}
-	fmt.Fprintf(w, "%s", toJSON(response))
 }
 
 func main() {
