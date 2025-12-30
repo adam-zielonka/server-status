@@ -1,6 +1,6 @@
 /* eslint-disable object-curly-newline */
 import { createContext, useContext } from 'react'
-import { makeAutoObservable } from 'mobx'
+import { makeAutoObservable, runInAction } from 'mobx'
 import api from './api'
 import autoSave from './autoSave'
 import YAML from 'yaml'
@@ -52,18 +52,21 @@ export class Store {
   }
 
   loadConf = async () => {
-    const query = `{
-      serverstatus {
-        plugins {
-          name
-        }
-        layout
-      }
-    }`
+    // const query = `{
+    //   serverstatus {
+    //     plugins {
+    //       name
+    //     }
+    //     layout
+    //   }
+    // }`
 
-    const { data, errors } = await this.getData({ query })
-    this.conf = data && data.serverstatus
-    this.errors = errors || []
+    // // const { data, errors } = await this.getData({ query })
+    const { data, errors } = await api.fetch('config', this.connection.token)
+    runInAction(() => {
+      this.conf = data
+      this.errors = errors || []
+    })
   }
 
   reload = () => this.date = new Date()
@@ -72,9 +75,11 @@ export class Store {
     const { data, errors } = await api.login({ url, username: user, password: pass })
 
     if (errors) this.errors = errors
-    else if (data && data.login) {
-      this.connection.token = data.login.token
-      this.connection.user = user
+    else if (data && data.token) {
+      runInAction(() => {
+        this.connection.token = data.token
+        this.connection.user = user
+      })
       await this.loadConf()
     }
   }
@@ -90,8 +95,9 @@ export class Store {
     return api.getData({ url, token, query, variables })
   }
 }
-
-const store = createContext(new Store())
+const _store = new Store()
+const store = createContext(_store)
+window.store = _store
 
 export function useStore() {
   return useContext(store)

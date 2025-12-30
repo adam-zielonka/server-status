@@ -44,7 +44,7 @@ export const AuthForm = observer(() => {
       icon={<img className='auth-logo' src={logo} alt='Logo' />}
     >
       <div className={Classes.DIALOG_BODY}>
-        {errors.map((error, key) => <Callout key={key} intent="danger">{error.message}</Callout>)}
+        {errors.map((error, key) => <Callout key={key} intent="danger">{error}</Callout>)}
         <div style={{padding: '5px'}} />
         <InputGroup autoFocus={!user} disabled={loading} leftIcon="user" placeholder="Username" value={user} onChange={onUserChange} />
         <div style={{padding: '5px'}} />
