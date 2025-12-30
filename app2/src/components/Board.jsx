@@ -2,12 +2,10 @@ import React from 'react'
 import System from './queries/System'
 import Memory from './queries/Memory'
 import LoadAverage from './queries/LoadAverage'
-import PM2 from './queries/PM2'
 import FilesSystem from './queries/FilesSystem'
 import Services from './queries/Services'
 import Network from './queries/Network'
 import VirtualHosts from './queries/VirtualHosts'
-import Docker from './queries/Docker'
 import { observer } from 'mobx-react-lite'
 import { useStore } from '../Store'
 
@@ -17,8 +15,6 @@ function getBox(name) {
   case 'loadAverage': return <LoadAverage />
   case 'memory': return <Memory />
   case 'fileSystem': return <FilesSystem />
-  case 'pm2': return <PM2 />
-  case 'docker': return <Docker />
   case 'network': return <Network />
   case 'services': return <Services />
   case 'virtualHosts': return <VirtualHosts />
