@@ -77,7 +77,7 @@ export class Store {
   logout = () => {
     this.connection.token = ''
     this.conf = null
-    this.errors = [{ message: 'Logout' }]
+    this.errors = [ 'Logout' ]
   }
 
   getData = async ({ query, variables }) => {
