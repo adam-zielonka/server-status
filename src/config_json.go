@@ -6,7 +6,6 @@ import (
 	"os"
 )
 
-// ServerConfig matches the structure in config.jsonc
 type ServerConfig struct {
 	Listen     Listen     `json:"listen"`
 	Auth       ServerAuth `json:"auth"`

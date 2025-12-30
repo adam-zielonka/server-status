@@ -47,6 +47,10 @@ func validateToken(tokenString string) error {
 		return key, nil
 	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 
+	if err != nil {
+		return err
+	}
+
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok || !token.Valid {
 		return fmt.Errorf("invalid token")
