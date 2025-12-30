@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	listenAddress, _ := config.GetListenAddress()
+	listenAddress := config.GetListenAddress()
 	fmt.Printf("http://%s/\n", listenAddress)
 
 	http.HandleFunc("/api/auth", auth.Handler)

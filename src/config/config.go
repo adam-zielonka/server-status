@@ -37,26 +37,23 @@ type Service struct {
 
 var config *ServerConfig
 
-func loadServerConfig() (*ServerConfig, error) {
+func loadServerConfig() *ServerConfig {
 	if config != nil {
-		return config, nil
+		return config
 	}
 	path := "config.jsonc"
 	b, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 	if err := json.Unmarshal(b, &config); err != nil {
-		return nil, err
+		panic(err)
 	}
-	return config, nil
+	return config
 }
 
 func FindUser(name string) (ServerUser, error) {
-	config, err := loadServerConfig()
-	if err != nil {
-		return ServerUser{}, err
-	}
+	config := loadServerConfig()
 	for _, user := range config.Auth.Users {
 		if user.Name == name {
 			return user, nil
@@ -66,10 +63,7 @@ func FindUser(name string) (ServerUser, error) {
 }
 
 func FindUserAndCheckPassword(name string, pass string) error {
-	config, err := loadServerConfig()
-	if err != nil {
-		return err
-	}
+	config := loadServerConfig()
 	for _, user := range config.Auth.Users {
 		if user.Name == name && user.Pass == pass {
 			return nil
@@ -78,18 +72,12 @@ func FindUserAndCheckPassword(name string, pass string) error {
 	return fmt.Errorf("user not found")
 }
 
-func GetAuthSecret() ([]byte, error) {
-	config, err := loadServerConfig()
-	if err != nil {
-		return nil, err
-	}
-	return []byte(config.Auth.Secret), nil
+func GetAuthSecret() []byte {
+	config := loadServerConfig()
+	return []byte(config.Auth.Secret)
 }
 
-func GetListenAddress() (string, error) {
-	config, err := loadServerConfig()
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%s:%d", config.Listen.Host, config.Listen.Port), nil
+func GetListenAddress() string {
+	config := loadServerConfig()
+	return fmt.Sprintf("%s:%d", config.Listen.Host, config.Listen.Port)
 }

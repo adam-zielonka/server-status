@@ -63,7 +63,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	key, _ := config.GetAuthSecret()
+	key := config.GetAuthSecret()
 	tokenizer := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{"name": user})
 	token, _ := tokenizer.SignedString(key)
 
@@ -75,7 +75,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ValidateToken(tokenString string) error {
-	key, _ := config.GetAuthSecret()
+	key := config.GetAuthSecret()
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		return key, nil
 	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
