@@ -15,7 +15,7 @@ type Auth struct {
 	Token string `json:"token"`
 }
 
-func Wrapper(f func() any) http.HandlerFunc {
+func Wrapper[T any](f func() T) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
