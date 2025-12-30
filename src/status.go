@@ -22,6 +22,7 @@ func main() {
 	HandleWithAuth("/api/memory", mods.Memory)
 	HandleWithAuth("/api/load-average", mods.LoadAvg)
 	HandleWithAuth("/api/file-system", mods.FileSystem)
+	HandleWithAuth("/api/net", mods.Net)
 
 	http.ListenAndServe(listenAddress, nil)
 }
