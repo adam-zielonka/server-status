@@ -1,4 +1,4 @@
-package main
+package mods
 
 import (
 	"github.com/shirou/gopsutil/v4/cpu"
@@ -32,7 +32,7 @@ type FullSystemInfo struct {
 	Time   TimeInfo   `json:"time"`
 }
 
-func system() FullSystemInfo {
+func System() FullSystemInfo {
 	info, _ := host.Info()
 	cpuInfo, _ := cpu.Info()
 

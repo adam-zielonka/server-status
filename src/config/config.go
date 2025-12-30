@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"encoding/json"
@@ -52,7 +52,7 @@ func loadServerConfig() (*ServerConfig, error) {
 	return config, nil
 }
 
-func findUser(name string) (ServerUser, error) {
+func FindUser(name string) (ServerUser, error) {
 	config, err := loadServerConfig()
 	if err != nil {
 		return ServerUser{}, err
@@ -65,7 +65,7 @@ func findUser(name string) (ServerUser, error) {
 	return ServerUser{}, fmt.Errorf("user not found")
 }
 
-func findUserAndCheckPassword(name string, pass string) error {
+func FindUserAndCheckPassword(name string, pass string) error {
 	config, err := loadServerConfig()
 	if err != nil {
 		return err
@@ -78,7 +78,7 @@ func findUserAndCheckPassword(name string, pass string) error {
 	return fmt.Errorf("user not found")
 }
 
-func getAuthSecret() ([]byte, error) {
+func GetAuthSecret() ([]byte, error) {
 	config, err := loadServerConfig()
 	if err != nil {
 		return nil, err
@@ -86,7 +86,7 @@ func getAuthSecret() ([]byte, error) {
 	return []byte(config.Auth.Secret), nil
 }
 
-func getListenAddress() (string, error) {
+func GetListenAddress() (string, error) {
 	config, err := loadServerConfig()
 	if err != nil {
 		return "", err

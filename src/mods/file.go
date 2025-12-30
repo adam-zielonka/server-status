@@ -1,10 +1,10 @@
-package main
+package mods
 
 import (
 	"github.com/shirou/gopsutil/v4/disk"
 )
 
-type FileSystem struct {
+type FileSystemType struct {
 	FS    string  `json:"fs"`
 	Type  string  `json:"type"`
 	Size  uint64  `json:"size"`
@@ -13,14 +13,14 @@ type FileSystem struct {
 	Mount string  `json:"mount"`
 }
 
-func fileSystem() []FileSystem {
+func FileSystem() []FileSystemType {
 	partitions, _ := disk.Partitions(true)
 
-	var result []FileSystem
+	var result []FileSystemType
 	for _, p := range partitions {
 		usage, _ := disk.Usage(p.Mountpoint)
 
-		fs := FileSystem{
+		fs := FileSystemType{
 			FS:    p.Device,
 			Type:  p.Fstype,
 			Size:  usage.Total,

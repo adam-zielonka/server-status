@@ -1,10 +1,10 @@
-package main
+package mods
 
 import (
 	"github.com/shirou/gopsutil/v4/mem"
 )
 
-type Memory struct {
+type MemoryType struct {
 	Active    uint64 `json:"active"`
 	Available uint64 `json:"available"`
 	Buffcache uint64 `json:"buffcache"`
@@ -16,10 +16,10 @@ type Memory struct {
 	Used      uint64 `json:"used"`
 }
 
-func memory() Memory {
+func Memory() MemoryType {
 	memory, _ := mem.VirtualMemory()
 
-	return Memory{
+	return MemoryType{
 		Active:    memory.Active,
 		Available: memory.Available,
 		Buffcache: memory.Buffers + memory.Cached,
