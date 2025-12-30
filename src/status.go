@@ -54,7 +54,7 @@ func main() {
 	fmt.Println("http://localhost:8090/")
 
 	http.HandleFunc("/api/auth", auth)
-	http.HandleFunc("/api/config", wrapper(func() any { return config() }))
+	http.HandleFunc("/api/ok", wrapper(func() any { return "ok" }))
 	http.HandleFunc("/api/system", wrapper(func() any { return system() }))
 	http.HandleFunc("/api/memory", wrapper(func() any { return memory() }))
 	http.HandleFunc("/api/load-average", wrapper(func() any { return loadAvg() }))

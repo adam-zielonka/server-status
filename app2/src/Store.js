@@ -3,28 +3,8 @@ import { createContext, useContext } from 'react'
 import { makeAutoObservable, runInAction } from 'mobx'
 import api from './api'
 import autoSave from './autoSave'
-import YAML from 'yaml'
 
 const url = import.meta.env.VITE_API_URL || '/api/'
-
-const getDefaultLayout = () => YAML.parse(`
-- board-3: 
-  - div:
-    - system
-    - loadAverage
-  - div:
-    - memory
-    - fileSystem
-- div:
-  - pm2
-  - docker
-  - board-2:
-    - div:
-      - network
-      - services
-    - div:
-      - virtualHosts
-`)
 
 export class Connection {
   user = ''
@@ -44,18 +24,14 @@ export class Store {
   constructor() { 
     makeAutoObservable(this)
     autoSave(this) 
-    setTimeout(()=>this.loadConf())
-  }
-
-  get layout() {
-    return (this.conf && this.conf.layout && JSON.parse(this.conf.layout)) || getDefaultLayout()
+    setTimeout(() => this.loadConf())
   }
 
   loadConf = async () => {
-    const { data, errors } = await api.fetch('config', this.connection.token)
+    const { errors } = await api.fetch('ok', this.connection.token)
     runInAction(() => {
-      this.conf = data
       this.errors = errors || []
+      this.conf = "loaded"
     })
   }
 
