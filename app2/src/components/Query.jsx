@@ -16,8 +16,6 @@ const Query = observer(({ title, children, path }) => {
       setLoading(true)
 
       const { data, errors } = await api.fetch(path)
-
-      console.log('QUERY FETCH', path, data, errors)
       if (errors && errors.length) {
         setError(errors.map(e => e).join(', '))
       }

@@ -44,7 +44,7 @@ export class Store {
   constructor() { 
     makeAutoObservable(this)
     autoSave(this) 
-    this.loadConf()
+    setTimeout(()=>this.loadConf())
   }
 
   get layout() {
@@ -52,16 +52,6 @@ export class Store {
   }
 
   loadConf = async () => {
-    // const query = `{
-    //   serverstatus {
-    //     plugins {
-    //       name
-    //     }
-    //     layout
-    //   }
-    // }`
-
-    // // const { data, errors } = await this.getData({ query })
     const { data, errors } = await api.fetch('config', this.connection.token)
     runInAction(() => {
       this.conf = data

@@ -26,8 +26,6 @@ async function apiFetch({ url, token, query, variables }) {
 
 async function apiFetch2(path) {
   const token = window.store?.connection?.token
-
-  console.log('API FETCH2', path, token)
   const auth = token ? { Authorization: `Bearer ${token}` } : {}
   return fetch(url + path, {
     method: 'GET',
