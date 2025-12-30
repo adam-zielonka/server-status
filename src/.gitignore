@@ -1,4 +1,4 @@
 config.yml
 config.json
 config.jsonc
-.rest
+api.rest
