@@ -11,8 +11,11 @@ type Network struct {
 	TxBytes   uint64   `json:"tx_bytes"`
 }
 
-func Net() []Network {
-	stats, _ := net.IOCounters(true)
+func Net() ([]Network, error) {
+	stats, err := net.IOCounters(true)
+	if err != nil {
+		return nil, err
+	}
 
 	var result []Network
 	for _, p := range stats {
@@ -33,5 +36,5 @@ func Net() []Network {
 		})
 	}
 
-	return result
+	return result, nil
 }

@@ -7,12 +7,11 @@ import (
 )
 
 type ServerConfig struct {
-	Listen     Listen     `json:"listen"`
-	Auth       ServerAuth `json:"auth"`
-	Services   []Service  `json:"services"`
-	Hosts      []string   `json:"hosts"`
-	RootCAPath string     `json:"rootCAPath"`
-	External   string     `json:"external"`
+	Listen   Listen     `json:"listen"`
+	Auth     ServerAuth `json:"auth"`
+	Services []Service  `json:"services"`
+	Hosts    []string   `json:"hosts"`
+	External string     `json:"external"`
 }
 
 type Listen struct {
@@ -80,4 +79,9 @@ func GetAuthSecret() []byte {
 func GetListenAddress() string {
 	config := loadServerConfig()
 	return fmt.Sprintf("%s:%d", config.Listen.Host, config.Listen.Port)
+}
+
+func GetExternalStatusCodeURL() string {
+	config := loadServerConfig()
+	return config.External
 }

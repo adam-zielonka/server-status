@@ -16,8 +16,11 @@ type MemoryType struct {
 	Used      uint64 `json:"used"`
 }
 
-func Memory() MemoryType {
-	memory, _ := mem.VirtualMemory()
+func Memory() (MemoryType, error) {
+	memory, err := mem.VirtualMemory()
+	if err != nil {
+		return MemoryType{}, err
+	}
 
 	return MemoryType{
 		Active:    memory.Active,
@@ -29,5 +32,5 @@ func Memory() MemoryType {
 		Swapused:  memory.SwapTotal - memory.SwapFree,
 		Total:     memory.Total,
 		Used:      memory.Used,
-	}
+	}, nil
 }

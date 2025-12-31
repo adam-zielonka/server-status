@@ -32,9 +32,15 @@ type FullSystemInfo struct {
 	Time   TimeInfo   `json:"time"`
 }
 
-func System() FullSystemInfo {
-	info, _ := host.Info()
-	cpuInfo, _ := cpu.Info()
+func System() (FullSystemInfo, error) {
+	info, err := host.Info()
+	if err != nil {
+		return FullSystemInfo{}, err
+	}
+	cpuInfo, err := cpu.Info()
+	if err != nil {
+		return FullSystemInfo{}, err
+	}
 
 	return FullSystemInfo{
 		System: SystemInfo{
@@ -55,5 +61,5 @@ func System() FullSystemInfo {
 		Time: TimeInfo{
 			Uptime: info.Uptime,
 		},
-	}
+	}, nil
 }

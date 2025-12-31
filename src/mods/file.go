@@ -13,12 +13,18 @@ type FileSystemType struct {
 	Mount string  `json:"mount"`
 }
 
-func FileSystem() []FileSystemType {
-	partitions, _ := disk.Partitions(true)
+func FileSystem() ([]FileSystemType, error) {
+	partitions, err := disk.Partitions(true)
+	if err != nil {
+		return nil, err
+	}
 
 	var result []FileSystemType
 	for _, p := range partitions {
-		usage, _ := disk.Usage(p.Mountpoint)
+		usage, err := disk.Usage(p.Mountpoint)
+		if err != nil {
+			return nil, err
+		}
 
 		fs := FileSystemType{
 			FS:    p.Device,
@@ -32,5 +38,5 @@ func FileSystem() []FileSystemType {
 		result = append(result, fs)
 	}
 
-	return result
+	return result, nil
 }
