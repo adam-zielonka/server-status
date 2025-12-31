@@ -39,9 +39,9 @@ jobs:
           GOOS=linux GOARCH=arm64 go build -o bin/status-linux-arm64 status.go
           cd ..
       - name: Test app
-        run: pnpm test
+        run: cd app && pnpm test
       - name: Lint app
-        run: pnpm lint
+        run: cd app && pnpm lint
       - name: Build app
         run: |
           cd app
