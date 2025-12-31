@@ -28,7 +28,7 @@ export function getHumanSize(bytes) {
   if(isNaN(bytes)) return '0\u00A0B'
 
   const prefix = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
-    .find(p => p === 'Y' || !(bytes >= 1024 && (bytes /= 1024)))
+    .find(p => p === 'Y' || !(Math.abs(bytes) >= 1024 && (bytes /= 1024)))
   
   return [round(bytes), '\u00A0', prefix, 'B'].join('')
 }

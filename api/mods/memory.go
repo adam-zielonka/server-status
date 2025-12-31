@@ -5,9 +5,9 @@ import (
 )
 
 type MemoryType struct {
-	Active    uint64 `json:"active"`
 	Used      uint64 `json:"used"`
-	Available uint64 `json:"available"`
+	Cached    uint64 `json:"cached"`
+	Free      uint64 `json:"free"`
 	Total     uint64 `json:"total"`
 	Swapfree  uint64 `json:"swapfree"`
 	Swaptotal uint64 `json:"swaptotal"`
@@ -21,9 +21,9 @@ func Memory() (MemoryType, error) {
 	}
 
 	return MemoryType{
-		Active:    memory.Active,
-		Available: memory.Available,
 		Used:      memory.Used,
+		Cached:    memory.Total - memory.Free - memory.Used,
+		Free:      memory.Free,
 		Total:     memory.Total,
 		Swapfree:  memory.SwapFree,
 		Swaptotal: memory.SwapTotal,
