@@ -21,14 +21,10 @@ function getColorByCode(code) {
 }
 
 const VirtualHosts = () => {
-  const query = '{ a2: caddy { vhosts { port name statusCode externalStatusCode } } }'
-
   return (
-    <Query query={query} title="VirtualHosts">
+    <Query path="vhosts" title="VirtualHosts">
       {response => {
-        let array = []
-        if(response && response.a2 && response.a2.vhosts)
-          array = Array.isArray(response.a2.vhosts) ? response.a2.vhosts : []
+        const array = Array.isArray(response) ? response : []
         return (
           <div>
             <table className="table table-sm">
