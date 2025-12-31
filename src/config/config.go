@@ -35,13 +35,28 @@ type Service struct {
 }
 
 var config *ServerConfig
+var configPath string
+
+func Initialize(path string) {
+	if path == "" {
+		// Try default paths
+		if _, err := os.Stat("config.jsonc"); err == nil {
+			configPath = "config.jsonc"
+		} else if _, err := os.Stat("config.json"); err == nil {
+			configPath = "config.json"
+		} else {
+			panic("config file not found: checked config.jsonc and config.json")
+		}
+	} else {
+		configPath = path
+	}
+}
 
 func loadServerConfig() *ServerConfig {
 	if config != nil {
 		return config
 	}
-	path := "config.jsonc"
-	b, err := os.ReadFile(path)
+	b, err := os.ReadFile(configPath)
 	if err != nil {
 		panic(err)
 	}

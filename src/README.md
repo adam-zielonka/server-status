@@ -16,7 +16,9 @@ $ env GOOS=linux GOARCH=amd64 go build -o build/status
 
 ## Configuration
 
-Create a `config.jsonc` file in the same directory as the executable:
+Create a configuration file in the same directory as the executable. By default, the server looks for `config.jsonc` first, then `config.json`. You can also specify a custom config file path using the `-config` flag.
+
+Example `config.jsonc`:
 
 ```jsonc
 {
@@ -56,14 +58,24 @@ Create a `config.jsonc` file in the same directory as the executable:
 
 ## Run
 
+Run with default configuration file (config.jsonc or config.json):
 ```bash
 $ ./build/status
+```
+
+Run with a custom configuration file:
+```bash
+$ ./build/status -config /path/to/myconfig.json
 ```
 
 The server will start and display the listening address:
 ```
 http://localhost:4000/
 ```
+
+### Command-line Options
+
+- `-config` - Path to configuration file (default: checks config.jsonc, then config.json)
 
 ## API Endpoints
 

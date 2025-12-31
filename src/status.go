@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
 	"status/auth"
@@ -13,6 +14,11 @@ func HandleWithAuth[T any](path string, f func() (T, error)) {
 }
 
 func main() {
+	configPath := flag.String("config", "", "path to config file (default: config.jsonc or config.json)")
+	flag.Parse()
+
+	config.Initialize(*configPath)
+
 	listenAddress := config.GetListenAddress()
 	fmt.Printf("http://%s/\n", listenAddress)
 
