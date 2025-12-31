@@ -8,13 +8,12 @@ const LoadAverage = () => {
         if (!Array.isArray(response) || response.length !== 3) {
           return null
         }
-        const array = response
         const time = [15, 5, 1]
         return (
           <div>
             <table>
               <tbody>
-                {array.map((avg, i) => (
+                {response.map((avg, i) => (
                   <tr key={i}>
                     <td>{time.pop()}&nbsp;min</td>
                     <td width="99%">
