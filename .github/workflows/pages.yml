@@ -70,7 +70,7 @@ jobs:
         with:
           path: ./public
       - name: Upload binary artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v6
         with:
           name: api-binaries
           path: ./public/bin
