@@ -2,6 +2,7 @@ package mods
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -57,7 +58,6 @@ func VHosts() ([]VHost, error) {
 			continue
 		}
 
-		// Extract port from listen string (e.g., ":443" -> "443")
 		port := strings.TrimPrefix(server.Listen[0], ":")
 
 		for _, route := range server.Routes {
@@ -72,7 +72,6 @@ func VHosts() ([]VHost, error) {
 		}
 	}
 
-	// Chcek status codes for each vhost
 	for i, vhost := range vhosts {
 		vhosts[i].StatusCode = CheckVHost(vhost.Name)
 		vhosts[i].ExternalStatusCode = CheckExternalVHost(vhost.Name)
@@ -81,9 +80,12 @@ func VHosts() ([]VHost, error) {
 	return vhosts, nil
 }
 
-// CheckVHost checks the HTTP status code of a virtual host
 func CheckVHost(name string) string {
-	client := &http.Client{}
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
 
 	req, err := http.NewRequest("GET", fmt.Sprintf("http://%s", name), nil)
 	if err != nil {
@@ -101,7 +103,6 @@ func CheckVHost(name string) string {
 	return fmt.Sprintf("%d", resp.StatusCode)
 }
 
-// CheckExternalVHost checks the status code via an external service
 func CheckExternalVHost(name string) string {
 	externalURL := config.GetExternalStatusCodeURL()
 	if externalURL == "" {
@@ -116,7 +117,11 @@ func CheckExternalVHost(name string) string {
 
 	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
 
-	client := &http.Client{}
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		return "0"
