@@ -29,7 +29,7 @@ function App() {
           <Logo />
           <Navbar.Divider />
           <div className="center-parent">
-            <h3 className="bp3-heading center-child">ServerStatus</h3>
+            <h3 className="bp6-heading center-child">ServerStatus</h3>
           </div>
         </Navbar.Group>
         <Navbar.Group align={Alignment.RIGHT}>

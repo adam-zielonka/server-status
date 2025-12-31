@@ -14,7 +14,7 @@ type FileSystemType struct {
 }
 
 func FileSystem() ([]FileSystemType, error) {
-	partitions, err := disk.Partitions(true)
+	partitions, err := disk.Partitions(false)
 	if err != nil {
 		return nil, err
 	}

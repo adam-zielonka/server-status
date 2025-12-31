@@ -25,7 +25,7 @@ const FilesSystem = () => {
                 </tr>
               </thead>
               <tbody>
-                {array.map(fs => (
+                {array.filter(fs => !fs.mount.startsWith('/snap/')).map(fs => (
                   <tr key={fs.mount}>
                     <td>{fs.mount}</td>
                     <td>{fs.type}</td>

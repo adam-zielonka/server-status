@@ -2,3 +2,4 @@ config.yml
 config.json
 config.jsonc
 api.rest
+build/

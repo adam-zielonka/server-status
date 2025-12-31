@@ -1,15 +1,15 @@
 package mods
 
 import (
+	"math"
+
 	"github.com/shirou/gopsutil/v4/cpu"
 	"github.com/shirou/gopsutil/v4/host"
 )
 
 type SystemInfo struct {
-	Platform string `json:"platform"`
 	Distro   string `json:"distro"`
 	Release  string `json:"release"`
-	Codename string `json:"codename"`
 	Kernel   string `json:"kernel"`
 	Arch     string `json:"arch"`
 	Hostname string `json:"hostname"`
@@ -44,10 +44,8 @@ func System() (FullSystemInfo, error) {
 
 	return FullSystemInfo{
 		System: SystemInfo{
-			Platform: info.Platform,
-			Distro:   info.PlatformFamily,
+			Distro:   info.Platform,
 			Release:  info.PlatformVersion,
-			Codename: "",
 			Kernel:   info.KernelVersion,
 			Arch:     info.KernelArch,
 			Hostname: info.Hostname,
@@ -55,8 +53,8 @@ func System() (FullSystemInfo, error) {
 		CPU: CPUInfo{
 			Manufacturer: cpuInfo[0].VendorID,
 			Brand:        cpuInfo[0].ModelName,
-			Speed:        cpuInfo[0].Mhz,
-			Cores:        cpuInfo[0].Cores,
+			Speed:        math.Round(cpuInfo[0].Mhz/100) / 10,
+			Cores:        int32(len(cpuInfo)),
 		},
 		Time: TimeInfo{
 			Uptime: info.Uptime,
