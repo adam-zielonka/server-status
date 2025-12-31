@@ -1,4 +1,3 @@
-/* eslint-disable object-curly-newline */
 import { createContext, useContext } from 'react'
 import { makeAutoObservable, runInAction } from 'mobx'
 import api from './api'
@@ -29,7 +28,7 @@ export class Store {
     const { errors } = await api.fetch('ok', this.connection.token)
     runInAction(() => {
       this.errors = errors || []
-      this.conf = "loaded"
+      this.conf = 'loaded'
     })
   }
 

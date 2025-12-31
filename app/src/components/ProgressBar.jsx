@@ -12,7 +12,7 @@ export const ProgressMeter = ({ value = 0, color }) => {
   const width = (newValue > 100 ? 100 : newValue) + '%'
 
   return (
-    <div className='progress-meter' style={{ backgroundColor: color || getColor(percent), width }}>{percent}%</div>
+    <div className="progress-meter" style={{ backgroundColor: color || getColor(percent), width }}>{percent}%</div>
   )
 }
 

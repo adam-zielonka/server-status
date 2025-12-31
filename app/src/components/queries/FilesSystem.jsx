@@ -12,7 +12,7 @@ const FilesSystem = () => {
           <div>
             <ProgressBar>
               <ProgressMeter value={used/size} />
-              <ProgressMeter value={1 - used/size} color='#dee2e6' />
+              <ProgressMeter value={1 - used/size} color="#dee2e6" />
             </ProgressBar>
             <table className="table table-sm">
               <thead>

@@ -30,13 +30,13 @@ const VirtualHosts = () => {
             <table className="table table-sm">
               <thead>
                 <tr>
-                  <Th align='left'>port</Th>
-                  <Th align='left'>name</Th>
+                  <Th align="left">port</Th>
+                  <Th align="left">name</Th>
                   {array.length && !array[0].externalStatusCode ? <>
-                    <Th align='right'>code</Th>
+                    <Th align="right">code</Th>
                   </> : <>
-                    <Th align='right'>in</Th>
-                    <Th align='right'>out</Th>
+                    <Th align="right">in</Th>
+                    <Th align="right">out</Th>
                   </>}
                 </tr>
               </thead>
@@ -48,14 +48,14 @@ const VirtualHosts = () => {
                       <a href={'http://'+(host.name)}>{host.name}</a>
                     </td>
                     {!host.externalStatusCode ? <>
-                      <Td align='right'>
+                      <Td align="right">
                         <Badge color={getColorByCode(host.statusCode)}>{host.statusCode}</Badge>
                       </Td>
                     </> : <>
-                      <Td align='right'>
+                      <Td align="right">
                         <Badge color={getColorByCode(host.statusCode)}>{host.statusCode}</Badge>
                       </Td>
-                      <Td align='right'>
+                      <Td align="right">
                         <Badge color={getColorByCode(host.externalStatusCode)}>{host.externalStatusCode}</Badge>
                       </Td>
                     </>}

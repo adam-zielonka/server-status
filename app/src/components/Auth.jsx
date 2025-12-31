@@ -41,7 +41,7 @@ export const AuthForm = observer(() => {
       intent="primary"
       isCloseButtonShown={false}
       backdropClassName="backdrop"
-      icon={<img className='auth-logo' src={logo} alt='Logo' />}
+      icon={<img className="auth-logo" src={logo} alt="Logo" />}
     >
       <div className={Classes.DIALOG_BODY}>
         {errors.map((error, key) => <Callout key={key} intent="danger">{error}</Callout>)}

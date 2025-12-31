@@ -17,7 +17,7 @@ async function apiFetch(path, headers = {}) {
       try {
         return JSON.parse(res)
       } catch (error) {
-        return { errors: [typeof res === 'string' ? (res || "Unknown error") : error.message] }
+        return { errors: [typeof res === 'string' ? (res || 'Unknown error') : error.message] }
       }
     })
     .catch(error => ({ errors: [error.message] }))

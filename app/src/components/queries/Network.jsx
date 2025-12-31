@@ -21,7 +21,7 @@ const Network = () => {
                 {array.map(net => (
                   <tr key={net.iface}>
                     <td>{net.iface}</td>
-                    <td style={{whiteSpace: 'break-spaces'}}>{net.addresses.join(" ")}</td>
+                    <td style={{whiteSpace: 'break-spaces'}}>{net.addresses.join(' ')}</td>
                     <td>{Tools.getHumanSize(net.rx_bytes)}</td>
                     <td>{Tools.getHumanSize(net.tx_bytes)}</td>
                   </tr>

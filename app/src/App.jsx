@@ -5,7 +5,7 @@ import Board from './components/Board'
 import { Button, Navbar, Alignment, Spinner } from '@blueprintjs/core'
 import logo from '/server-status.png'
 
-const Logo = () => <img className='logo' src={logo} alt='Logo' />
+const Logo = () => <img className="logo" src={logo} alt="Logo" />
 
 function App() {
   const { reload, errors, conf, logout } = useStore()
@@ -18,13 +18,13 @@ function App() {
 
   if (!conf) {
     return <div className="spinner">
-      <Spinner size='100' intent="primary" />
+      <Spinner size="100" intent="primary" />
     </div>
   }
 
   return (
     <div className="App">
-      <Navbar className='nav'>
+      <Navbar className="nav">
         <Navbar.Group align={Alignment.LEFT}>
           <Logo />
           <Navbar.Divider />

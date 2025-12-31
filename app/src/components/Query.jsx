@@ -53,13 +53,13 @@ const Query = observer(({ title, children, path }) => {
   }
 
   return (
-    <Card className='item' elevation={Elevation.TWO} style={cardStyle}>
+    <Card className="item" elevation={Elevation.TWO} style={cardStyle}>
       <div style={style}>
         <h3 className="center-parent" style={{width: '100%', paddingLeft: '5px'}}>
           <span className="center-child">{title}</span>
           <span style={{
-            color: "#909090ff",
-            fontSize: "10px",
+            color: '#909090ff',
+            fontSize: '10px',
           }}>{error || ''}</span>
           <Button loading={loading} intent={error ? 'danger' : 'none'} minimal icon={error ? 'warning-sign' : 'refresh'} style={{ float: 'right' }} onClick={onClickHandler} />
         </h3>

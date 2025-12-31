@@ -8,10 +8,10 @@ const Memory = () => {
       {response => {
         const obj = response
         const memory = [
-          <ProgressBar key='mem-bar'>
+          <ProgressBar key="mem-bar">
             <ProgressMeter value={obj.active / obj.total} />
             <ProgressMeter value={(obj.used - obj.active) / obj.total} color="royalblue" />
-            <ProgressMeter value={obj.available / obj.total} color='#dee2e6' />
+            <ProgressMeter value={obj.available / obj.total} color="#dee2e6" />
           </ProgressBar>,
           <table key="mem" className="table table-striped table-sm">
             <tbody>
@@ -33,9 +33,9 @@ const Memory = () => {
         if (obj.swaptotal) {
 
           memory.push(
-            <ProgressBar key='swap-bar'>
+            <ProgressBar key="swap-bar">
               <ProgressMeter value={obj.swapused/obj.swaptotal} />
-              <ProgressMeter value={1 - obj.swapused/obj.swaptotal} color='#dee2e6' />
+              <ProgressMeter value={1 - obj.swapused/obj.swaptotal} color="#dee2e6" />
             </ProgressBar>
           )
           
