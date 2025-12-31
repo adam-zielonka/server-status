@@ -1,4 +1,3 @@
-import React from 'react'
 import Query from '../Query'
 import { Badge } from '../Badge'
 
@@ -22,27 +21,22 @@ function getColorByCode(code) {
 }
 
 const VirtualHosts = () => {
-  const query = '{ a2: apache2 { vhosts { port name statusCode } } }'
-  const query2 = '{ a2: caddy { vhosts { port name statusCode externalStatusCode } } }'
-
   return (
-    <Query query={query} query2={query2} title="VirtualHosts">
+    <Query path="vhosts" title="VirtualHosts">
       {response => {
-        let array = []
-        if(response && response.a2 && response.a2.vhosts)
-          array = Array.isArray(response.a2.vhosts) ? response.a2.vhosts : []
+        const array = Array.isArray(response) ? response : []
         return (
           <div>
             <table className="table table-sm">
               <thead>
                 <tr>
-                  <Th align='left'>port</Th>
-                  <Th align='left'>name</Th>
+                  <Th align="left">port</Th>
+                  <Th align="left">name</Th>
                   {array.length && !array[0].externalStatusCode ? <>
-                    <Th align='right'>code</Th>
+                    <Th align="right">code</Th>
                   </> : <>
-                    <Th align='right'>in</Th>
-                    <Th align='right'>out</Th>
+                    <Th align="right">in</Th>
+                    <Th align="right">out</Th>
                   </>}
                 </tr>
               </thead>
@@ -54,14 +48,14 @@ const VirtualHosts = () => {
                       <a href={'http://'+(host.name)}>{host.name}</a>
                     </td>
                     {!host.externalStatusCode ? <>
-                      <Td align='right'>
+                      <Td align="right">
                         <Badge color={getColorByCode(host.statusCode)}>{host.statusCode}</Badge>
                       </Td>
                     </> : <>
-                      <Td align='right'>
+                      <Td align="right">
                         <Badge color={getColorByCode(host.statusCode)}>{host.statusCode}</Badge>
                       </Td>
-                      <Td align='right'>
+                      <Td align="right">
                         <Badge color={getColorByCode(host.externalStatusCode)}>{host.externalStatusCode}</Badge>
                       </Td>
                     </>}

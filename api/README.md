@@ -1,233 +1,163 @@
-# Server Status API
+# Server Status - Go Implementation
 
-GraphQL API server for retrieving server status information
+Go-based HTTP server for retrieving server status information through RESTful API endpoints.
 
-## Use
+## Build
 
-Add `@server-status/api` to dependencies in package.json
-
+Build the application:
 ```bash
-$ npm install @server-status/api
-```
-or
-```bash
-$ yarn add @server-status/api
+$ go build -o build/status
 ```
 
-Create file e.g. `index.js`
-```js
-const ServerStatus = require('@server-status/api')
+Build for Linux (cross-compilation):
+```bash
+$ env GOOS=linux GOARCH=amd64 go build -o build/status
+```
 
-const config = {
-  plugins: [
-    {
-      name: 'auth',
-      config: {
-        users: [
-          {
-            name: 'dragon',
-            pass: 'dragon',
-          }
-        ],
-        secret: 'pancake-is-the-best-dragon',
-      }
-    },
-    {
-      name: 'systeminformation',
-    },
-    {
-      name: 'my-awesome-plugin',
-      plugin: require('./myPlugins/my-awesome-plugin'),
-    },
-  ],
-  listen: {
-    port: 4000,
-    host: 'localhost',
+## Configuration
+
+Create a configuration file in the same directory as the executable. By default, the server looks for `config.jsonc` first, then `config.json`. You can also specify a custom config file path using the `-config` flag.
+
+Example `config.jsonc`:
+
+```jsonc
+{
+  "listen": {
+    "host": "localhost",
+    "port": 4000
   },
-  // apolloServerConfig: {},
+  "auth": {
+    "users": [
+      {
+        "name": "dragon",
+        "pass": "dragon"
+      }
+    ],
+    "secret": "pancake-is-the-best-dragon"
+  },
+  "services": [
+    {
+      "name": "Web",
+      "port": "80"
+    },
+    {
+      "name": "SSH",
+      "port": "22"
+    },
+    {
+      "name": "Server Status",
+      "port": "4000"
+    }
+  ],
+  "hosts": [
+    "localhost"
+  ],
+  "external": ""
 }
-
-ServerStatus(config).listen()
-
 ```
-And run server
+
+## Run
+
+Run with default configuration file (config.jsonc or config.json):
 ```bash
-$ node index.js
+$ ./build/status
 ```
 
-## Built-in plugins
-
-### apache2
-Plugin for retrieving information about running virtual host via apache2.
-```js
-const config = {
-  plugins: [
-    {
-      name: 'apache2',
-      // config: {
-      //   user: 'username',
-      //   pass: 'password',
-      // }
-    },
-  ],
-}
-```
-### auth
-Plugin for for simple authorization to server-status
-```js
-const config = {
-  plugins: [
-    {
-      name: 'auth',
-      config: {
-        users: [
-          {
-            name: 'dragon',
-            pass: 'dragon',
-          }
-        ],
-        secret: 'pancake-is-the-best-dragon',
-      }
-    },
-  ],
-}
-```
-### caddy
-Plugin for retrieving information about running virtual host via [Caddy Server](https://caddyserver.com/).
-```js
-const config = {
-  plugins: [
-    {
-      name: 'caddy',
-      // config: {
-      //   user: 'username',
-      //   pass: 'password',
-      //   port: 2019,
-      // }
-    },
-  ],
-}
-```
-### pm2
-Plugin for retrieving information about running app via [PM2](https://pm2.io/).
-```js
-const config = {
-  plugins: [
-    {
-      name: 'pm2',
-    },
-  ],
-}
-```
-### service
-Plugin for retrieving information about running services.
-```js
-const config = {
-  plugins: [
-    {
-      name: 'services',
-      config: {
-        services: [
-          {
-            name: 'ServerStatus',
-            port: '4000',
-          },
-          {
-            name: 'OneTwoThere',
-            port: '123',
-          },
-        ],
-        hosts: [
-          'localhost'
-        ]
-      }
-    },
-  ],
-}
-```
-### systeminformation
-Plugin for retrieving server system information from package [systeminformation](https://systeminformation.io/).  
-```js
-const config = {
-  plugins: [
-    {
-      name: 'systeminformation',
-    },
-  ],
-}
-```
-### status
-Plugin for retrieving information about running plugins. Auto loaded. You can manually add to specify frontend layout. 
-```js
-const config = {
-  plugins: [
-    {
-      name: 'status',
-      config: {
-        layout: [
-          {
-            "board-3": [
-              {
-                "div": [
-                  "system",
-                  "loadAverage"
-                ]
-              },
-              {
-                "div": [
-                  "memory",
-                  "fileSystem"
-                ]
-              }
-            ]
-          },
-          {
-            "div": [
-              "pm2",
-              "docker",
-              {
-                "board-2": [
-                  {
-                    "div": [
-                      "network",
-                      "services"
-                    ]
-                  },
-                  {
-                    "div": [
-                      "virtualHosts"
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    },
-  ],
-}
-```
-
-## Using YAML instead of JSON
-
+Run with a custom configuration file:
 ```bash
-yarn add @server-status/api yaml
+$ ./build/status -config /path/to/myconfig.json
 ```
 
-```js
-const ServerStatus = require('@server-status/api')
-const YAML = require('yaml')
-const fs = require('fs')
-
-try {
-  const config = YAML.parse(fs.readFileSync('./config.yml', 'utf8'))
-
-  ServerStatus(config).listen()
-} catch (e) {
-  console.log(e)
-}
+The server will start and display the listening address:
 ```
+http://localhost:4000/
+```
+
+### Command-line Options
+
+- `-config` - Path to configuration file (default: checks config.jsonc, then config.json)
+
+## API Endpoints
+
+All endpoints except `/api/auth` require authentication via JWT token.
+
+### Authentication
+**GET** `/api/auth`
+- Authenticate using HTTP Basic Auth and receive JWT token
+- Use Basic Authentication with username and password in the Authorization header
+- Returns: JWT token for subsequent requests
+
+### System Information
+**GET** `/api/ok`
+- Health check endpoint
+- Returns: `"ok"`
+
+**GET** `/api/system`
+- Retrieve system information
+- Returns: OS, platform, hostname, architecture, CPU info
+
+**GET** `/api/memory`
+- Retrieve memory usage information
+- Returns: Total, used, free memory
+
+**GET** `/api/load-average`
+- Retrieve system load average
+- Returns: 1, 5, and 15-minute load averages
+
+**GET** `/api/file-system`
+- Retrieve file system information
+- Returns: Disk usage for mounted filesystems
+
+**GET** `/api/net`
+- Retrieve network interface information
+- Returns: Network interfaces and their statistics
+
+**GET** `/api/vhosts`
+- Retrieve virtual hosts information
+- Returns: List of configured virtual hosts
+
+**GET** `/api/services`
+- Retrieve services status
+- Returns: Status of configured services (listening on specified ports)
+
+## Project Structure
+
+```
+src/
+├── status.go          # Main entry point, HTTP handlers
+├── config.jsonc       # Configuration file
+├── go.mod            # Go module definition
+├── auth/             # Authentication module
+│   └── auth.go       # JWT authentication logic
+├── config/           # Configuration module
+│   └── config.go     # Configuration loader and types
+├── mods/             # Information modules
+│   ├── fs.go         # File system information
+│   ├── loadavg.go    # Load average information
+│   ├── memory.go     # Memory information
+│   ├── net.go        # Network information
+│   ├── services.go   # Services status
+│   ├── system.go     # System information
+│   └── vhosts.go     # Virtual hosts information
+└── utils/            # Utility functions
+    ├── types.go      # Common types
+    └── utils.go      # Helper functions
+```
+
+## Authentication
+
+The server uses JWT (JSON Web Tokens) for authentication. To access protected endpoints:
+
+1. Obtain a token by sending credentials to `/api/auth`
+2. Include the token in the `Authorization` header for subsequent requests:
+   ```
+   Authorization: Bearer <token>
+   ```
+
+## Dependencies
+
+- Native Go standard library for most functionality
+- Third-party packages as specified in `go.mod`
 
 ## Licence
 

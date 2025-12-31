@@ -1,11 +1,11 @@
-import React from 'react'
 import { observer } from 'mobx-react-lite'
 import { AuthForm } from './components/Auth'
 import { useStore } from './Store'
 import Board from './components/Board'
 import { Button, Navbar, Alignment, Spinner } from '@blueprintjs/core'
+import logo from '/server-status.png'
 
-const Logo = () => <img className='logo' src={require('./img/server-status.png')} alt='Logo' />
+const Logo = () => <img className="logo" src={logo} alt="Logo" />
 
 function App() {
   const { reload, errors, conf, logout } = useStore()
@@ -18,18 +18,18 @@ function App() {
 
   if (!conf) {
     return <div className="spinner">
-      <Spinner size='100' intent="primary" />
+      <Spinner size="100" intent="primary" />
     </div>
   }
 
   return (
     <div className="App">
-      <Navbar className='nav'>
+      <Navbar className="nav">
         <Navbar.Group align={Alignment.LEFT}>
           <Logo />
           <Navbar.Divider />
           <div className="center-parent">
-            <h3 className="bp3-heading center-child">ServerStatus</h3>
+            <h3 className="bp6-heading center-child">ServerStatus</h3>
           </div>
         </Navbar.Group>
         <Navbar.Group align={Alignment.RIGHT}>
