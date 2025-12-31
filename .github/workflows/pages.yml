@@ -69,6 +69,11 @@ jobs:
         uses: actions/upload-pages-artifact@v4
         with:
           path: ./public
+      - name: Upload binary artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: api-binaries
+          path: ./public/bin
 
   # Deployment job
   deploy:
