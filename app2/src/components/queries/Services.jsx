@@ -2,25 +2,10 @@ import Query from '../Query'
 import { Badge } from '../Badge'
 
 const Services = () => {
-  const query = `{ 
-    services {
-      name
-      port
-      link
-      hosts {
-        name
-        port
-        open
-      }
-    }
-  }`
-
   return (
-    <Query query={query} title="Services">
+    <Query path="services" title="Services">
       {response => {
-        let array = []
-        if(response && response.services)
-          array = Array.isArray(response.services) ? response.services : []
+        const array = Array.isArray(response) ? response : []
         const getBadgeColor = open => open ? 'green' : 'red'
 
         return (

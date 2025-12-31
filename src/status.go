@@ -24,6 +24,7 @@ func main() {
 	HandleWithAuth("/api/file-system", mods.FileSystem)
 	HandleWithAuth("/api/net", mods.Net)
 	HandleWithAuth("/api/vhosts", mods.VHosts)
+	HandleWithAuth("/api/services", mods.Services)
 
 	http.ListenAndServe(listenAddress, nil)
 }

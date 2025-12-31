@@ -85,3 +85,8 @@ func GetExternalStatusCodeURL() string {
 	config := loadServerConfig()
 	return config.External
 }
+
+func GetServicesAndHosts() ([]Service, []string) {
+	config := loadServerConfig()
+	return config.Services, config.Hosts
+}
