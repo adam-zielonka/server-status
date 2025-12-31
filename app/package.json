@@ -8,6 +8,7 @@
     "fake": "VITE_FAKE_API=true vite",
     "build": "vite build",
     "lint": "eslint .",
+    "test": "vitest",
     "preview": "vite preview"
   },
   "dependencies": {
