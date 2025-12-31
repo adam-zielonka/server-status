@@ -210,7 +210,15 @@ func ValidateToken(tokenString string) error {
 		return fmt.Errorf("invalid token")
 	}
 
-	userName := claims["name"].(string)
+	nameClaim, exists := claims["name"]
+	if !exists {
+		return fmt.Errorf("invalid token: missing name claim")
+	}
+
+	userName, ok := nameClaim.(string)
+	if !ok {
+		return fmt.Errorf("invalid token: invalid name claim type")
+	}
 	_, err = config.FindUser(userName)
 	return err
 }
