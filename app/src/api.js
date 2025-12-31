@@ -4,7 +4,7 @@ const url = import.meta.env.VITE_API_URL || '/api/'
 
 async function apiFetch(path, headers = {}) {
   if (import.meta.env.VITE_FAKE_API) {
-    return await fakeApi()
+    return await fakeApi(path)
   }
 
   const token = window.store?.connection?.token
