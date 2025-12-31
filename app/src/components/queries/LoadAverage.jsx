@@ -5,7 +5,10 @@ const LoadAverage = () => {
   return (
     <Query path="load-average" title="Load Average">
       {response => {
-        const array = Array.isArray(response) ? response : [0,0,0]
+        if (!Array.isArray(response) || response.length === 0) {
+          return null
+        }
+        const array = response
         const time = [15, 5, 1]
         return (
           <div>
