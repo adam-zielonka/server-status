@@ -97,14 +97,14 @@ func FindUser(name string) (ServerUser, error) {
 
 func FindUserAndCheckPassword(name string, pass string) error {
 	if config == nil {
-		return fmt.Errorf("config not initialized")
+		return fmt.Errorf("invalid credentials")
 	}
 	for _, user := range config.Auth.Users {
 		if user.Name == name && user.Pass == pass {
 			return nil
 		}
 	}
-	return fmt.Errorf("user not found")
+	return fmt.Errorf("invalid credentials")
 }
 
 func GetAuthSecret() []byte {
