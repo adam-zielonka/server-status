@@ -3,7 +3,7 @@ import { AuthForm } from './components/Auth'
 import { useStore } from './Store'
 import Board from './components/Board'
 import { Button, Navbar, Alignment, Spinner } from '@blueprintjs/core'
-import logo from './img/server-status.png'
+import logo from '/server-status.png'
 
 const Logo = () => <img className='logo' src={logo} alt='Logo' />
 

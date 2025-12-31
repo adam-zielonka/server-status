@@ -4,7 +4,7 @@ import {
 } from '@blueprintjs/core'
 import { observer } from 'mobx-react-lite'
 import { useStore } from '../Store'
-import logo from '../img/server-status.png'
+import logo from '/server-status.png'
 
 function useInput(initValue = '') {
   const [value, setValue] = useState(initValue)
