@@ -186,7 +186,15 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	key := config.GetAuthSecret()
 	tokenizer := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{"name": user})
-	token, _ := tokenizer.SignedString(key)
+	token, err := tokenizer.SignedString(key)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		response := utils.Response{
+			Errors: []string{"Failed to generate authentication token"},
+		}
+		fmt.Fprintf(w, "%s", utils.ToJSON(response))
+		return
+	}
 
 	response := utils.Response{
 		Data:   Auth{Token: token},
