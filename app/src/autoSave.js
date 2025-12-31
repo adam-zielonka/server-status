@@ -9,10 +9,9 @@ export default function (_this) {
     if (firstRun) {
       const connection = JSON.parse(localStorage.getItem(STORAGE_NAME))
       if (connection) _this.connection = connection
+      firstRun = false
     }
 
     localStorage.setItem(STORAGE_NAME, JSON.stringify(_this.connection))
   })
-
-  firstRun = false
 }
