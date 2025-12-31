@@ -30,7 +30,7 @@ const System = () => {
             </tr>
             <tr>
               <td>CPU</td>
-              <td>{cpu.cores}{cpu.cores && 'x'} {cpu.brand} {cpu.speed && '@'} {cpu.speed}</td>
+              <td>{cpu.cores && `${cpu.cores}x `}{cpu.brand}{cpu.speed && ` @ ${cpu.speed}`}</td>
             </tr>
           </tbody>
         </table>
