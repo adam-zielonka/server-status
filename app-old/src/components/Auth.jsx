@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   InputGroup, Dialog, Classes, Button, Callout,
 } from '@blueprintjs/core'
 import { observer } from 'mobx-react-lite'
 import { useStore } from '../Store'
-import logo from '../img/server-status.png'
 
 function useInput(initValue = '') {
   const [value, setValue] = useState(initValue)
@@ -41,10 +40,10 @@ export const AuthForm = observer(() => {
       intent="primary"
       isCloseButtonShown={false}
       backdropClassName="backdrop"
-      icon={<img className='auth-logo' src={logo} alt='Logo' />}
+      icon={<img className='auth-logo' src={require('../img/server-status.png')} alt='Logo' />}
     >
       <div className={Classes.DIALOG_BODY}>
-        {errors.map((error, key) => <Callout key={key} intent="danger">{error}</Callout>)}
+        {errors.map((error, key) => <Callout key={key} intent="danger">{error.message}</Callout>)}
         <div style={{padding: '5px'}} />
         <InputGroup autoFocus={!user} disabled={loading} leftIcon="user" placeholder="Username" value={user} onChange={onUserChange} />
         <div style={{padding: '5px'}} />

@@ -1,5 +1,3 @@
-import React from 'react'
-
 function getColor(percent) {
   switch (true) {
   case percent <= 50: return 'green'

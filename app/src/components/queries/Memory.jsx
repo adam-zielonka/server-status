@@ -1,23 +1,17 @@
-import React from 'react'
 import Query from '../Query'
 import * as Tools from '../Tools'
 import { ProgressBar, ProgressMeter } from '../ProgressBar'
 
 const Memory = () => {
-  const query = '{ si: systeminformation { memory { total free used active available buffcache swaptotal swapused swapfree } } }'
-
   return (
-    <Query query={query} title="Memory">
+    <Query path="memory" title="Memory">
       {response => {
-        let obj = {}
-        if (response && response.si && response.si.memory)
-          obj = response.si.memory
-
+        const obj = response
         const memory = [
           <ProgressBar key='mem-bar'>
             <ProgressMeter value={obj.active / obj.total} />
             <ProgressMeter value={(obj.used - obj.active) / obj.total} color="royalblue" />
-            <ProgressMeter value={1 - (obj.active / obj.total) - ((obj.used - obj.active) / obj.total)} color='#dee2e6' />
+            <ProgressMeter value={obj.available / obj.total} color='#dee2e6' />
           </ProgressBar>,
           <table key="mem" className="table table-striped table-sm">
             <tbody>
@@ -30,7 +24,7 @@ const Memory = () => {
               <tr>
                 <td>{Tools.getHumanSize(obj.active)}</td>
                 <td>{Tools.getHumanSize(obj.used - obj.active)}</td>
-                <td>{Tools.getHumanSize(obj.free)}</td>
+                <td>{Tools.getHumanSize(obj.available)}</td>
                 <td>{Tools.getHumanSize(obj.total)}</td>
               </tr>
             </tbody>

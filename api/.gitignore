@@ -1,5 +1,5 @@
-dist/
-node_modules/
-coverage/
-bin/
-.vscode/
+config.yml
+config.json
+config.jsonc
+api.rest
+build/

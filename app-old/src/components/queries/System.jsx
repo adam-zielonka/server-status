@@ -1,13 +1,40 @@
+import React from 'react'
 import Query from '../Query'
 import * as Tools from '../Tools'
 
 const System = () => {
+  const query = `{
+    si: systeminformation {
+      system {
+        platform
+        distro
+        release
+        codename
+        kernel
+        arch
+        hostname
+      }
+      cpu {
+        manufacturer
+        brand
+        speed
+        cores
+      }
+      time {
+        current
+        uptime
+        timezone
+        timezoneName
+      }
+    }
+  }`
+
   return (
-    <Query path="system" title="System">
+    <Query query={query} title="System">
       {response => {
-        const system = response.system || {}
-        const cpu = response.cpu || {}
-        const time = response.time || {}
+        const system = (response.si && response.si.system) || {}
+        const cpu = (response.si && response.si.cpu) || {}
+        const time = (response.si && response.si.time) || {}
         return <table>
           <tbody>
             <tr>
@@ -30,7 +57,7 @@ const System = () => {
             </tr>
             <tr>
               <td>CPU</td>
-              <td>{cpu.cores}{cpu.cores && 'x'} {cpu.brand} {cpu.speed && '@'} {cpu.speed}</td>
+              <td>{cpu.cores}{cpu.cores && 'x'} {cpu.manufacturer} {cpu.brand} {cpu.speed && '@'} {cpu.speed}</td>
             </tr>
           </tbody>
         </table>

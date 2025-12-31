@@ -1,12 +1,17 @@
+import React from 'react'
 import Query from '../Query'
 import * as Tools from '../Tools'
 import { ProgressBar, ProgressMeter } from '../ProgressBar'
 
 const FilesSystem = () => {
+  const query = '{ si: systeminformation { fs { fs type size used use mount } } }'
+
   return (
-    <Query path="file-system" title="Files System">
+    <Query query={query} title="Files System">
       {response => {
-        const array = Array.isArray(response) ? response : []
+        let array = []
+        if (response && response.si && response.si.fs)
+          array = Array.isArray(response.si.fs) ? response.si.fs : []
         const [size, used] = array.reduce(([size, used], c) => [size + c.size, used + c.used], [0, 0])
         return (
           <div>
@@ -25,7 +30,7 @@ const FilesSystem = () => {
                 </tr>
               </thead>
               <tbody>
-                {array.filter(fs => !fs.mount.startsWith('/snap/')).map(fs => (
+                {array.map(fs => (
                   <tr key={fs.mount}>
                     <td>{fs.mount}</td>
                     <td>{fs.type}</td>

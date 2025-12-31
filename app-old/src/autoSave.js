@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 import { autorun } from 'mobx'
 
 const STORAGE_NAME = 'beta_connection'

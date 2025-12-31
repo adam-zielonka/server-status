@@ -1,42 +1,34 @@
 import { fakeApi } from './fakeApi'
 
-// eslint-disable-next-line object-curly-newline
-async function apiFetch({ url, token, query, variables }) {
-  const auth = token ? { Authorization: `Bearer ${token}` } : {}
+const url = import.meta.env.VITE_API_URL || '/api/'
 
-  if (process.env.REACT_APP_FAKE_API) {
+async function apiFetch(path, headers = {}) {
+  if (import.meta.env.VITE_FAKE_API) {
     return await fakeApi()
   }
 
-  return fetch(url, {
-    body: JSON.stringify({ query, variables }),
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...auth },
+  const token = window.store?.connection?.token
+  const auth = token ? { Authorization: `Bearer ${token}` } : {}
+  return fetch(url + path, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json', ...auth, ...headers },
   }).then(res => res.text())
     .then(res => {
       try {
         return JSON.parse(res)
       } catch (error) {
-        return { errors: [{ message: typeof res === 'string' ? res : error.message }] }
+        return { errors: [typeof res === 'string' ? (res || "Unknown error") : error.message] }
       }
     })
-    .catch(error => ({ errors: [{ message: error.message }] }))
+    .catch(error => ({ errors: [error.message] }))
 }
 
 class API {
-  login = async ({ url, username, password }) => apiFetch({
-    url, variables: { username, password }, query: `
-      query($username: String!, $password: String!) {
-        login(name: $username, pass: $password) {
-          token
-          user {
-            name
-          }
-        }
-      }`,
-  })
+  login = async ({ username, password }) => {
+    return apiFetch('auth', { 'Authorization': 'Basic ' + btoa(username + ':' + password) })
+  }
 
-  getData = async props => apiFetch(props)
+  fetch = apiFetch
 }
 
 export default new API()

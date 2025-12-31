@@ -1,39 +1,23 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Button, Card, Elevation } from '@blueprintjs/core'
 import { observer } from 'mobx-react-lite'
 import { useStore } from '../Store'
+import api from '../api'
 
-const Query = observer(({ title, query, query2, children }) => {
-  const { date, getData } = useStore()
+const Query = observer(({ title, children, path }) => {
+  const { date } = useStore()
   const [data, setData] = useState({})
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(false)
   const [queryDate, setQueryDate] = useState()
-  const [sQuery, setSQuery] = useState(query)
 
   const onClickHandler = async () => {
     if (!loading) {
       setLoading(true)
 
-      let { data, errors } = await getData({ query: sQuery })
-      if (errors && errors.length && query2) {
-        const response = await getData({ query: query2 })
-        data = response.data
-        errors = response.errors
-        if (!(errors && errors.length)) {
-          setSQuery(query2)
-        }
-      }
-      if (errors && errors.length && query) {
-        const response = await getData({ query: query })
-        data = response.data
-        errors = response.errors
-        if (!(errors && errors.length)) {
-          setSQuery(query)
-        }
-      }
+      const { data, errors } = await api.fetch(path)
       if (errors && errors.length) {
-        setError(true)
+        setError(errors.map(e => e).join(', '))
       }
       else if (data) {
         setError(false)
@@ -73,6 +57,10 @@ const Query = observer(({ title, query, query2, children }) => {
       <div style={style}>
         <h3 className="center-parent" style={{width: '100%', paddingLeft: '5px'}}>
           <span className="center-child">{title}</span>
+          <span style={{
+            color: "#909090ff",
+            fontSize: "10px",
+          }}>{error || ''}</span>
           <Button loading={loading} intent={error ? 'danger' : 'none'} minimal icon={error ? 'warning-sign' : 'refresh'} style={{ float: 'right' }} onClick={onClickHandler} />
         </h3>
       </div>
