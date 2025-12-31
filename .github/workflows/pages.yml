@@ -1,59 +1,59 @@
 name: Deploy site to Pages
 
 on:
-  # Runs on pushes targeting the default branch
   push:
-    branches: ["main"]
-
-  # Allows you to run this workflow manually from the Actions tab
+    branches: ["main", "golang"]
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow one concurrent deployment
 concurrency:
   group: "pages"
   cancel-in-progress: true
 
 jobs:
-  # Build job
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version-file: .node-version
+        uses: actions/checkout@v6
       - name: Setup Pages
-        uses: actions/configure-pages@v2
+        uses: actions/configure-pages@v5
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: api/go.mod
       - name: Build api
         run: |
           cd api
-          yarn
-          yarn pkg
+          mkdir -p bin
+          GOOS=linux GOARCH=amd64 go build -o bin/status-linux-amd64 status.go
+          GOOS=linux GOARCH=arm64 go build -o bin/status-linux-arm64 status.go
           cd ..
       - name: Build app
         run: |
           cd app
-          yarn
-          yarn build
-          cd build
+          pnpm install
+          pnpm build
+          cd dist
           tar -czvf ../public/server-status-app.tar.gz *
           cd ..
-          REACT_APP_FAKE_API=true yarn build
+          VITE_FAKE_API=true pnpm build
           cd ..
       - name: Prepare artifact
         run: |
-          mv app/build public
+          mv app/public app/public_temp
+          mv app/dist public
           mv api/bin public/bin
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v4
         with:
           path: ./public
 
@@ -67,4 +67,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v1
+        uses: actions/deploy-pages@v4
