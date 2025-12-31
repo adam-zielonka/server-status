@@ -9,14 +9,18 @@ import (
 	"status/mods"
 )
 
-func HandleWithAuth[T any](path string, f func() (T, error)) {
-	http.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
+func GetOnly(handler http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
-		auth.Wrapper(f)(w, r)
-	})
+		handler(w, r)
+	}
+}
+
+func HandleWithAuth[T any](path string, f func() (T, error)) {
+	http.HandleFunc(path, GetOnly(auth.Wrapper(f)))
 }
 
 func main() {
@@ -31,13 +35,7 @@ func main() {
 	listenAddress := config.GetListenAddress()
 	fmt.Printf("http://%s/\n", listenAddress)
 
-	http.HandleFunc("/api/auth", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-		auth.Handler(w, r)
-	})
+	http.HandleFunc("/api/auth", GetOnly(auth.Handler))
 	HandleWithAuth("/api/ok", func() (string, error) { return "ok", nil })
 	HandleWithAuth("/api/system", mods.System)
 	HandleWithAuth("/api/memory", mods.Memory)
