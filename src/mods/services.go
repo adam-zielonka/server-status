@@ -3,6 +3,7 @@ package mods
 import (
 	"net"
 	"strconv"
+	"sync"
 	"time"
 
 	"status/config"
@@ -23,33 +24,44 @@ type Host struct {
 
 func Services() ([]Service, error) {
 	services, hosts := config.GetServicesAndHosts()
-	result := make([]Service, 0, len(services))
+	result := make([]Service, len(services))
+	var wg sync.WaitGroup
 
-	for _, svc := range services {
-		hosts := getHosts(hosts, svc.Port)
-		service := Service{
-			Name:  svc.Name,
-			Port:  svc.Port,
-			Hosts: hosts,
-		}
-		result = append(result, service)
+	for i, svc := range services {
+		wg.Add(1)
+		go func(index int, service config.Service) {
+			defer wg.Done()
+			checkedHosts := getHosts(hosts, service.Port)
+			result[index] = Service{
+				Name:  service.Name,
+				Port:  service.Port,
+				Hosts: checkedHosts,
+			}
+		}(i, svc)
 	}
 
+	wg.Wait()
 	return result, nil
 }
 
 func getHosts(hosts []string, port string) []*Host {
-	result := make([]*Host, 0, len(hosts)+1)
+	result := make([]*Host, len(hosts))
+	var wg sync.WaitGroup
 
-	for _, host := range hosts {
-		open := checkPort(host, port)
-		result = append(result, &Host{
-			Name: host,
-			Port: port,
-			Open: open,
-		})
+	for i, host := range hosts {
+		wg.Add(1)
+		go func(index int, hostname string) {
+			defer wg.Done()
+			open := checkPort(hostname, port)
+			result[index] = &Host{
+				Name: hostname,
+				Port: port,
+				Open: open,
+			}
+		}(i, host)
 	}
 
+	wg.Wait()
 	return result
 }
 
