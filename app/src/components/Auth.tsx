@@ -3,7 +3,7 @@ import {
   InputGroup, Dialog, Classes, Button, Callout,
 } from '@blueprintjs/core'
 import { observer } from 'mobx-react-lite'
-import { useStore } from '../Store'
+import { store } from '../Store'
 import logo from '/server-status.png'
 
 function useInput(initValue = ''): [string, (event: React.ChangeEvent<HTMLInputElement>) => void] {
@@ -17,7 +17,7 @@ function useLoading(fun: () => Promise<void>): [boolean, () => Promise<void>] {
 }
 
 export const AuthForm = observer(() => {
-  const { login, connection, errors } = useStore()
+  const { login, connection, errors } = store
   const [user, onUserChange] = useInput(connection.user)
   const [pass, onPassChange] = useInput()
   const [loading, handleLogin] = useLoading(async () => login(user, pass))

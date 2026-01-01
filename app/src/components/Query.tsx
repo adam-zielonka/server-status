@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Button, Card, Elevation } from '@blueprintjs/core'
 import { observer } from 'mobx-react-lite'
-import { useStore } from '../Store'
 import api from '../api'
+import { store } from '../Store'
 
 type QueryProps = {
   title: string,
@@ -11,7 +11,7 @@ type QueryProps = {
 }
 
 const Query = observer(({ title, children, path }: QueryProps) => {
-  const { date } = useStore()
+  const { date } = store
   const [data, setData] = useState({})
   const [error, setError] = useState<string>()
   const [loading, setLoading] = useState(false)

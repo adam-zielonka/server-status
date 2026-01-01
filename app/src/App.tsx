@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react-lite'
 import { AuthForm } from './components/Auth'
-import { useStore } from './Store'
+import { store } from './Store'
 import Board from './components/Board'
 import { Button, Navbar, Alignment, Spinner } from '@blueprintjs/core'
 import logo from '/server-status.png'
@@ -8,7 +8,7 @@ import logo from '/server-status.png'
 const Logo = () => <img className="logo" src={logo} alt="Logo" />
 
 function App() {
-  const { reload, errors, conf, logout } = useStore()
+  const { reload, errors, conf, logout } = store
 
   if (errors.length) {
     return <div className="App">

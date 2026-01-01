@@ -1,4 +1,3 @@
-import { createContext, useContext } from 'react'
 import { makeAutoObservable, runInAction } from 'mobx'
 import api from './api.ts'
 import autoSave from './autoSave.ts'
@@ -16,7 +15,7 @@ export class Store {
   date = new Date()
   connection = new Connection()
   errors: string[] = []
-  conf: null | "loaded" = null
+  conf: null | 'loaded' = null
 
   constructor() { 
     makeAutoObservable(this)
@@ -53,12 +52,7 @@ export class Store {
     this.errors = [ 'Logout' ]
   }
 }
-const _store = new Store()
-const store = createContext(_store)
 
 declare global { interface Window { store: Store} }
-window.store = _store
+export const store = window.store = new Store()
 
-export function useStore() {
-  return useContext(store)
-}
