@@ -1,12 +1,23 @@
-import Query from '../Query'
-import { Badge } from '../Badge'
+import Query from '../components/Query'
+import { Badge } from '../components/Badge'
+
+type ServiceHost = {
+  name: string
+  open: boolean
+}
+
+type Service = {
+  port: number
+  name: string
+  hosts: ServiceHost[]
+}
 
 const Services = () => {
   return (
     <Query path="services" title="Services">
       {response => {
-        const array = Array.isArray(response) ? response : []
-        const getBadgeColor = open => open ? 'green' : 'red'
+        const array = (Array.isArray(response) ? response : []) as Service[]
+        const getBadgeColor = (open: boolean) => open ? 'green' : 'red'
 
         return (
           <div>

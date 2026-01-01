@@ -1,5 +1,5 @@
-import Query from '../Query'
-import * as Tools from '../Tools'
+import Query from '../components/Query'
+import * as Tools from '../utils/Tools'
 
 const Network = () => {
   return (

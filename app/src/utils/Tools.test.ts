@@ -29,14 +29,14 @@ describe('getHumanSize()', () => {
     174669820: '166.58 MB',
   }
 
-  const escape = str => str.replace(' ', '\u00A0')
+  const escape = (str: string) => str.replace(' ', '\u00A0')
 
   ;['', undefined, null, [1,2,3]].map(input => {
-    it(`${input} => 0 B`, () => expect(getHumanSize(input)).toBe(escape('0 B')))
+    it(`${input} => 0 B`, () => expect(getHumanSize(input as unknown as number)).toBe(escape('0 B')))
   })
 
   Object.entries(compare).map(([input, output]) => {
-    it(`${input} => ${output}`, () => expect(getHumanSize(input)).toBe(escape(output)))
+    it(`${input} => ${output}`, () => expect(getHumanSize(input as unknown as number)).toBe(escape(output)))
   })
 })
 
@@ -55,10 +55,10 @@ describe('getHumanTime()', () => {
   }
 
   ;['', undefined, null, [1,2,3]].map(input => {
-    it(`${input} => 0 B`, () => expect(getHumanTime(input)).toBe(''))
+    it(`${input} => 0 B`, () => expect(getHumanTime(input as unknown as number)).toBe(''))
   })
   
   Object.entries(compare).map(([input, output]) => {
-    it(`${input} => ${output}`, () => expect(getHumanTime(input, 5)).toBe(output))
+    it(`${input} => ${output}`, () => expect(getHumanTime(input as unknown as number, 5)).toBe(output))
   })
 })

@@ -1,31 +1,20 @@
-import { createContext, useContext } from 'react'
 import { makeAutoObservable, runInAction } from 'mobx'
-import api from './api'
-import autoSave from './autoSave'
-
-export class Connection {
-  user = ''
-  token = ''
-
-  constructor() {
-    makeAutoObservable(this)
-  }
-}
+import { Connection } from './Connection'
+import api from '../api/api'
 
 export class Store {
   date = new Date()
   connection = new Connection()
-  errors = []
-  conf = null
+  errors: string[] = []
+  conf: null | 'loaded' = null
 
   constructor() { 
     makeAutoObservable(this)
-    autoSave(this) 
     setTimeout(() => this.loadConf())
   }
 
   loadConf = async () => {
-    const { errors } = await api.fetch('ok', this.connection.token)
+    const { errors } = await api.fetch('ok')
     runInAction(() => {
       this.errors = errors || []
       this.conf = 'loaded'
@@ -34,8 +23,8 @@ export class Store {
 
   reload = () => this.date = new Date()
 
-  login = async ({ user, pass }) => {
-    const { data, errors } = await api.login({ username: user, password: pass })
+  login = async (user: string, pass: string) => {
+    const { data, errors } = await api.login(user, pass)
 
     if (errors) this.errors = errors
     else if (data && data.token) {
@@ -53,10 +42,7 @@ export class Store {
     this.errors = [ 'Logout' ]
   }
 }
-const _store = new Store()
-const store = createContext(_store)
-window.store = _store
 
-export function useStore() {
-  return useContext(store)
-}
+declare global { interface Window { store: Store} }
+export const store = window.store = new Store()
+

@@ -1,15 +1,21 @@
-import Query from '../Query'
-import { Badge } from '../Badge'
+import Query from '../components/Query'
+import { Badge } from '../components/Badge'
+import type { CSSProperties } from 'react'
 
-const Th = ({ align, children }) => {
+type Element = {
+  align: CSSProperties['textAlign']
+  children: React.ReactNode
+}
+
+const Th = ({ align, children }: Element) => {
   return <th style={{ textAlign: align }}>{children}</th>
 }
 
-const Td = ({ align, children }) => {
+const Td = ({ align, children }: Element) => {
   return <td style={{ textAlign: align }}>{children}</td>
 }
 
-function getColorByCode(code) { 
+function getColorByCode(code: number) { 
   switch (Math.floor(code/100)) {
   case 1: return 'blue'
   case 2: return 'green'

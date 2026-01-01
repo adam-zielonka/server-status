@@ -1,9 +1,26 @@
-import Query from '../Query'
-import * as Tools from '../Tools'
+import Query from '../components/Query'
+import * as Tools from '../utils/Tools'
+
+type SystemResponse = {
+  system: {
+    hostname: string
+    distro: string
+    release: string
+    kernel: string
+  }
+  cpu: {
+    cores: number
+    brand: string
+    speed: string
+  }
+  time: {
+    uptime: number
+  }
+}
 
 const System = () => {
   return (
-    <Query path="system" title="System">
+    <Query<SystemResponse> path="system" title="System">
       {response => {
         const system = response.system || {}
         const cpu = response.cpu || {}

@@ -1,10 +1,20 @@
-import Query from '../Query'
-import * as Tools from '../Tools'
-import { ProgressBar, ProgressMeter } from '../ProgressBar'
+import Query from '../components/Query'
+import * as Tools from '../utils/Tools'
+import { ProgressBar, ProgressMeter } from '../components/ProgressBar'
+
+type MemoryResponse = {
+  total: number
+  used: number
+  free: number
+  cached: number
+  swaptotal: number
+  swapused: number
+  swapfree: number
+}
 
 const Memory = () => {
   return (
-    <Query path="memory" title="Memory">
+    <Query<MemoryResponse> path="memory" title="Memory">
       {response => {
         const obj = response
         const memory = [
