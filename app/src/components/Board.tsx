@@ -1,10 +1,10 @@
-import System from './queries/System'
-import Memory from './queries/Memory'
-import LoadAverage from './queries/LoadAverage'
-import FilesSystem from './queries/FilesSystem'
-import Services from './queries/Services'
-import Network from './queries/Network'
-import VirtualHosts from './queries/VirtualHosts'
+import System from '../queries/System'
+import Memory from '../queries/Memory'
+import LoadAverage from '../queries/LoadAverage'
+import FilesSystem from '../queries/FilesSystem'
+import Services from '../queries/Services'
+import Network from '../queries/Network'
+import VirtualHosts from '../queries/VirtualHosts'
 
 function Board() {
   return (

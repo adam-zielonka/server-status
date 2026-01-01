@@ -1,5 +1,5 @@
-import Query from '../Query'
-import { Badge } from '../Badge'
+import Query from '../components/Query'
+import { Badge } from '../components/Badge'
 import type { CSSProperties } from 'react'
 
 type Element = {

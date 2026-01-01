@@ -1,6 +1,6 @@
-import Query from '../Query'
-import * as Tools from '../../utils/Tools'
-import { ProgressBar, ProgressMeter } from '../ProgressBar'
+import Query from '../components/Query'
+import * as Tools from '../utils/Tools'
+import { ProgressBar, ProgressMeter } from '../components/ProgressBar'
 
 type MemoryResponse = {
   total: number

@@ -1,5 +1,5 @@
-import Query from '../Query'
-import { ProgressBar, ProgressMeter } from '../ProgressBar'
+import Query from '../components/Query'
+import { ProgressBar, ProgressMeter } from '../components/ProgressBar'
 
 const LoadAverage = () => {
   return (
