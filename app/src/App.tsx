@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react-lite'
 import { AuthForm } from './components/Auth'
-import { store } from './Store'
+import { store } from './store/Store'
 import Board from './components/Board'
 import { Button, Navbar, Alignment, Spinner } from '@blueprintjs/core'
 import logo from '/server-status.png'

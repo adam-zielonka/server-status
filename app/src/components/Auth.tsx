@@ -3,7 +3,7 @@ import {
   InputGroup, Dialog, Classes, Button, Callout,
 } from '@blueprintjs/core'
 import { observer } from 'mobx-react-lite'
-import { store } from '../Store'
+import { store } from '../store/Store'
 import logo from '/server-status.png'
 
 function useInput(initValue = ''): [string, (event: React.ChangeEvent<HTMLInputElement>) => void] {

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Button, Card, Elevation } from '@blueprintjs/core'
 import { observer } from 'mobx-react-lite'
-import api from '../api'
-import { store } from '../Store'
+import api from '../api/api'
+import { store } from '../store/Store'
 
 type QueryProps<T> = {
   title: string,
