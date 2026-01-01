@@ -4,15 +4,15 @@ import { observer } from 'mobx-react-lite'
 import api from '../api'
 import { store } from '../Store'
 
-type QueryProps = {
+type QueryProps<T> = {
   title: string,
-  children: (data: unknown) => React.ReactNode,
+  children: (data: T) => React.ReactNode,
   path: string,
 }
 
-const Query = observer(({ title, children, path }: QueryProps) => {
+const Query = observer(<T,>({ title, children, path }: QueryProps<T>) => {
   const { date } = store
-  const [data, setData] = useState({})
+  const [data, setData] = useState<T>({} as T)
   const [error, setError] = useState<string>()
   const [loading, setLoading] = useState(false)
   const [queryDate, setQueryDate] = useState<Date>()
@@ -21,7 +21,7 @@ const Query = observer(({ title, children, path }: QueryProps) => {
     if (!loading) {
       setLoading(true)
 
-      const { data, errors } = await api.fetch(path)
+      const { data, errors } = await api.fetch<T>(path)
       if (errors && errors.length) {
         setError(errors.map(e => e).join(', '))
       }

@@ -14,9 +14,9 @@ type MemoryResponse = {
 
 const Memory = () => {
   return (
-    <Query path="memory" title="Memory">
+    <Query<MemoryResponse> path="memory" title="Memory">
       {response => {
-        const obj = response as MemoryResponse
+        const obj = response
         const memory = [
           <ProgressBar key="mem-bar">
             <ProgressMeter value={obj.used / obj.total} />
