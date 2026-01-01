@@ -1,5 +1,5 @@
 import Query from '../Query'
-import * as Tools from '../Tools'
+import * as Tools from '../../utils/Tools'
 import { ProgressBar, ProgressMeter } from '../ProgressBar'
 
 type MemoryResponse = {
