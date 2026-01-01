@@ -1,14 +1,18 @@
 import { fakeApi } from './fakeApi'
 
 const url = import.meta.env.VITE_API_URL || '/api/'
+let authToken = ''
+
+export function setAuthToken(token) {
+  authToken = token
+}
 
 async function apiFetch(path, headers = {}) {
   if (import.meta.env.VITE_FAKE_API) {
     return await fakeApi(path)
   }
 
-  const token = window.store?.connection?.token
-  const auth = token ? { Authorization: `Bearer ${token}` } : {}
+  const auth = authToken ? { Authorization: `Bearer ${authToken}` } : {}
   return fetch(url + path, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json', ...auth, ...headers },

@@ -18,21 +18,21 @@ func Net() ([]Network, error) {
 	}
 
 	var result []Network
-	for _, p := range stats {
+	for _, stat := range stats {
 		addrs := []string{}
-		n, _ := net.Interfaces()
-		for _, ni := range n {
-			if ni.Name == p.Name {
-				for _, addr := range ni.Addrs {
+		interfaces, _ := net.Interfaces()
+		for _, iface := range interfaces {
+			if iface.Name == stat.Name {
+				for _, addr := range iface.Addrs {
 					addrs = append(addrs, addr.Addr)
 				}
 			}
 		}
 		result = append(result, Network{
-			Interface: p.Name,
+			Interface: stat.Name,
 			Addresses: addrs,
-			RxBytes:   p.BytesRecv,
-			TxBytes:   p.BytesSent,
+			RxBytes:   stat.BytesRecv,
+			TxBytes:   stat.BytesSent,
 		})
 	}
 

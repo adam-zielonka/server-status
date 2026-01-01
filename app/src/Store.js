@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react'
 import { makeAutoObservable, runInAction } from 'mobx'
-import api from './api'
+import api, { setAuthToken } from './api'
 import autoSave from './autoSave'
 
 export class Connection {
@@ -42,6 +42,7 @@ export class Store {
       runInAction(() => {
         this.connection.token = data.token
         this.connection.user = user
+        setAuthToken(data.token)
       })
       await this.loadConf()
     }
@@ -51,11 +52,16 @@ export class Store {
     this.connection.token = ''
     this.conf = null
     this.errors = [ 'Logout' ]
+    setAuthToken('')
   }
 }
 const _store = new Store()
 const store = createContext(_store)
-window.store = _store
+
+// Only expose store in development mode
+if (import.meta.env.DEV) {
+  window.store = _store
+}
 
 export function useStore() {
   return useContext(store)

@@ -9,6 +9,12 @@ import (
 	"net/http"
 	"status/config"
 	"strings"
+	"time"
+)
+
+const (
+	caddyAdminURL = "http://localhost:2019/config/"
+	httpTimeout   = 10 * time.Second
 )
 
 type VHost struct {
@@ -34,7 +40,10 @@ type CaddyConfig struct {
 }
 
 func VHosts() ([]VHost, error) {
-	resp, err := http.Get("http://localhost:2019/config/")
+	client := &http.Client{
+		Timeout: httpTimeout,
+	}
+	resp, err := client.Get(caddyAdminURL)
 	if err != nil {
 		return nil, err
 	}
@@ -82,8 +91,12 @@ func VHosts() ([]VHost, error) {
 
 func CheckVHost(name string) string {
 	client := &http.Client{
+		Timeout: httpTimeout,
 		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			TLSClientConfig: &tls.Config{
+				// TODO: Make this configurable or use proper cert validation
+				InsecureSkipVerify: true,
+			},
 		},
 	}
 
@@ -118,8 +131,12 @@ func CheckExternalVHost(name string) string {
 	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
 
 	client := &http.Client{
+		Timeout: httpTimeout,
 		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			TLSClientConfig: &tls.Config{
+				// TODO: Make this configurable or use proper cert validation
+				InsecureSkipVerify: true,
+			},
 		},
 	}
 	resp, err := client.Do(req)

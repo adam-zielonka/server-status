@@ -54,8 +54,6 @@ const Memory = () => {
                   <td>{Tools.getHumanSize(obj.swapfree)}</td>
                   <td>{Tools.getHumanSize(obj.swaptotal)}</td>
                 </tr>
-                <tr>
-                </tr>
               </tbody>
             </table>
           )

@@ -9,6 +9,12 @@ import (
 	"status/config"
 )
 
+const (
+	portCheckTimeout = 2 * time.Second
+	minPort          = 1
+	maxPort          = 65535
+)
+
 type Service struct {
 	Name  string  `json:"name"`
 	Port  string  `json:"port"`
@@ -68,15 +74,14 @@ func getHosts(hosts []string, port string) []*Host {
 func checkPort(host, portStr string) bool {
 	// Validate port
 	port, err := strconv.Atoi(portStr)
-	if err != nil || port < 1 || port > 65535 {
+	if err != nil || port < minPort || port > maxPort {
 		return false
 	}
 
 	// Try to connect to the port with a timeout
 	address := net.JoinHostPort(host, portStr)
-	timeout := 2 * time.Second
 
-	conn, err := net.DialTimeout("tcp", address, timeout)
+	conn, err := net.DialTimeout("tcp", address, portCheckTimeout)
 	if err != nil {
 		return false
 	}

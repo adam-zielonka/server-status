@@ -13,6 +13,16 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+const (
+	// Rate limiting configuration
+	maxAuthAttempts = 5
+	rateWindow      = time.Minute
+	cleanupInterval = 5 * time.Minute
+
+	// JWT configuration
+	tokenExpiration = 24 * time.Hour
+)
+
 type Auth struct {
 	Token string `json:"token"`
 }
@@ -32,8 +42,8 @@ type rateLimitEntry struct {
 
 var limiter = &RateLimiter{
 	attempts:    make(map[string]*rateLimitEntry),
-	maxAttempts: 5,
-	window:      time.Minute,
+	maxAttempts: maxAuthAttempts,
+	window:      rateWindow,
 }
 
 func (rl *RateLimiter) Allow(ip string) bool {
@@ -72,9 +82,9 @@ func (rl *RateLimiter) Cleanup() {
 }
 
 func init() {
-	// Clean up expired entries every 5 minutes
+	// Clean up expired entries periodically
 	go func() {
-		ticker := time.NewTicker(5 * time.Minute)
+		ticker := time.NewTicker(cleanupInterval)
 		defer ticker.Stop()
 		for range ticker.C {
 			limiter.Cleanup()
@@ -84,6 +94,7 @@ func init() {
 
 func Wrapper[T any](f func() (T, error)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -125,6 +136,8 @@ func Wrapper[T any](f func() (T, error)) http.HandlerFunc {
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	// Extract client IP for rate limiting
 	clientIP := r.RemoteAddr
 	if forwarded := r.Header.Get("X-Forwarded-For"); forwarded != "" {
@@ -151,8 +164,8 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token3 := baseAuth[len("Basic "):]
-	userpass, err := base64.StdEncoding.DecodeString(token3)
+	basicAuth := baseAuth[len("Basic "):]
+	userpass, err := base64.StdEncoding.DecodeString(basicAuth)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		response := utils.Response{
@@ -185,7 +198,13 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	key := config.GetAuthSecret()
-	tokenizer := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{"name": user})
+	now := time.Now()
+	tokenizer := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"name": user,
+		"exp":  now.Add(tokenExpiration).Unix(),
+		"iat":  now.Unix(),
+		"nbf":  now.Unix(),
+	})
 	token, err := tokenizer.SignedString(key)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -206,11 +225,15 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 func ValidateToken(tokenString string) error {
 	key := config.GetAuthSecret()
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
+		// Verify signing method
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
 		return key, nil
 	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 
 	if err != nil {
-		return err
+		return fmt.Errorf("invalid token")
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
@@ -218,15 +241,25 @@ func ValidateToken(tokenString string) error {
 		return fmt.Errorf("invalid token")
 	}
 
+	// Validate expiration
+	if exp, ok := claims["exp"].(float64); ok {
+		if time.Now().Unix() > int64(exp) {
+			return fmt.Errorf("token expired")
+		}
+	}
+
 	nameClaim, exists := claims["name"]
 	if !exists {
-		return fmt.Errorf("invalid token: missing name claim")
+		return fmt.Errorf("invalid token")
 	}
 
 	userName, ok := nameClaim.(string)
 	if !ok {
-		return fmt.Errorf("invalid token: invalid name claim type")
+		return fmt.Errorf("invalid token")
 	}
 	_, err = config.FindUser(userName)
-	return err
+	if err != nil {
+		return fmt.Errorf("invalid token")
+	}
+	return nil
 }

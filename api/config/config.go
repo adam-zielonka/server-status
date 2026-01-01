@@ -4,6 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sync"
+)
+
+var (
+	config     *ServerConfig
+	configOnce sync.Once
+	configErr  error
 )
 
 type ServerConfig struct {
@@ -34,8 +41,6 @@ type Service struct {
 	Port string `json:"port"`
 }
 
-var config *ServerConfig
-
 func Initialize(path string) error {
 	var configPath string
 
@@ -56,31 +61,34 @@ func Initialize(path string) error {
 }
 
 func loadServerConfig(path string) error {
-	if config != nil {
-		return nil
-	}
+	var loadErr error
+	configOnce.Do(func() {
+		b, err := os.ReadFile(path)
+		if err != nil {
+			loadErr = fmt.Errorf("failed to read config file: %w", err)
+			return
+		}
 
-	b, err := os.ReadFile(path)
-	if err != nil {
-		return fmt.Errorf("failed to read config file: %w", err)
-	}
+		if err := json.Unmarshal(b, &config); err != nil {
+			loadErr = fmt.Errorf("failed to parse config file: %w", err)
+			return
+		}
 
-	if err := json.Unmarshal(b, &config); err != nil {
-		return fmt.Errorf("failed to parse config file: %w", err)
-	}
-
-	// Validate config
-	if config.Listen.Port < 1 || config.Listen.Port > 65535 {
-		return fmt.Errorf("invalid port number: %d", config.Listen.Port)
-	}
-	if config.Auth.Secret == "" {
-		return fmt.Errorf("auth secret is required")
-	}
-	if len(config.Auth.Users) == 0 {
-		return fmt.Errorf("at least one user is required")
-	}
-
-	return nil
+		// Validate config
+		if config.Listen.Port < 1 || config.Listen.Port > 65535 {
+			loadErr = fmt.Errorf("invalid port number: %d", config.Listen.Port)
+			return
+		}
+		if config.Auth.Secret == "" {
+			loadErr = fmt.Errorf("auth secret is required")
+			return
+		}
+		if len(config.Auth.Users) == 0 {
+			loadErr = fmt.Errorf("at least one user is required")
+			return
+		}
+	})
+	return loadErr
 }
 
 func FindUser(name string) (ServerUser, error) {

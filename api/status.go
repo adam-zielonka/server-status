@@ -1,12 +1,17 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
 	"status/auth"
 	"status/config"
 	"status/mods"
+	"syscall"
+	"time"
 )
 
 func GetOnly(handler http.HandlerFunc) http.HandlerFunc {
@@ -19,8 +24,25 @@ func GetOnly(handler http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+// CORS middleware
+func CORS(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
+		w.Header().Set("Content-Type", "application/json")
+
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next(w, r)
+	}
+}
+
 func HandleWithAuth[T any](path string, f func() (T, error)) {
-	http.HandleFunc(path, GetOnly(auth.Wrapper(f)))
+	http.HandleFunc(path, CORS(GetOnly(auth.Wrapper(f))))
 }
 
 func main() {
@@ -35,7 +57,13 @@ func main() {
 	listenAddress := config.GetListenAddress()
 	fmt.Printf("http://%s/\n", listenAddress)
 
-	http.HandleFunc("/api/auth", GetOnly(auth.Handler))
+	// Public health check endpoint (no auth required)
+	http.HandleFunc("/health", CORS(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, `{"status":"ok"}`)
+	}))
+
+	http.HandleFunc("/api/auth", CORS(GetOnly(auth.Handler)))
 	HandleWithAuth("/api/ok", func() (string, error) { return "ok", nil })
 	HandleWithAuth("/api/system", mods.System)
 	HandleWithAuth("/api/memory", mods.Memory)
@@ -45,8 +73,41 @@ func main() {
 	HandleWithAuth("/api/vhosts", mods.VHosts)
 	HandleWithAuth("/api/services", mods.Services)
 
-	if err := http.ListenAndServe(listenAddress, nil); err != nil {
-		fmt.Printf("Server failed: %v\n", err)
+	// Create server with timeouts
+	server := &http.Server{
+		Addr:         listenAddress,
+		ReadTimeout:  15 * time.Second,
+		WriteTimeout: 15 * time.Second,
+		IdleTimeout:  60 * time.Second,
+	}
+
+	// Channel to listen for shutdown signals
+	done := make(chan bool, 1)
+	quit := make(chan os.Signal, 1)
+
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	// Start server in goroutine
+	go func() {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			fmt.Printf("Server failed: %v\n", err)
+			panic(err)
+		}
+	}()
+
+	// Wait for interrupt signal
+	<-quit
+	fmt.Println("\nShutting down server...")
+
+	// Gracefully shutdown with 30 second timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		fmt.Printf("Server forced to shutdown: %v\n", err)
 		panic(err)
 	}
+
+	close(done)
+	fmt.Println("Server stopped")
 }

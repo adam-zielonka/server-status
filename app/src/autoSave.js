@@ -1,4 +1,5 @@
 import { autorun } from 'mobx'
+import { setAuthToken } from './api'
 
 const STORAGE_NAME = 'beta_connection'
 
@@ -8,7 +9,10 @@ export default function (_this) {
   autorun(() => {
     if (firstRun) {
       const connection = JSON.parse(localStorage.getItem(STORAGE_NAME))
-      if (connection) _this.connection = connection
+      if (connection) {
+        _this.connection = connection
+        setAuthToken(connection.token || '')
+      }
       firstRun = false
     }
 

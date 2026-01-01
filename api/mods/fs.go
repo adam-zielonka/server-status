@@ -20,19 +20,19 @@ func FileSystem() ([]FileSystemType, error) {
 	}
 
 	var result []FileSystemType
-	for _, p := range partitions {
-		usage, err := disk.Usage(p.Mountpoint)
+	for _, partition := range partitions {
+		usage, err := disk.Usage(partition.Mountpoint)
 		if err != nil {
 			return nil, err
 		}
 
 		fs := FileSystemType{
-			FS:    p.Device,
-			Type:  p.Fstype,
+			FS:    partition.Device,
+			Type:  partition.Fstype,
 			Size:  usage.Total,
 			Used:  usage.Used,
 			Use:   usage.UsedPercent,
-			Mount: p.Mountpoint,
+			Mount: partition.Mountpoint,
 		}
 
 		result = append(result, fs)

@@ -1,0 +1,46 @@
+{
+    "listen": {
+        "host": "localhost",
+        "port": 4000
+    },
+    "auth": {
+        "users": [
+            {
+                "name": "your-username",
+                "pass": "your-password"
+            }
+        ],
+        "secret": "your-secret-key-change-this-to-a-random-string"
+    },
+    "services": [
+        {
+            "name": "Web",
+            "port": "80"
+        },
+        {
+            "name": "Web (HTTPS)",
+            "port": "443"
+        },
+        {
+            "name": "SSH",
+            "port": "22"
+        },
+        {
+            "name": "Server Status",
+            "port": "4000"
+        },
+        {
+            "name": "Caddy Admin",
+            "port": "2019"
+        },
+        {
+            "name": "Database",
+            "port": "3306"
+        }
+    ],
+    "hosts": [
+        "localhost",
+        "127.0.0.1"
+    ],
+    "external": ""
+}
