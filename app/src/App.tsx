@@ -25,16 +25,16 @@ function App() {
   return (
     <div className="App">
       <Navbar className="nav">
-        <Navbar.Group align={Alignment.LEFT}>
+        <Navbar.Group align={Alignment.START}>
           <Logo />
           <Navbar.Divider />
           <div className="center-parent">
             <h3 className="bp6-heading center-child">ServerStatus</h3>
           </div>
         </Navbar.Group>
-        <Navbar.Group align={Alignment.RIGHT}>
-          <Button minimal icon="log-out" style={{ float: 'right' }} onClick={logout} />
-          <Button minimal icon="refresh" style={{ float: 'right' }} onClick={reload} />
+        <Navbar.Group align={Alignment.END}>
+          <Button variant="minimal" icon="log-out" style={{ float: 'right' }} onClick={logout} />
+          <Button variant="minimal" icon="refresh" style={{ float: 'right' }} onClick={reload} />
         </Navbar.Group>
       </Navbar>
       <Board />

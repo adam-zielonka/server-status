@@ -67,7 +67,7 @@ const Query = observer(<T,>({ title, children, path }: QueryProps<T>) => {
             color: '#909090ff',
             fontSize: '10px',
           }}>{error || ''}</span>
-          <Button loading={loading} intent={error ? 'danger' : 'none'} minimal icon={error ? 'warning-sign' : 'refresh'} style={{ float: 'right' }} onClick={onClickHandler} />
+          <Button loading={loading} intent={error ? 'danger' : 'none'} variant="minimal" icon={error ? 'warning-sign' : 'refresh'} style={{ float: 'right' }} onClick={onClickHandler} />
         </h3>
       </div>
       <div style={contentStyle}>
