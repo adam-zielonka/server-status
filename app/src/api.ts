@@ -13,7 +13,6 @@ class API {
       return await fakeApi(path) as ApiResponse<T>
     }
 
-    console.log('API Fetch:', url + path, headers)
     const fetchHeaders = new Headers(headers)
     fetchHeaders.append('Content-Type', 'application/json')
     const token = window.store?.connection?.token
