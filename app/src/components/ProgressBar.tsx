@@ -1,4 +1,4 @@
-function getColor(percent) {
+function getColor(percent: number) {
   switch (true) {
   case percent <= 50: return 'green'
   case percent <= 75: return 'orange'
@@ -6,7 +6,7 @@ function getColor(percent) {
   }
 }
 
-export const ProgressMeter = ({ value = 0, color }) => {
+export const ProgressMeter = ({ value = 0, color = '' }) => {
   const newValue = !isNaN(value) ? value * 100 : 0
   const percent = Math.round(newValue)
   const width = (newValue > 100 ? 100 : newValue) + '%'
@@ -16,7 +16,7 @@ export const ProgressMeter = ({ value = 0, color }) => {
   )
 }
 
-export const ProgressBar = ({ children }) => {
+export const ProgressBar = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="progress-bar" >

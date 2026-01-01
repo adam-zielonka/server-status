@@ -6,12 +6,12 @@ import { observer } from 'mobx-react-lite'
 import { useStore } from '../Store'
 import logo from '/server-status.png'
 
-function useInput(initValue = '') {
+function useInput(initValue = ''): [string, (event: React.ChangeEvent<HTMLInputElement>) => void] {
   const [value, setValue] = useState(initValue)
-  return [value, event => setValue(event.target.value)]
+  return [value, (event) => setValue(event.target.value)]
 }
 
-function useLoading(fun) {
+function useLoading(fun: () => Promise<void>): [boolean, () => Promise<void>] {
   const [loading, setLoading] = useState(false)
   return [loading, async () => { setLoading(true); await fun(); setLoading(false) }]
 }
@@ -20,12 +20,12 @@ export const AuthForm = observer(() => {
   const { login, connection, errors } = useStore()
   const [user, onUserChange] = useInput(connection.user)
   const [pass, onPassChange] = useInput()
-  const [loading, handleLogin] = useLoading(async () => login({ user, pass }))
+  const [loading, handleLogin] = useLoading(async () => login(user, pass))
 
   const cannotLogin = () => !user || !pass
 
   useEffect(() => {
-    const onDocumentKeyDownHandler = (e) => {
+    const onDocumentKeyDownHandler = (e: KeyboardEvent) => {
       if (!cannotLogin() && !loading && 'Enter' === e.key) {
         handleLogin()
       }
@@ -38,7 +38,6 @@ export const AuthForm = observer(() => {
     <Dialog
       title="ServerStatus"
       isOpen={true}
-      intent="primary"
       isCloseButtonShown={false}
       backdropClassName="backdrop"
       icon={<img className="auth-logo" src={logo} alt="Logo" />}

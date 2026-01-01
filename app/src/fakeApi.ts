@@ -1,4 +1,4 @@
-function sleep(ms) {
+function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
@@ -177,7 +177,7 @@ const mockEndpoints = {
 export async function fakeApi(path = '') {
   await sleep(Math.floor(Math.random() * 10) * 100 + 200)
 
-  const dataGenerator = mockEndpoints[path]
+  const dataGenerator = mockEndpoints[path as keyof typeof mockEndpoints]
   
   if (!dataGenerator) {
     return {

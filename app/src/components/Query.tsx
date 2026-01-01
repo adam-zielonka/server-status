@@ -4,12 +4,18 @@ import { observer } from 'mobx-react-lite'
 import { useStore } from '../Store'
 import api from '../api'
 
-const Query = observer(({ title, children, path }) => {
+type QueryProps = {
+  title: string,
+  children: (data: unknown) => React.ReactNode,
+  path: string,
+}
+
+const Query = observer(({ title, children, path }: QueryProps) => {
   const { date } = useStore()
   const [data, setData] = useState({})
-  const [error, setError] = useState(false)
+  const [error, setError] = useState<string>()
   const [loading, setLoading] = useState(false)
-  const [queryDate, setQueryDate] = useState()
+  const [queryDate, setQueryDate] = useState<Date>()
 
   const onClickHandler = async () => {
     if (!loading) {
@@ -20,7 +26,7 @@ const Query = observer(({ title, children, path }) => {
         setError(errors.map(e => e).join(', '))
       }
       else if (data) {
-        setError(false)
+        setError(undefined)
         setData(data)
       }
       setLoading(false)
@@ -44,7 +50,7 @@ const Query = observer(({ title, children, path }) => {
     padding: 0,
   }
 
-  const contentStyle = {
+  const contentStyle: React.CSSProperties = {
     padding: '10px',
     opacity: loading || error ? 0.4 : 1,
     overflowX: 'auto',

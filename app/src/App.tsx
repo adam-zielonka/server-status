@@ -18,7 +18,7 @@ function App() {
 
   if (!conf) {
     return <div className="spinner">
-      <Spinner size="100" intent="primary" />
+      <Spinner size={100} intent="primary" />
     </div>
   }
 

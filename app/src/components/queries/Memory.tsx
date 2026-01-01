@@ -2,11 +2,21 @@ import Query from '../Query'
 import * as Tools from '../Tools'
 import { ProgressBar, ProgressMeter } from '../ProgressBar'
 
+type MemoryResponse = {
+  total: number
+  used: number
+  free: number
+  cached: number
+  swaptotal: number
+  swapused: number
+  swapfree: number
+}
+
 const Memory = () => {
   return (
     <Query path="memory" title="Memory">
       {response => {
-        const obj = response
+        const obj = response as MemoryResponse
         const memory = [
           <ProgressBar key="mem-bar">
             <ProgressMeter value={obj.used / obj.total} />
