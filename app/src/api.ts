@@ -7,22 +7,27 @@ type ApiResponse<T = unknown> = {
   errors?: string[],
 }
 
+function prepareHeaders(headersInit: HeadersInit = {}): Headers {
+  const headers = new Headers(headersInit)
+  headers.append('Content-Type', 'application/json')
+
+  const token = window.store?.connection?.token
+  if (token && !headers.has('Authorization')) {
+    headers.append('Authorization', `Bearer ${token}`)
+  }
+
+  return headers
+}
+
 class API {
   fetch = async function<T>(path: string, headers: HeadersInit = {}): Promise<ApiResponse<T>> {
     if (import.meta.env.VITE_FAKE_API) {
       return await fakeApi(path) as ApiResponse<T>
     }
-
-    const fetchHeaders = new Headers(headers)
-    fetchHeaders.append('Content-Type', 'application/json')
-    const token = window.store?.connection?.token
-    if (token && !fetchHeaders.has('Authorization')) {
-      fetchHeaders.append('Authorization', `Bearer ${token}`)
-    }
   
     return fetch(url + path, {
       method: 'GET',
-      headers: fetchHeaders,
+      headers: prepareHeaders(headers),
     }).then(res => res.text())
       .then(res => {
         try {
