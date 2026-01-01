@@ -10,9 +10,9 @@ const getMockLoadAverage = () => [
 
 const getMockMemory = () => ({
   total: 1034330112,
-  used: 743972864,
-  active: 637571072,
-  available: 396759040,
+  used: 637571072,
+  cached: 106350080,
+  free: 290408960,
   swaptotal: 1073737728,
   swapused: 438566912,
   swapfree: 635170816,
