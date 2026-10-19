@@ -120,6 +120,14 @@ All endpoints except `/api/auth` require authentication via JWT token.
 - Retrieve services status
 - Returns: Status of configured services (listening on specified ports)
 
+## Optional operations telemetry
+
+**GET** `/api/telemetry` requires JWT authentication. It reads a snapshot from
+`telemetry_file` in the private API configuration. Without that option it returns
+`{"data":{"enabled":false}}`. Missing or invalid snapshots produce a generic
+error without exposing filesystem paths. See the [collector guide](../collector/README.md)
+for setup, data semantics, privacy boundaries, and the versioned snapshot format.
+
 ## Project Structure
 
 ```

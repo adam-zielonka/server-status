@@ -1,0 +1,30 @@
+[Unit]
+Description=Collect read-only Server Status telemetry
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/usr/bin/python3 /opt/server-status/collect.py --config /etc/server-status/collector.json
+StateDirectory=server-status-collector
+StateDirectoryMode=0700
+ReadWritePaths=/var/lib/server-status
+Environment=LC_ALL=C TZ=UTC
+UMask=0077
+Nice=10
+IOSchedulingClass=idle
+TimeoutStartSec=180
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+# Read /proc and root-owned directory metadata; no write/control capabilities.
+CapabilityBoundingSet=CAP_DAC_READ_SEARCH CAP_SETUID CAP_SETGID
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX AF_NETLINK

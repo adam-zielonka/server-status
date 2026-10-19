@@ -44,6 +44,7 @@ func main() {
 	HandleWithAuth("/api/net", mods.Net)
 	HandleWithAuth("/api/vhosts", mods.VHosts)
 	HandleWithAuth("/api/services", mods.Services)
+	HandleWithAuth("/api/telemetry", mods.Telemetry)
 
 	if err := http.ListenAndServe(listenAddress, nil); err != nil {
 		fmt.Printf("Server failed: %v\n", err)

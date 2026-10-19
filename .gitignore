@@ -1,0 +1,15 @@
+# Host configuration and collected data must never be published.
+.env
+.env.*
+!.env.example
+config.json
+config.jsonc
+collector.json
+telemetry.json
+state.json
+*.local
+*.private.*
+__pycache__/
+*.pyc
+coverage/
+.coverage

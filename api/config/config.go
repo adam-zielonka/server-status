@@ -7,11 +7,12 @@ import (
 )
 
 type ServerConfig struct {
-	Listen   Listen     `json:"listen"`
-	Auth     ServerAuth `json:"auth"`
-	Services []Service  `json:"services"`
-	Hosts    []string   `json:"hosts"`
-	External string     `json:"external"`
+	Listen        Listen     `json:"listen"`
+	Auth          ServerAuth `json:"auth"`
+	Services      []Service  `json:"services"`
+	Hosts         []string   `json:"hosts"`
+	External      string     `json:"external"`
+	TelemetryFile string     `json:"telemetry_file"`
 }
 
 type Listen struct {
@@ -133,4 +134,11 @@ func GetServicesAndHosts() ([]Service, []string) {
 		return []Service{}, []string{}
 	}
 	return config.Services, config.Hosts
+}
+
+func GetTelemetryFile() string {
+	if config == nil {
+		return ""
+	}
+	return config.TelemetryFile
 }

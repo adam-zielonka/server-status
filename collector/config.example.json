@@ -1,0 +1,34 @@
+{
+  "snapshot_file": "/var/lib/server-status/telemetry.json",
+  "state_file": "/var/lib/server-status-collector/state.json",
+  "sample_interval_seconds": 60,
+  "directory_interval_seconds": 900,
+  "github_interval_seconds": 300,
+  "tailscale": true,
+  "units": [
+    { "name": "SSH", "unit": "ssh.service" },
+    { "name": "Example application", "unit": "example.service" },
+    { "name": "Example user service", "unit": "example.service", "user": "example-user" }
+  ],
+  "directories": [
+    { "name": "Application data", "path": "/srv/example" },
+    { "name": "System logs", "path": "/var/log" }
+  ],
+  "jobs": [
+    {
+      "name": "Scheduled maintenance",
+      "kind": "systemd",
+      "unit": "example-maintenance.service",
+      "timer": "example-maintenance.timer",
+      "max_age_seconds": 7200
+    },
+    {
+      "name": "Application backup",
+      "kind": "github",
+      "category": "backup",
+      "repository": "example/project",
+      "workflow": "backup.yml",
+      "max_age_seconds": 172800
+    }
+  ]
+}
