@@ -11,6 +11,72 @@ spec.loader.exec_module(collector)
 
 
 class CollectorTests(unittest.TestCase):
+    tunnel = {'name': 'Example tunnel', 'metrics_port': 20241, 'hostnames': ['app.example.com']}
+
+    def test_tunnel_metrics_excludes_inactive_locations_and_private_labels(self):
+        metrics = '''cloudflared_tunnel_ha_connections 4
+cloudflared_tunnel_total_requests 12
+cloudflared_tunnel_request_errors 2
+cloudflared_tunnel_server_locations{connection_id="private-id",edge_location="ams01"} 1
+cloudflared_tunnel_server_locations{connection_id="old-id",edge_location="fra01"} 0
+unrelated_metric{token="never-export"} 99
+'''
+        with patch.object(collector, 'tunnel_http', side_effect=[(200, metrics), (200, 'ready')]):
+            row = collector.collect_tunnels([self.tunnel])[0]
+        self.assertEqual(row['status'], 'healthy')
+        self.assertEqual(row['locations'], ['ams01'])
+        self.assertEqual(row['connections'], 4)
+        self.assertEqual(row['request_errors'], 2)
+        for forbidden in ['private-id', 'old-id', 'never-export', 'metrics_port']:
+            self.assertNotIn(forbidden, json.dumps(row))
+
+    def test_tunnel_distinguishes_degraded_and_disconnected(self):
+        for connections, ready, expected in [(2, 200, 'degraded'), (0, 503, 'failure'), (4, 503, 'failure')]:
+            with self.subTest(connections=connections, ready=ready):
+                with patch.object(collector, 'tunnel_http', side_effect=[
+                        (200, f'cloudflared_tunnel_ha_connections {connections}'), (ready, '')]):
+                    row = collector.collect_tunnels([self.tunnel])[0]
+                self.assertEqual(row['status'], expected)
+
+    def test_unreachable_metrics_do_not_report_zero_or_leak_errors(self):
+        with patch.object(collector, 'tunnel_http', side_effect=OSError('private-details')):
+            row = collector.collect_tunnels([self.tunnel])[0]
+        self.assertEqual(row['status'], 'unknown')
+        self.assertNotIn('connections', row)
+        self.assertNotIn('private-details', json.dumps(row))
+
+    def test_tunnel_invalid_metrics_and_readiness_are_unknown(self):
+        for metrics, ready in [('other_metric 4', 200), ('cloudflared_tunnel_ha_connections NaN', 200),
+                               ('cloudflared_tunnel_ha_connections -1', 200),
+                               ('cloudflared_tunnel_ha_connections 0', 200),
+                               ('cloudflared_tunnel_ha_connections 4', 302)]:
+            with self.subTest(metrics=metrics, ready=ready):
+                with patch.object(collector, 'tunnel_http', side_effect=[(200, metrics), (ready, '')]):
+                    row = collector.collect_tunnels([self.tunnel])[0]
+                self.assertEqual(row['status'], 'unknown')
+                self.assertNotIn('connections', row)
+
+    def test_tunnel_metrics_connection_is_loopback_and_does_not_follow_redirects(self):
+        with patch.object(collector.http.client, 'HTTPConnection') as connection:
+            response = connection.return_value.getresponse.return_value
+            response.status = 302
+            response.read.return_value = b''
+            self.assertEqual(collector.tunnel_http(20241, '/metrics'), (302, ''))
+            connection.assert_called_once_with('127.0.0.1', 20241, timeout=2)
+            connection.return_value.request.assert_called_once_with('GET', '/metrics')
+            response.read.return_value = b'x' * 262145
+            with self.assertRaises(ValueError):
+                collector.tunnel_http(20241, '/metrics')
+
+    def test_tunnel_config_rejects_invalid_or_duplicate_ports(self):
+        base = {'snapshot_file': '/private/snapshot', 'state_file': '/private/state'}
+        for items in [[{**self.tunnel, 'metrics_port': 'https://example.com'}],
+                      [{**self.tunnel, 'metrics_port': True}], [self.tunnel, self.tunnel],
+                      [{**self.tunnel, 'expected_connections': 0}],
+                      [{**self.tunnel, 'hostnames': ['https://example.com/private']}]]:
+            with self.subTest(items=items), self.assertRaises(ValueError):
+                collector.validate_config({**base, 'tunnels': items})
+
     def test_process_identity_and_pid_reuse(self):
         first = {10: {'name': 'worker', 'start': 1, 'ticks': 100, 'rss_bytes': 1}}
         second = {10: {'name': 'worker', 'start': 2, 'ticks': 10000, 'rss_bytes': 2}}

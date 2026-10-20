@@ -7,6 +7,7 @@ Only process comm/PID/resource counters are read, never cmdline or environ.
 import argparse
 import datetime as dt
 import fcntl
+import http.client
 import json
 import math
 import os
@@ -213,6 +214,71 @@ def cpu_counter():
         return None
 
 
+def tunnel_http(port, path):
+    # Fixed loopback destination, no proxies/redirects or account credentials.
+    connection = http.client.HTTPConnection('127.0.0.1', port, timeout=2)
+    try:
+        connection.request('GET', path)
+        response = connection.getresponse()
+        body = response.read(262145)
+        if len(body) > 262144:
+            raise ValueError('metrics response too large')
+        return response.status, body.decode('utf-8')
+    finally:
+        connection.close()
+
+
+def tunnel_metrics(text):
+    counters = {'cloudflared_tunnel_ha_connections': 'connections',
+                'cloudflared_tunnel_total_requests': 'requests',
+                'cloudflared_tunnel_request_errors': 'request_errors'}
+    values, locations = {}, set()
+    for line in text.splitlines():
+        match = re.fullmatch(r'(cloudflared_tunnel_[a-z_]+)(\{[^\n]*\})?\s+(\S+)', line)
+        if not match:
+            continue
+        name, labels, raw = match.groups()
+        if name not in counters and name != 'cloudflared_tunnel_server_locations':
+            continue
+        value = float(raw)
+        if not math.isfinite(value) or value < 0 or not value.is_integer():
+            raise ValueError('invalid tunnel metric')
+        if name in counters and not labels:
+            values[counters[name]] = int(value)
+        elif name == 'cloudflared_tunnel_server_locations' and value > 0:
+            location = re.search(r'(?:\{|,)edge_location="([A-Za-z0-9_-]{1,32})"(?:,|\})', labels or '')
+            if location:
+                locations.add(location[1])
+    if 'connections' not in values:
+        raise ValueError('connection metric missing')
+    return {**values, 'locations': sorted(locations)}
+
+
+def collect_tunnels(items):
+    rows = []
+    for item in items:
+        row = {'name': item['name'], 'hostnames': item.get('hostnames', []),
+               'status': 'unknown', 'checked_at': iso(),
+               'expected_connections': item.get('expected_connections', 4)}
+        try:
+            status, text = tunnel_http(item['metrics_port'], '/metrics')
+            if status != 200:
+                raise ValueError('metrics unavailable')
+            metrics = tunnel_metrics(text)
+            ready, _ = tunnel_http(item['metrics_port'], '/ready')
+            if ready not in (200, 503):
+                raise ValueError('readiness unavailable')
+            if ready == 200 and metrics['connections'] == 0:
+                raise ValueError('inconsistent connection state')
+            row.update(metrics)
+            row['status'] = ('failure' if ready == 503 or metrics['connections'] == 0 else
+                             'healthy' if metrics['connections'] >= row['expected_connections'] else 'degraded')
+        except (OSError, ValueError, UnicodeError, http.client.HTTPException):
+            row['error'] = 'Local connector metrics are unavailable'
+        rows.append(row)
+    return rows
+
+
 def collect_tailscale():
     try:
         data = json.loads(command(['/usr/bin/tailscale', 'status', '--json']))
@@ -350,6 +416,21 @@ def validate_config(config):
     for item in config.get('directories', []):
         if not Path(item['path']).is_absolute():
             raise ValueError('directory paths must be absolute')
+    ports = set()
+    for item in config.get('tunnels', []):
+        port = item['metrics_port']
+        expected = item.get('expected_connections', 4)
+        if type(port) is not int or not 1 <= port <= 65535 or port in ports:
+            raise ValueError('invalid or duplicate tunnel metrics port')
+        if type(expected) is not int or not 1 <= expected <= 100:
+            raise ValueError('invalid expected connection count')
+        if not isinstance(item['name'], str) or not item['name'].strip():
+            raise ValueError('invalid tunnel name')
+        if not isinstance(item.get('hostnames', []), list) or any(
+                not isinstance(host, str) or not re.fullmatch(r'[A-Za-z0-9.-]{1,253}', host)
+                for host in item.get('hostnames', [])):
+            raise ValueError('invalid tunnel hostnames')
+        ports.add(port)
     for item in config.get('databases', []):
         if not re.fullmatch(r'[A-Za-z0-9_-]+', item['service']) or not Path(item['service_file']).is_absolute():
             raise ValueError('invalid database service')
@@ -400,7 +481,8 @@ def collect(config):
                 'sample_interval_seconds': config.get('sample_interval_seconds', 60),
                 'services': services, 'processes': top_processes(before, after, elapsed),
                 'container': container, 'tailscale': collect_tailscale() if config.get('tailscale', False) else None,
-                'directories': directories, 'jobs': jobs, 'databases': collect_databases(config.get('databases', [])), 'history': history}
+                'directories': directories, 'jobs': jobs, 'databases': collect_databases(config.get('databases', [])),
+                'tunnels': collect_tunnels(config.get('tunnels', [])), 'history': history}
     atomic_json(config['snapshot_file'], snapshot, 0o640)
     atomic_json(config['state_file'], {'history': history})
 

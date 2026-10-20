@@ -12,6 +12,7 @@ import {
 import { useApi } from '@/hooks/use-api'
 import { showVirtualHosts } from '@/lib/api'
 import { formatBytes, formatDate } from '@/lib/format'
+import { snapshotIsStale } from '@/lib/monitoring'
 import type { TelemetrySnapshot } from '@/types'
 
 export function NetworkPage({ snapshot }: { snapshot?: TelemetrySnapshot }) {
@@ -69,6 +70,74 @@ export function NetworkPage({ snapshot }: { snapshot?: TelemetrySnapshot }) {
               description="Interface information will appear here when available."
             />
           )
+        )}
+      </DataCard>
+      <DataCard
+        title="Cloudflare Tunnels"
+        description="Local connector readiness and active edge connections. This does not verify application availability. Counters reset when the connector restarts."
+        action={<ShieldCheck className="size-4 text-muted-foreground" />}
+      >
+        {snapshot?.tunnels?.length ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Tunnel / hostnames</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Connections</TableHead>
+                <TableHead>Edge locations</TableHead>
+                <TableHead className="text-right">Requests / errors</TableHead>
+                <TableHead>Last checked</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {snapshot.tunnels.map((tunnel) => (
+                <TableRow key={tunnel.name}>
+                  <TableCell className="max-w-64 whitespace-normal">
+                    <span className="font-medium">{tunnel.name}</span>
+                    {tunnel.hostnames.map((hostname) => (
+                      <span
+                        key={hostname}
+                        className="block break-all font-mono text-[11px] text-muted-foreground"
+                      >
+                        {hostname}
+                      </span>
+                    ))}
+                    {tunnel.error && (
+                      <span role="alert" className="block text-xs text-destructive">
+                        {tunnel.error}
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge
+                      state={snapshotIsStale(snapshot) ? 'unknown' : tunnel.status}
+                      label={snapshotIsStale(snapshot) ? 'Stale' : undefined}
+                    />
+                  </TableCell>
+                  <TableCell className="tabular-nums">
+                    {tunnel.connections == null
+                      ? 'Unavailable'
+                      : `${tunnel.connections} / ${tunnel.expected_connections}`}
+                  </TableCell>
+                  <TableCell className="font-mono text-[11px]">
+                    {tunnel.locations?.join(', ') || 'Unavailable'}
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {tunnel.requests?.toLocaleString() ?? '—'} /{' '}
+                    {tunnel.request_errors?.toLocaleString() ?? '—'}
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground">
+                    {formatDate(tunnel.checked_at)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <EmptyState
+            title="No Cloudflare Tunnels configured"
+            description="Configured local connectors will appear here when tunnel monitoring is enabled."
+          />
         )}
       </DataCard>
       <div className="grid gap-5 xl:grid-cols-2">

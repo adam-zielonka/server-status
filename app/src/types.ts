@@ -140,6 +140,18 @@ export interface DatabaseInfo {
   latency_ms?: number
   error?: string
 }
+export interface TunnelInfo {
+  name: string
+  hostnames: string[]
+  status: 'healthy' | 'degraded' | 'failure' | 'unknown'
+  checked_at: string
+  expected_connections: number
+  connections?: number
+  requests?: number
+  request_errors?: number
+  locations?: string[]
+  error?: string
+}
 export interface TelemetrySnapshot {
   enabled: true
   schema_version: 1
@@ -151,6 +163,7 @@ export interface TelemetrySnapshot {
   container: ContainerInfo
   tailscale: TailscaleInfo | null
   databases?: DatabaseInfo[]
+  tunnels?: TunnelInfo[]
   directories: DirectoryInfo[]
   jobs: Job[]
   history: HistoryPoint[]

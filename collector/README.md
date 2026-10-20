@@ -119,3 +119,31 @@ statement timeouts, returning database size, remaining capacity, connection
 count, TLS status and round-trip latency. The Storage page shows warnings at
 80% and critical usage at 95%. Query errors show unknown usage, never zero.
 Capacity is operator supplied; this check does not impose a database quota.
+
+## Cloudflare Tunnels
+
+Optional `tunnels` entries define a display `name`, configured `hostnames`, a
+unique `metrics_port` and `expected_connections` (default 4). Give each local
+cloudflared connector a fixed metrics listener, for example
+`cloudflared tunnel --metrics 127.0.0.1:20241 run ...`. Bind it only to loopback:
+metrics must never be published through the tunnel or another public route.
+Automatic port selection can swap connectors after restarts; use explicit ports.
+
+The collector reads `/metrics` and `/ready` on IPv4 loopback, with a two-second
+timeout, bounded response size, no redirects, proxies or Cloudflare API login.
+Only connection count, active edge location codes and cumulative request/error
+counters are exported. Tunnel tokens, origin URLs, connection IDs and other
+Prometheus labels are excluded. Hostnames are display labels from the private
+configuration, not automatically discovered routes. Changing routing requires
+updating these labels separately.
+
+Network shows connector readiness and observed/expected connection counts;
+Overview alerts on degraded, failed or unknown connectors. Fewer connections
+than expected is degraded; readiness HTTP 503 is failure; unreachable or invalid
+metrics are unknown rather than zero. Stale snapshots are labeled in the UI.
+These checks cover configured local connectors, not all replicas/account tunnels,
+and do not prove origin availability, DNS health or Access policy enforcement.
+Counters are since connector start, not a historical error rate. A successful
+readiness check does not clear historical request errors.
+
+Reference: [Cloudflare tunnel metrics](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/monitor-tunnels/metrics/).

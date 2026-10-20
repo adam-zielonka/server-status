@@ -72,6 +72,17 @@ describe('freshness and health', () => {
   })
   it('does not invent alerts for a healthy snapshot', () =>
     expect(monitoringAlerts(demoTelemetry(now), now)).toEqual([]))
+  it('alerts on degraded, disconnected and unavailable tunnel monitoring', () => {
+    const snapshot = demoTelemetry(now)
+    for (const status of ['degraded', 'failure', 'unknown'] as const) {
+      snapshot.tunnels![0].status = status
+      expect(monitoringAlerts(snapshot, now)).toContain(
+        `Example application tunnel: tunnel ${status}`,
+      )
+    }
+    delete snapshot.tunnels
+    expect(monitoringAlerts(snapshot, now)).toEqual([])
+  })
 })
 
 describe('history integrity', () => {

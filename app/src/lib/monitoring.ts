@@ -95,5 +95,7 @@ export function monitoringAlerts(snapshot: TelemetrySnapshot, now = Date.now()):
     if (database.tls === false)
       alerts.push(`${database.name}: database connection is not encrypted`)
   }
+  for (const tunnel of snapshot.tunnels || [])
+    if (tunnel.status !== 'healthy') alerts.push(`${tunnel.name}: tunnel ${tunnel.status}`)
   return alerts
 }

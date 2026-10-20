@@ -5,6 +5,14 @@
   "directory_interval_seconds": 900,
   "github_interval_seconds": 300,
   "tailscale": true,
+  "tunnels": [
+    {
+      "name": "Example application tunnel",
+      "hostnames": ["app.example.com"],
+      "metrics_port": 20241,
+      "expected_connections": 4
+    }
+  ],
   "units": [
     {
       "name": "SSH",

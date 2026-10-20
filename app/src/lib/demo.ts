@@ -78,6 +78,19 @@ export function demoTelemetry(now = Date.now()): TelemetrySnapshot {
         { address: 'example-node.example.ts.net:8443', paths: ['/', '/api'], funnel: false },
       ],
     },
+    tunnels: [
+      {
+        name: 'Example application tunnel',
+        hostnames: ['app.example.com'],
+        status: 'healthy',
+        checked_at: at(0),
+        expected_connections: 4,
+        connections: 4,
+        locations: ['ams01', 'fra01'],
+        requests: 1234,
+        request_errors: 0,
+      },
+    ],
     directories: [
       {
         name: 'Application data',
