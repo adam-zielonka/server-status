@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { HardDrive, FolderOpen } from 'lucide-react'
 import { DataCard, EmptyState } from '@/components/data-card'
+import { StatusBadge } from '@/components/status-badge'
 import { MetricCard } from '@/components/metric-card'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -16,6 +17,9 @@ import { useApi } from '@/hooks/use-api'
 import { formatBytes, formatDate, formatPercent } from '@/lib/format'
 import { directoryGrowth } from '@/lib/monitoring'
 import type { TelemetrySnapshot } from '@/types'
+
+const databaseSize = (bytes?: number) =>
+  bytes === undefined ? 'Unavailable' : `${Number((bytes / 1_000_000).toFixed(1))} MB`
 
 export function StoragePage({ snapshot, now }: { snapshot?: TelemetrySnapshot; now: number }) {
   const fs = useApi('file-system')
@@ -105,6 +109,58 @@ export function StoragePage({ snapshot, now }: { snapshot?: TelemetrySnapshot; n
           )
         )}
       </DataCard>
+      {!!snapshot?.databases?.length && (
+        <DataCard
+          title="Databases"
+          description="Shared database capacity across all projects. Alerts start at 80% usage; critical at 95%. Limits are configured by the operator; 1 MB = 1,000,000 bytes."
+        >
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Database</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Used / Limit</TableHead>
+                <TableHead>Available</TableHead>
+                <TableHead>Utilization</TableHead>
+                <TableHead>Connections</TableHead>
+                <TableHead>TLS / Latency</TableHead>
+                <TableHead>Checked</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {snapshot.databases.map((row) => (
+                <TableRow key={row.name}>
+                  <TableCell className="font-medium">
+                    {row.name}
+                    {row.error && <span className="block text-xs text-amber-700">{row.error}</span>}
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge state={row.status} />
+                  </TableCell>
+                  <TableCell>
+                    {databaseSize(row.bytes)} / {databaseSize(row.limit_bytes)}
+                  </TableCell>
+                  <TableCell>{databaseSize(row.available_bytes)}</TableCell>
+                  <TableCell>
+                    <Progress
+                      value={row.used_percent ?? 0}
+                      aria-label={`${row.name} database utilization`}
+                      className="h-1.5"
+                    />
+                    {formatPercent(row.used_percent)}
+                  </TableCell>
+                  <TableCell>{row.connections ?? 'Unavailable'}</TableCell>
+                  <TableCell>
+                    {row.tls === undefined ? 'Unavailable' : row.tls ? 'TLS' : 'Unencrypted'} /{' '}
+                    {row.latency_ms === undefined ? 'Unavailable' : `${row.latency_ms} ms`}
+                  </TableCell>
+                  <TableCell>{formatDate(row.checked_at)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </DataCard>
+      )}
       <DataCard
         title="Directory growth"
         description="Allocated bytes, scanned periodically without reading file contents. Growth compares recorded observations."

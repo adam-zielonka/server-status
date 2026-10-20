@@ -127,6 +127,19 @@ export interface HistoryPoint {
   disk_used_bytes?: number
   directory_bytes?: Record<string, number>
 }
+export interface DatabaseInfo {
+  name: string
+  status: 'healthy' | 'warning' | 'failure' | 'unknown'
+  checked_at: string
+  limit_bytes: number
+  bytes?: number
+  available_bytes?: number
+  used_percent?: number
+  connections?: number
+  tls?: boolean
+  latency_ms?: number
+  error?: string
+}
 export interface TelemetrySnapshot {
   enabled: true
   schema_version: 1
@@ -137,6 +150,7 @@ export interface TelemetrySnapshot {
   processes: Processes
   container: ContainerInfo
   tailscale: TailscaleInfo | null
+  databases?: DatabaseInfo[]
   directories: DirectoryInfo[]
   jobs: Job[]
   history: HistoryPoint[]

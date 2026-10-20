@@ -6,13 +6,29 @@
   "github_interval_seconds": 300,
   "tailscale": true,
   "units": [
-    { "name": "SSH", "unit": "ssh.service" },
-    { "name": "Example application", "unit": "example.service" },
-    { "name": "Example user service", "unit": "example.service", "user": "example-user" }
+    {
+      "name": "SSH",
+      "unit": "ssh.service"
+    },
+    {
+      "name": "Example application",
+      "unit": "example.service"
+    },
+    {
+      "name": "Example user service",
+      "unit": "example.service",
+      "user": "example-user"
+    }
   ],
   "directories": [
-    { "name": "Application data", "path": "/srv/example" },
-    { "name": "System logs", "path": "/var/log" }
+    {
+      "name": "Application data",
+      "path": "/srv/example"
+    },
+    {
+      "name": "System logs",
+      "path": "/var/log"
+    }
   ],
   "jobs": [
     {
@@ -29,6 +45,14 @@
       "repository": "example/project",
       "workflow": "backup.yml",
       "max_age_seconds": 172800
+    }
+  ],
+  "databases": [
+    {
+      "name": "Shared PostgreSQL",
+      "service": "example",
+      "service_file": "/etc/server-status/pg_service.conf",
+      "limit_bytes": 200000000
     }
   ]
 }

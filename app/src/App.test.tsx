@@ -12,6 +12,7 @@ vi.mock('@/features/dashboard/resource-history', () => ({
 const failures = new Set<string>()
 let authExpired = false
 let monitoringEnabled = true
+let databaseMonitoring = false
 
 function signedIn() {
   localStorage.setItem(
@@ -27,6 +28,7 @@ beforeEach(() => {
   failures.clear()
   authExpired = false
   monitoringEnabled = true
+  databaseMonitoring = false
   vi.stubGlobal(
     'fetch',
     vi.fn(async (url: string | URL | Request) => {
@@ -37,10 +39,27 @@ beforeEach(() => {
         return new Response(JSON.stringify({ errors: ['Source unavailable'] }), { status: 500 })
       if (endpoint === 'auth')
         return new Response(JSON.stringify({ data: { token: 'test-session' } }))
-      if (endpoint === 'telemetry')
+      if (endpoint === 'telemetry') {
+        const telemetry = demoTelemetry()
+        if (databaseMonitoring)
+          telemetry.databases = [
+            {
+              name: 'Example shared database',
+              status: 'healthy',
+              checked_at: new Date().toISOString(),
+              limit_bytes: 200_000_000,
+              bytes: 8_000_000,
+              available_bytes: 192_000_000,
+              used_percent: 4,
+              connections: 2,
+              tls: true,
+              latency_ms: 30,
+            },
+          ]
         return new Response(
-          JSON.stringify({ data: monitoringEnabled ? demoTelemetry() : { enabled: false } }),
+          JSON.stringify({ data: monitoringEnabled ? telemetry : { enabled: false } }),
         )
+      }
       return new Response(JSON.stringify({ data: demoEndpoint(endpoint as Endpoint) }))
     }),
   )
@@ -174,5 +193,18 @@ describe('dashboard features', () => {
     expect(document.documentElement).toHaveClass('dark')
     expect(localStorage.getItem('server-status.theme')).toBe('dark')
     expect(localStorage.getItem('server-status.session')).toContain('test-session')
+  })
+})
+
+describe('database monitoring', () => {
+  it('shows decimal database capacity, TLS and availability in Storage', async () => {
+    databaseMonitoring = true
+    signedIn()
+    window.location.hash = '#storage'
+    render(<App />)
+    expect(await screen.findByText('Example shared database')).toBeInTheDocument()
+    expect(screen.getByText('8 MB / 200 MB')).toBeInTheDocument()
+    expect(screen.getByText('192 MB')).toBeInTheDocument()
+    expect(screen.getByText('TLS / 30 ms')).toBeInTheDocument()
   })
 })

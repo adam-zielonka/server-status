@@ -103,6 +103,25 @@ class CollectorTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             collector.systemd_properties({'unit': '--help'})
 
+    def test_database_capacity_and_no_secrets(self):
+        item = {'name': 'Shared database', 'service': 'example', 'service_file': '/private/services.conf', 'limit_bytes': 200_000_000}
+        with patch.object(collector, 'command', return_value=json.dumps({'bytes': 170_000_000, 'connections': 3, 'tls': True, 'password': 'never-export'})) as query:
+            row = collector.collect_databases([item])[0]
+        self.assertEqual(row['status'], 'warning')
+        self.assertEqual(row['used_percent'], 85)
+        self.assertEqual(row['available_bytes'], 30_000_000)
+        self.assertTrue(row['tls'])
+        self.assertNotIn('never-export', json.dumps(row))
+        self.assertIn('default_transaction_read_only=on', query.call_args.kwargs['env']['PGOPTIONS'])
+
+    def test_failed_database_does_not_report_zero_usage(self):
+        item = {'name': 'Database', 'service': 'example', 'service_file': '/private/service', 'limit_bytes': 200_000_000}
+        with patch.object(collector, 'command', side_effect=RuntimeError('private-message')):
+            row = collector.collect_databases([item])[0]
+        self.assertEqual(row['status'], 'unknown')
+        self.assertNotIn('bytes', row)
+        self.assertNotIn('private-message', json.dumps(row))
+
 
 if __name__ == '__main__':
     unittest.main()

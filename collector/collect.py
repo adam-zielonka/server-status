@@ -311,6 +311,32 @@ def github_job(item, old, now, interval):
     return row
 
 
+def collect_databases(items):
+    rows = []
+    for item in items:
+        row = {'name': item['name'], 'status': 'unknown', 'checked_at': iso(),
+               'limit_bytes': item['limit_bytes']}
+        started = time.monotonic()
+        try:
+            env = dict(os.environ, PGSERVICEFILE=item['service_file'],
+                       PGCONNECT_TIMEOUT='5', PGOPTIONS='-c default_transaction_read_only=on -c statement_timeout=5000')
+            query = "SELECT json_build_object('bytes', pg_database_size(current_database()), 'connections', (SELECT count(*) FROM pg_stat_activity WHERE datname=current_database()), 'tls', COALESCE((SELECT ssl FROM pg_stat_ssl WHERE pid=pg_backend_pid()), false))"
+            data = json.loads(command(['/usr/bin/psql', '--no-psqlrc', '--no-password',
+                                       '--dbname=service=' + item['service'], '-At', '-c', query], env=env, timeout=12))
+            size = int(data['bytes'])
+            if size < 0:
+                raise ValueError('invalid size')
+            percent = round(size / item['limit_bytes'] * 100, 2)
+            row.update(bytes=size, available_bytes=max(0, item['limit_bytes']-size),
+                       used_percent=percent, connections=int(data['connections']), tls=bool(data['tls']),
+                       latency_ms=round((time.monotonic()-started)*1000),
+                       status='failure' if percent >= 95 else ('warning' if percent >= 80 else 'healthy'))
+        except (OSError, ValueError, TypeError, KeyError, RuntimeError, subprocess.TimeoutExpired):
+            row['error'] = 'Database metrics are unavailable'
+        rows.append(row)
+    return rows
+
+
 def retain_history(previous, point, now):
     valid = [p for p in previous if isinstance(p, dict) and (timestamp(p.get('at')) or 0) >= now - 86400
              and (timestamp(p.get('at')) or 0) < now]
@@ -324,6 +350,11 @@ def validate_config(config):
     for item in config.get('directories', []):
         if not Path(item['path']).is_absolute():
             raise ValueError('directory paths must be absolute')
+    for item in config.get('databases', []):
+        if not re.fullmatch(r'[A-Za-z0-9_-]+', item['service']) or not Path(item['service_file']).is_absolute():
+            raise ValueError('invalid database service')
+        if not isinstance(item['limit_bytes'], int) or item['limit_bytes'] <= 0:
+            raise ValueError('invalid database capacity')
     for item in config.get('jobs', []):
         if item['kind'] not in ('systemd', 'github'):
             raise ValueError('unsupported task source')
@@ -369,7 +400,7 @@ def collect(config):
                 'sample_interval_seconds': config.get('sample_interval_seconds', 60),
                 'services': services, 'processes': top_processes(before, after, elapsed),
                 'container': container, 'tailscale': collect_tailscale() if config.get('tailscale', False) else None,
-                'directories': directories, 'jobs': jobs, 'history': history}
+                'directories': directories, 'jobs': jobs, 'databases': collect_databases(config.get('databases', [])), 'history': history}
     atomic_json(config['snapshot_file'], snapshot, 0o640)
     atomic_json(config['state_file'], {'history': history})
 

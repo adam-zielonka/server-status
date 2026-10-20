@@ -36,6 +36,24 @@ describe('freshness and health', () => {
     expect(jobHealth({ ...goodJob, max_age_seconds: 60 }, now)).toBe('overdue')
     expect(jobHealth({ ...goodJob, last_success_at: null }, now)).toBe('overdue')
   })
+  it('flags database capacity, unavailable metrics and unencrypted connections', () => {
+    const snapshot = demoTelemetry(now)
+    snapshot.databases = [
+      {
+        name: 'Shared database',
+        status: 'warning',
+        checked_at: new Date(now).toISOString(),
+        limit_bytes: 200_000_000,
+        tls: false,
+      },
+    ]
+    expect(monitoringAlerts(snapshot, now)).toContain('Shared database: database warning')
+    expect(monitoringAlerts(snapshot, now)).toContain(
+      'Shared database: database connection is not encrypted',
+    )
+    snapshot.databases[0].status = 'unknown'
+    expect(monitoringAlerts(snapshot, now)).toContain('Shared database: database unknown')
+  })
   it('reports stale data, stopped schedulers, public exposure and resource pressure', () => {
     const snapshot = demoTelemetry(now)
     snapshot.collected_at = '2026-01-04T00:00:00Z'

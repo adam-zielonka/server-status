@@ -90,5 +90,10 @@ export function monitoringAlerts(snapshot: TelemetrySnapshot, now = Date.now()):
   }
   for (const directory of snapshot.directories)
     if (directory.error) alerts.push(`${directory.name}: directory size could not be refreshed.`)
+  for (const database of snapshot.databases || []) {
+    if (database.status !== 'healthy') alerts.push(`${database.name}: database ${database.status}`)
+    if (database.tls === false)
+      alerts.push(`${database.name}: database connection is not encrypted`)
+  }
   return alerts
 }

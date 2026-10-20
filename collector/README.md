@@ -107,3 +107,15 @@ unrelated Tailscale Serve mappings.
 
 References: [cgroup v2](https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html),
 [systemd services](https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html).
+
+## PostgreSQL capacity
+
+Optional `databases` entries contain `name`, `service`, `service_file` (absolute
+path to a private libpq service file) and `limit_bytes` (bytes, not MiB). Requires
+`psql`. Store credentials in a separate 0600 passfile referenced by that service;
+use verified TLS. Credentials are never passed in process arguments or snapshot
+fields. The collector executes a fixed read-only query with connection and
+statement timeouts, returning database size, remaining capacity, connection
+count, TLS status and round-trip latency. The Storage page shows warnings at
+80% and critical usage at 95%. Query errors show unknown usage, never zero.
+Capacity is operator supplied; this check does not impose a database quota.
