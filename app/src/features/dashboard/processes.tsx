@@ -42,7 +42,7 @@ export function ProcessesPage({ snapshot }: { snapshot?: TelemetrySnapshot }) {
       else next.add(pid)
       return next
     })
-  const grouped = view === 'instances' && !!snapshot?.processes.groups_memory
+  const grouped = view === 'instances'
   const source = grouped
     ? sort === 'top_cpu'
       ? snapshot?.processes.groups_cpu

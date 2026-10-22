@@ -12,22 +12,16 @@ import (
 )
 
 type process struct {
-	Name       string `json:"name"`
-	Executable string `json:"executable"`
-	Service    string `json:"service"`
-	ServiceKey string `json:"service_key"`
-	PPID       int    `json:"ppid"`
-	Ticks      uint64 `json:"ticks"`
-	Start      uint64 `json:"start"`
-	RSS        int64  `json:"rss_bytes"`
+	Name       string
+	Executable string
+	Service    string
+	ServiceKey string
+	PPID       int
+	Ticks      uint64
+	Start      uint64
+	RSS        int64
 }
 
-func (p process) serviceKey() string {
-	if p.ServiceKey != "" {
-		return p.ServiceKey
-	}
-	return p.Service
-}
 func processStat(body string) (process, error) {
 	left := strings.IndexByte(body, '(')
 	right := strings.LastIndexByte(body, ')')
@@ -111,7 +105,7 @@ func executableRoot(pid int, items map[int]process) int {
 	for exe != "" {
 		p := items[root]
 		ancestor, ok := items[p.PPID]
-		if !ok || seen[p.PPID] || ancestor.Executable != exe || ancestor.serviceKey() != items[pid].serviceKey() || ancestor.Start > p.Start {
+		if !ok || seen[p.PPID] || ancestor.Executable != exe || ancestor.ServiceKey != items[pid].ServiceKey || ancestor.Start > p.Start {
 			break
 		}
 		seen[p.PPID] = true
@@ -133,7 +127,7 @@ func topProcesses(first, second map[int]process, elapsed, ticks float64) row {
 	sort.Ints(pids)
 	serviceMembers := map[string]map[int]bool{}
 	for pid, p := range second {
-		if key := p.serviceKey(); key != "" {
+		if key := p.ServiceKey; key != "" {
 			if serviceMembers[key] == nil {
 				serviceMembers[key] = map[int]bool{}
 			}
@@ -176,7 +170,7 @@ func topProcesses(first, second map[int]process, elapsed, ticks float64) row {
 			percent = round(diff/ticks/elapsed*100, 1)
 		}
 		browser := isBrowser(p.Executable)
-		key := p.serviceKey()
+		key := p.ServiceKey
 		root := executableRoot(pid, second)
 		kind := "process"
 		var browserRoot any
@@ -190,7 +184,7 @@ func topProcesses(first, second map[int]process, elapsed, ticks float64) row {
 		} else if browser {
 			owner, ok := second[second[root].PPID]
 			parent := second[root].PPID
-			if parent > 1 && ok && owner.Executable != "" && !isBrowser(owner.Executable) && owner.serviceKey() == "" && owner.Start <= second[root].Start {
+			if parent > 1 && ok && owner.Executable != "" && !isBrowser(owner.Executable) && owner.ServiceKey == "" && owner.Start <= second[root].Start {
 				root = executableRoot(parent, second)
 				kind = "process"
 			}

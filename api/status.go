@@ -14,7 +14,6 @@ import (
 	"status/collector"
 	"status/config"
 	"strconv"
-	"strings"
 	"syscall"
 	"time"
 )
@@ -41,13 +40,13 @@ Commands:
   help          Show this help
 
 Run "server-status serve --help" or "server-status config check --help" for options.
-Running without a command is equivalent to "serve" (legacy --config is supported).
 The collector runs separately with its own permissions, using the same binary.
 `
 
 func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
-	if len(args) == 0 || strings.HasPrefix(args[0], "-") && args[0] != "--help" && args[0] != "-h" {
-		return serve(ctx, args, stdout, stderr)
+	if len(args) == 0 {
+		_, err := io.WriteString(stdout, usage)
+		return err
 	}
 	switch args[0] {
 	case "help", "--help", "-h":
@@ -82,7 +81,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		}
 		flags := flag.NewFlagSet("config check", flag.ContinueOnError)
 		flags.SetOutput(stderr)
-		path := flags.String("config", "", "configuration path (default: config.jsonc, then config.json in the working directory)")
+		path := flags.String("config", "", "configuration path (default: config.json in the working directory)")
 		isCollector := flags.Bool("collector", false, "validate collector configuration instead of API configuration (requires --config)")
 		if err := parseFlags(flags, args[2:]); err != nil {
 			return helpResult(err)
@@ -123,7 +122,7 @@ func helpResult(err error) error {
 func serve(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	flags := flag.NewFlagSet("serve", flag.ContinueOnError)
 	flags.SetOutput(stderr)
-	path := flags.String("config", "", "configuration path (default: config.jsonc, then config.json in the working directory)")
+	path := flags.String("config", "", "configuration path (default: config.json in the working directory)")
 	listen := flags.String("listen", "", "override listen address, e.g. 127.0.0.1:4000 or [::1]:4000")
 	apiOnly := flags.Bool("api-only", false, "serve only /api endpoints (for frontend development or external static hosting)")
 	if err := parseFlags(flags, args); err != nil {

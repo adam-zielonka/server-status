@@ -103,7 +103,7 @@ describe('authentication flow', () => {
 })
 
 describe('dashboard features', () => {
-  it('navigates through all views and keeps legacy metrics accessible', async () => {
+  it('navigates through all views and keeps system metrics accessible', async () => {
     const user = userEvent.setup()
     signedIn()
     render(<App />)

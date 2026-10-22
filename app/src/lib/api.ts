@@ -19,14 +19,18 @@ function validTelemetry(data: unknown): data is Telemetry {
   if (data.enabled === false) return true
   if (data.enabled !== true) return false
   const value = data as Record<string, unknown>
+  const processes = value.processes as Record<string, unknown> | null
   return (
     value.schema_version === 1 &&
     typeof value.collected_at === 'string' &&
     ['services', 'directories', 'jobs', 'history'].every((key) => Array.isArray(value[key])) &&
     typeof value.container === 'object' &&
     value.container !== null &&
-    typeof value.processes === 'object' &&
-    value.processes !== null
+    typeof processes === 'object' &&
+    processes !== null &&
+    ['top_cpu', 'top_memory', 'groups_cpu', 'groups_memory'].every((key) =>
+      Array.isArray(processes[key]),
+    )
   )
 }
 

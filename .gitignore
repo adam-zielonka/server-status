@@ -9,9 +9,6 @@ telemetry.json
 state.json
 *.local
 *.private.*
-__pycache__/
-*.pyc
 coverage/
-.coverage
 /build/
 /api/web/dist/

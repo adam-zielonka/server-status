@@ -70,15 +70,13 @@ outside the checkout. See the [collector privacy guide](../collector/README.md).
   official registry. Components use the shared `cn` utility and CSS theme tokens.
 - `src/index.css`: Tailwind setup, light/dark themes and reduced-motion defaults.
 
-Blueprint, MobX, Stylus and the legacy JavaScript component tree have been removed.
 The interface uses one card/table/navigation system throughout, with responsive
 navigation, keyboard-accessible controls and a stored light/dark theme preference.
 History charts are loaded separately, preserve recording gaps and never synthesize
 missing samples. Metrics refresh every 30 seconds while the dashboard is active.
 
-The existing JWT login remains compatible. Valid legacy `beta_connection`
-sessions migrate automatically; corrupted or blocked browser storage is handled.
-Only username and JWT are persisted, never passwords. Logout and HTTP 401 clear
+JWT login persists only the username and token, never passwords. Corrupted or
+blocked browser storage is handled. Logout and HTTP 401 clear
 session state and the query cache. An optional collector failure does not hide
 basic API metrics, and disabled collectors have explicit empty states.
 
@@ -94,8 +92,7 @@ pnpm build
 ```
 
 `pnpm test` runs once; use `pnpm test:watch` during development. Vitest and Testing
-Library cover login/logout, expired sessions, legacy-session migration, network
-failures, API validation, navigation, filtering/sorting, disabled collectors,
+Library cover login/logout, expired sessions, network failures, API validation, navigation, filtering/sorting, disabled collectors,
 theme switching, task freshness, chart gaps, formatting and synthetic-only demo
 requests. Test fixtures contain example data only.
 

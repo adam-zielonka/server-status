@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ApiError, authenticate, fetchEndpoint } from './api'
+import { demoTelemetry } from './demo'
 
 function mockResponse(body: unknown, status = 200) {
   const fetch = vi.fn().mockResolvedValue(
@@ -69,6 +70,15 @@ describe('typed API client', () => {
   it('rejects unsupported or incomplete snapshots', async () => {
     mockResponse({ data: { enabled: true, schema_version: 2 } })
     await expect(fetchEndpoint('telemetry', 'test')).rejects.toThrow('not supported')
+  })
+  it('requires complete process and group rankings', async () => {
+    const snapshot = demoTelemetry()
+    mockResponse({ data: snapshot })
+    expect(await fetchEndpoint('telemetry', 'test')).toEqual(snapshot)
+    for (const field of ['top_cpu', 'top_memory', 'groups_cpu', 'groups_memory']) {
+      mockResponse({ data: { ...snapshot, processes: { ...snapshot.processes, [field]: null } } })
+      await expect(fetchEndpoint('telemetry', 'test')).rejects.toThrow('not supported')
+    }
   })
   it('handles non-JSON responses without exposing their HTML', async () => {
     vi.stubGlobal(

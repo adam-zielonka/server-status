@@ -15,8 +15,7 @@ import (
 
 var errCollection = errors.New("telemetry collection failed; check configuration and local permissions")
 
-// Run collects one sample. The lock is shared with the legacy Python timer,
-// so switching executables does not permit concurrent snapshot writers.
+// Run collects one sample. The state lock prevents concurrent snapshot writers.
 func Run(ctx context.Context, cfg *Config) error {
 	if err := cfg.Validate(); err != nil {
 		return err

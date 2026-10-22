@@ -1,5 +1,5 @@
-// Package collector produces the same versioned, allowlisted telemetry as the
-// legacy Python collector. It is invoked only by the collect CLI command.
+// Package collector produces allowlisted Linux telemetry snapshots.
+// It is invoked only by the collect CLI command.
 package collector
 
 import (

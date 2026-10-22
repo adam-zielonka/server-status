@@ -69,11 +69,4 @@ func TestDefaultConfigurationLookup(t *testing.T) {
 	if _, err := Load(""); err != nil {
 		t.Fatal(err)
 	}
-	// Preserve the existing preference for config.jsonc over config.json.
-	if err := os.WriteFile("config.jsonc", []byte("null"), 0600); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := Load(""); err == nil {
-		t.Fatal("config.jsonc should take precedence")
-	}
 }

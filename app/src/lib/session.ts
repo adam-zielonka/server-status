@@ -1,13 +1,10 @@
 import type { Session } from '@/types'
 
 const KEY = 'server-status.session'
-const LEGACY_KEY = 'beta_connection'
 
 export function readSession(): Session | null {
   try {
-    const value: unknown = JSON.parse(
-      localStorage.getItem(KEY) || localStorage.getItem(LEGACY_KEY) || 'null',
-    )
+    const value: unknown = JSON.parse(localStorage.getItem(KEY) || 'null')
     if (
       !value ||
       typeof value !== 'object' ||
@@ -18,9 +15,7 @@ export function readSession(): Session | null {
       !value.token
     )
       return null
-    const session = { user: value.user, token: value.token }
-    storeSession(session)
-    return session
+    return { user: value.user, token: value.token }
   } catch {
     return null
   }
@@ -28,7 +23,6 @@ export function readSession(): Session | null {
 
 export function storeSession(session: Session | null): void {
   try {
-    localStorage.removeItem(LEGACY_KEY)
     if (session)
       localStorage.setItem(KEY, JSON.stringify({ user: session.user, token: session.token }))
     else localStorage.removeItem(KEY)

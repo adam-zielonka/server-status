@@ -50,22 +50,11 @@ func Initialize(path string) error {
 
 // Load validates configuration without changing the running server's settings.
 func Load(path string) (*ServerConfig, error) {
-	var configPath string
-
 	if path == "" {
-		// Try default paths
-		if _, err := os.Stat("config.jsonc"); err == nil {
-			configPath = "config.jsonc"
-		} else if _, err := os.Stat("config.json"); err == nil {
-			configPath = "config.json"
-		} else {
-			return nil, fmt.Errorf("config file not found: checked config.jsonc and config.json in the working directory")
-		}
-	} else {
-		configPath = path
+		path = "config.json"
 	}
 
-	b, err := os.ReadFile(configPath)
+	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}

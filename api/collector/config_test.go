@@ -22,7 +22,7 @@ func TestCollectorConfiguration(t *testing.T) {
 		t.Fatal(err)
 	}
 	if cfg.SampleInterval != 60 || cfg.DirectoryInterval != 900 || cfg.GitHubInterval != 300 {
-		t.Fatal("legacy defaults changed")
+		t.Fatal("unexpected default collection intervals")
 	}
 	for _, body := range []string{"null", "[]", "{}", strings.Replace(base, "/private/snapshot", "relative", 1), strings.Replace(base, "/private/snapshot", "/private/state", 1),
 		strings.TrimSuffix(base, "}") + `,"units":[{"unit":"--help.service"}]}`,

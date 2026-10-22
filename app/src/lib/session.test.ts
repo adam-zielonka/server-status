@@ -2,13 +2,10 @@ import { describe, expect, it, vi } from 'vitest'
 import { readSession, storeSession } from './session'
 
 describe('session storage', () => {
-  it('migrates existing sessions and drops unrelated fields', () => {
-    localStorage.setItem(
-      'beta_connection',
-      JSON.stringify({ user: 'example-user', token: 'test-token', pass: 'must-not-persist' }),
-    )
+  it('persists only the username and token', () => {
+    const session = { user: 'example-user', token: 'test-token', pass: 'must-not-persist' }
+    storeSession(session)
     expect(readSession()).toEqual({ user: 'example-user', token: 'test-token' })
-    expect(localStorage.getItem('beta_connection')).toBeNull()
     expect(localStorage.getItem('server-status.session')).not.toContain('must-not-persist')
   })
   it.each([
@@ -21,9 +18,8 @@ describe('session storage', () => {
     localStorage.setItem('server-status.session', value)
     expect(readSession()).toBeNull()
   })
-  it('clears both current and legacy sessions on logout', () => {
+  it('clears the session on logout', () => {
     storeSession({ user: 'example', token: 'test-token' })
-    localStorage.setItem('beta_connection', '{}')
     storeSession(null)
     expect(localStorage.length).toBe(0)
   })

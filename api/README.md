@@ -26,11 +26,11 @@ override it. A frontend change requires rebuilding the executable.
 Cross-compile, for example:
 
 ```bash
-GOOS=linux GOARCH=arm64 VERSION=1.0.0 ./build.sh
+GOOS=linux GOARCH=arm64 ./build.sh
 ```
 
 To prepare embedded assets before Go development or tests, run `./build.sh frontend`.
-Then use `go build -o build/status .` or `go test ./...` from `api/`.
+Then use `go build -o ../build/server-status .` or `go test ./...` from `api/`.
 Compile the complete package (`.`), since the HTTP router is in a separate file.
 The generated `api/web/dist/` directory is ignored by Git; a fresh checkout needs
 this frontend build before Go compilation. Optional Make targets provide the same
@@ -39,48 +39,10 @@ CI additionally uses `go test -race ./...`, which needs cgo and a C compiler.
 
 ## Configuration
 
-By default, the server looks for `config.jsonc` first, then `config.json` in the
-**current working directory**. Both names currently expect JSON syntax. Use
-`--config` for an explicit path, and keep production configuration outside the
-checkout. The executable never embeds configuration or telemetry.
-
-Example `config.jsonc`:
-
-```jsonc
-{
-  "listen": {
-    "host": "localhost",
-    "port": 4000
-  },
-  "auth": {
-    "users": [
-      {
-        "name": "dragon",
-        "pass": "dragon"
-      }
-    ],
-    "secret": "pancake-is-the-best-dragon"
-  },
-  "services": [
-    {
-      "name": "Web",
-      "port": "80"
-    },
-    {
-      "name": "SSH",
-      "port": "22"
-    },
-    {
-      "name": "Server Status",
-      "port": "4000"
-    }
-  ],
-  "hosts": [
-    "localhost"
-  ],
-  "external": ""
-}
-```
+The API reads `config.json` in the current working directory by default, or the
+path supplied with `--config`. Copy [config.example.json](config.example.json)
+to a private location and set `auth.users` and `auth.secret` before starting.
+Configuration uses JSON syntax and is never embedded in the executable.
 
 ## Run and CLI
 
@@ -99,7 +61,7 @@ Example `config.jsonc`:
 at `/api/*` on the same listener. No static directory, Node server, or second
 frontend port is needed. Configure HTTPS or your existing reverse proxy to forward
 **all paths** to this listener. Keep the API's configured loopback bind when using
-Tailscale Serve or another local proxy. Authentication requirements are unchanged.
+Tailscale Serve or another local proxy. The API requires JWT authentication.
 
 `--listen` overrides the configured bind address; bracket IPv6 addresses, for
 example `[::1]:4000`. `--api-only` disables static serving for Vite development
@@ -113,16 +75,10 @@ Validation failures and unknown commands exit with a nonzero status. `version`
 and help do not require a configuration file. SIGINT/SIGTERM stop the HTTP server
 with up to ten seconds to complete active requests.
 
-For compatibility, running without a subcommand starts `serve`, and both
-`-config` and `--config` are supported. Existing systemd `ExecStart` lines continue
-to work; new units can use the explicit `serve` subcommand.
-
 `collect` takes one Linux telemetry sample without opening an HTTP listener.
-Run it from the existing systemd timer with its own permissions. The same Go
-executable implements both roles; the HTTP service remains unprivileged and
-never invokes collection. No Python interpreter is needed. Existing collector
-configuration, snapshot schema, history and locking are compatible. Optional
-integrations still use system tools such as `systemctl`, `du`, `tailscale`, `gh`
+Run it from the systemd timer with its own permissions. The HTTP service and
+collector are separate processes using the same Go executable. Optional
+integrations use system tools such as `systemctl`, `du`, `tailscale`, `gh`
 and `psql`; see the [collector guide](../collector/README.md).
 
 ## API Endpoints

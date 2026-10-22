@@ -1,0 +1,28 @@
+{
+  "listen": {
+    "host": "127.0.0.1",
+    "port": 4000
+  },
+  "auth": {
+    "users": [
+      {
+        "name": "example-user",
+        "pass": "replace-with-a-strong-password"
+      }
+    ],
+    "secret": "replace-with-a-random-signing-secret"
+  },
+  "services": [
+    {
+      "name": "SSH",
+      "port": "22"
+    },
+    {
+      "name": "Server Status",
+      "port": "4000"
+    }
+  ],
+  "hosts": ["127.0.0.1"],
+  "external": "",
+  "telemetry_file": ""
+}

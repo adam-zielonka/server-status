@@ -73,8 +73,8 @@ export interface ProcessInfo {
   cpu_percent: number | null
 }
 export interface Processes {
-  groups_cpu?: ProcessInfo[]
-  groups_memory?: ProcessInfo[]
+  groups_cpu: ProcessInfo[]
+  groups_memory: ProcessInfo[]
   top_cpu: ProcessInfo[]
   top_memory: ProcessInfo[]
   sample_seconds: number

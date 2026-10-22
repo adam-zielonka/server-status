@@ -2,7 +2,7 @@
 
 Server monitoring dashboard and REST API, distributed together as a standalone Go executable with an embedded React frontend.
 
-See fake server-status on [fake-status](https://adam-zielonka.github.io/server-status/)
+Try the [interactive demo](https://adam-zielonka.github.io/server-status/) with synthetic data.
 
 ![Server Status dashboard with synthetic demo data](app/img/server-status.png)
 
@@ -29,12 +29,9 @@ optional telemetry stay outside the executable. Use `serve --help` for listener
 options and API-only mode, or `version` for build information. See the
 [API guide](api/README.md) for configuration, cross-compilation, and reverse proxies.
 The optional Linux collector is included as `collect` and runs separately through
-systemd using the same executable. Python is not required; see the
-[collector guide](collector/README.md) for optional system-tool integrations.
+systemd using the same executable; see the [collector guide](collector/README.md) for optional system-tool integrations.
 
-## Instruction
-
-You can find more details by following these links:
+## Documentation
 
 - [REST API (Go)](api/README.md)
 - [Web Application (React + TypeScript + Vite)](app/README.md), with shadcn/ui components.

@@ -43,7 +43,8 @@ func TestCLI(t *testing.T) {
 	}{
 		{"help", []string{"--help"}, "Usage:"},
 		{"serve help", []string{"serve", "--help"}, "api-only"},
-		{"legacy help", []string{"-h"}, "Usage:"},
+		{"short help", []string{"-h"}, "Usage:"},
+		{"no command", nil, "Usage:"},
 		{"config help", []string{"config", "check", "--help"}, "config"},
 		{"collector help", []string{"collect", "--help"}, "required"},
 		{"version", []string{"version"}, "server-status dev"},
@@ -65,6 +66,7 @@ func TestCLI(t *testing.T) {
 	}
 	for _, args := range [][]string{
 		{"unknown"}, {"serve", "--unknown"}, {"serve", "unexpected"},
+		{"--config", path},
 		{"config"}, {"config", "unknown"}, {"config", "check", "extra"},
 		{"config", "check", "--config", filepath.Join(t.TempDir(), "missing")},
 		{"collect"}, {"collect", "unexpected"}, {"config", "check", "--collector"},

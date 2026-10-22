@@ -63,27 +63,19 @@ jobs:
           mkdir -p build
           BUILD_VERSION=$(cat VERSION)
           cd api
-          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "-s -w -X main.version=${BUILD_VERSION}" -o ../build/status-linux-amd64 .
-          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags "-s -w -X main.version=${BUILD_VERSION}" -o ../build/status-linux-arm64 .
-      - name: Package standalone frontend and build public demo
-        run: |
-          tar -czf build/server-status-app.tar.gz -C app/dist .
-          cd app
-          VITE_FAKE_API=true pnpm build
-      - name: Prepare artifact
-        run: |
-          mv app/dist public
-          mv build/server-status-app.tar.gz public/
-          mv build public/bin
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "-s -w -X main.version=${BUILD_VERSION}" -o ../build/server-status-linux-amd64 .
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags "-s -w -X main.version=${BUILD_VERSION}" -o ../build/server-status-linux-arm64 .
+      - name: Build public demo
+        run: cd app && VITE_FAKE_API=true pnpm build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: ./public
+          path: ./app/dist
       - name: Upload binary artifacts
         uses: actions/upload-artifact@v6
         with:
           name: server-status-binaries
-          path: ./public/bin
+          path: ./build/server-status-linux-*
 
   # Deployment job
   deploy:
