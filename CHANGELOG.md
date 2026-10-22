@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.0.1 — 2026-10-22
+
+- Remove the obsolete Python collector, startup script and legacy packaging.
+- Simplify the CLI and configuration to the documented explicit commands and
+  JSON configuration files.
+- Remove legacy session conversion and telemetry compatibility paths; use the
+  current process-group data format throughout the dashboard.
+- Refresh public configuration examples, documentation and CI artifacts for
+  the standalone application.
+
 ## 4.0.0 — 2026-10-22
 
 - Distribute the dashboard, REST API and optional Linux collector in one Go
