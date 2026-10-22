@@ -44,13 +44,6 @@ jobs:
         with:
           go-version-file: api/go.mod
           cache-dependency-path: api/go.sum
-      - name: Build api
-        run: |
-          cd api
-          mkdir -p bin
-          GOOS=linux GOARCH=amd64 go build -o bin/status-linux-amd64 status.go
-          GOOS=linux GOARCH=arm64 go build -o bin/status-linux-arm64 status.go
-          cd ..
       - name: Install app dependencies
         run: cd app && pnpm install --frozen-lockfile
       - name: Typecheck app
@@ -61,20 +54,27 @@ jobs:
         run: cd app && pnpm lint
       - name: Check app formatting
         run: cd app && pnpm format:check
-      - name: Build app
+      - name: Build and embed production app
+        run: ./build.sh frontend
+      - name: Test Go server and CLI
+        run: cd api && go test -race ./...
+      - name: Build standalone binaries
         run: |
+          mkdir -p build
+          BUILD_VERSION=$(cat VERSION)
+          cd api
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "-s -w -X main.version=${BUILD_VERSION}" -o ../build/status-linux-amd64 .
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags "-s -w -X main.version=${BUILD_VERSION}" -o ../build/status-linux-arm64 .
+      - name: Package standalone frontend and build public demo
+        run: |
+          tar -czf build/server-status-app.tar.gz -C app/dist .
           cd app
-          pnpm build
-          cd dist
-          tar -czvf ../public/server-status-app.tar.gz *
-          cd ..
           VITE_FAKE_API=true pnpm build
-          cd ..
       - name: Prepare artifact
         run: |
-          mv app/public app/public_temp
           mv app/dist public
-          mv api/bin public/bin
+          mv build/server-status-app.tar.gz public/
+          mv build public/bin
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
@@ -82,7 +82,7 @@ jobs:
       - name: Upload binary artifacts
         uses: actions/upload-artifact@v6
         with:
-          name: api-binaries
+          name: server-status-binaries
           path: ./public/bin
 
   # Deployment job

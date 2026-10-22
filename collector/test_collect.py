@@ -82,7 +82,115 @@ unrelated_metric{token="never-export"} 99
         second = {10: {'name': 'worker', 'start': 2, 'ticks': 10000, 'rss_bytes': 2}}
         row = collector.top_processes(first, second, 1)['top_cpu'][0]
         self.assertIsNone(row['cpu_percent'])
-        self.assertEqual(set(row), {'pid', 'name', 'rss_bytes', 'cpu_percent'})
+        self.assertNotIn('cmdline', row)
+        self.assertEqual(row['instance_pid'], 10)
+
+    def test_browser_instances_are_separate_and_include_small_children(self):
+        def proc(parent, start, rss, executable='chrome-headless-shell'):
+            return {'name': 'chrome-headless', 'ppid': parent, 'start': start,
+                    'ticks': 100, 'rss_bytes': rss, 'executable': executable,
+                    'service': None}
+        processes = {1: proc(0, 1, 1, 'init'), 10: proc(1, 10, 100),
+                     11: proc(10, 11, 200), 12: proc(11, 12, 1),
+                     20: proc(1, 20, 400), 21: proc(20, 21, 5)}
+        result = collector.top_processes(processes, processes, 1)
+        groups = {r['pid']: r for r in result['groups_memory']}
+        self.assertEqual(groups[10]['rss_bytes'], 301)
+        self.assertEqual(groups[10]['process_count'], 3)
+        self.assertEqual(groups[20]['rss_bytes'], 405)
+        self.assertEqual(groups[20]['process_count'], 2)
+        self.assertEqual(groups[10]['browser_instance_count'], 1)
+        child = next(r for r in result['top_memory'] if r['pid'] == 12)
+        self.assertEqual(child['instance_pid'], 10)
+        self.assertEqual(child['ppid'], 11)
+        self.assertEqual(child['parent_name'], 'chrome-headless-shell')
+        del processes[11]
+        orphan = collector.top_processes(processes, processes, 1)
+        self.assertEqual(next(r for r in orphan['top_memory'] if r['pid'] == 12)['instance_pid'], 12)
+
+    def test_group_cpu_is_sum_and_unknown_for_incomplete_samples(self):
+        def proc(parent, ticks):
+            return {'name': 'chrome', 'executable': 'chrome', 'ppid': parent,
+                    'start': 1, 'ticks': ticks, 'rss_bytes': 1}
+        first = {10: proc(0, 0), 11: proc(10, 0)}
+        second = {10: proc(0, 10), 11: proc(10, 20)}
+        group = collector.top_processes(first, second, 1)['groups_cpu'][0]
+        self.assertAlmostEqual(group['cpu_percent'], 30 / collector.os.sysconf('SC_CLK_TCK') * 100)
+        del first[11]
+        self.assertIsNone(collector.top_processes(first, second, 1)['groups_cpu'][0]['cpu_percent'])
+        second[10]['ppid'] = 11  # A malformed cycle must terminate.
+        collector.top_processes(first, second, 1)
+
+    def test_service_groups_include_browser_instances_once(self):
+        def proc(parent, start, exe, service='example.service', scope='system/example.service'):
+            return {'name': exe, 'executable': exe, 'ppid': parent, 'start': start,
+                    'ticks': 0, 'rss_bytes': 10, 'service': service, 'service_key': scope}
+        processes = {10: proc(1, 10, 'node'), 11: proc(10, 11, 'sh'),
+                     12: proc(11, 12, 'python'), 20: proc(10, 20, 'chrome'),
+                     21: proc(20, 21, 'chrome'), 30: proc(10, 30, 'chrome'),
+                     40: proc(1, 40, 'node', scope='user/example.service')}
+        result = collector.top_processes(processes, processes, 1)
+        groups = {g['pid']: g for g in result['groups_memory']}
+        self.assertEqual(set(groups), {10, 40})
+        self.assertEqual(groups[10]['name'], 'example.service')
+        self.assertEqual(groups[10]['rss_bytes'], 60)
+        self.assertEqual(groups[10]['process_count'], 6)
+        self.assertEqual(groups[10]['group_kind'], 'service')
+        self.assertEqual(groups[10]['browser_instance_count'], 2)
+        child = next(r for r in result['top_memory'] if r['pid'] == 21)
+        self.assertEqual(child['instance_pid'], 10)
+        self.assertEqual(child['browser_instance_pid'], 20)
+        members = [pid for g in groups.values() for pid in g['member_pids']]
+        self.assertEqual(sorted(members), sorted(processes))
+        self.assertTrue(all('service_key' not in r for r in result['top_memory']))
+
+    def test_browser_without_service_joins_launching_application(self):
+        def proc(parent, start, exe):
+            return {'name': exe, 'executable': exe, 'ppid': parent, 'start': start,
+                    'ticks': 0, 'rss_bytes': 10}
+        processes = {10: proc(1, 10, 'node'), 20: proc(10, 20, 'chrome'),
+                     21: proc(20, 21, 'chrome'), 30: proc(10, 30, 'chrome'),
+                     40: proc(1, 40, 'chrome')}
+        groups = {g['pid']: g for g in collector.top_processes(processes, processes, 1)['groups_memory']}
+        self.assertEqual(set(groups), {10, 40})
+        self.assertEqual(groups[10]['rss_bytes'], 40)
+        self.assertEqual(groups[10]['browser_instance_count'], 2)
+        self.assertEqual(groups[40]['group_kind'], 'browser')
+        del processes[10]
+        groups = collector.top_processes(processes, processes, 1)['groups_memory']
+        self.assertEqual(len(groups), 3)
+
+    def test_no_service_groups_only_related_equal_executables(self):
+        def proc(parent, start, exe):
+            return {'name': exe, 'executable': exe, 'ppid': parent, 'start': start,
+                    'ticks': 0, 'rss_bytes': 10}
+        processes = {10: proc(1, 10, 'postgres'), 11: proc(10, 11, 'postgres'),
+                     20: proc(1, 20, 'postgres'), 30: proc(10, 30, 'python')}
+        groups = {g['pid']: g for g in collector.top_processes(processes, processes, 1)['groups_memory']}
+        self.assertEqual(groups[10]['process_count'], 2)
+        self.assertEqual(set(groups), {10, 20, 30})
+        processes[10]['executable'] = None
+        groups = collector.top_processes(processes, processes, 1)['groups_memory']
+        self.assertEqual(len(groups), 4)
+
+    def test_complete_rankings_and_group_members_have_no_top_n_limit(self):
+        def proc(pid, service=None):
+            return {'name': 'worker', 'executable': 'worker', 'ppid': 1,
+                    'start': pid, 'ticks': 0, 'rss_bytes': pid, 'service': service}
+        processes = {pid: proc(pid, 'example.service') for pid in range(10, 135)}
+        processes.update({pid: proc(pid) for pid in range(200, 215)})
+        result = collector.top_processes(processes, processes, 1)
+        self.assertEqual(len(result['top_cpu']), 140)
+        self.assertEqual(len(result['top_memory']), 140)
+        self.assertEqual(len(result['groups_memory']), 16)
+        self.assertEqual(len(result['groups_cpu']), 16)
+        group = next(g for g in result['groups_memory'] if g['group_kind'] == 'service')
+        self.assertEqual(len(group['member_pids']), 125)
+        self.assertEqual(group['process_count'], 125)
+        self.assertEqual(group['rss_bytes'], sum(range(10, 135)))
+        self.assertEqual(set(group['member_pids']), set(range(10, 135)))
+        self.assertEqual(result['top_memory'][0]['pid'], 214)
+        self.assertEqual(result['top_memory'][-1]['pid'], 10)
 
     def test_process_names_with_parentheses(self):
         fields = ['S'] + ['0'] * 21

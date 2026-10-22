@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -x
+set -e
 
 export DEBIAN_FRONTEND=noninteractive
 
@@ -18,13 +18,7 @@ ARCH=$(dpkg --print-architecture)
 mkdir -p /var/www
 cd /var/www/ || exit
 
-# app
-sudo mkdir server-status-app
-sudo wget https://adam-zielonka.github.io/server-status/server-status-app.tar.gz
-sudo tar -zxvf server-status-app.tar.gz -C server-status-app
-sudo rm -fr server-status-app.tar.gz
-
-# api
+# The binary includes the production frontend and API.
 mkdir server-status-api
 cd server-status-api || exit
 sudo wget "https://adam-zielonka.github.io/server-status/bin/status-linux-$ARCH"
@@ -95,7 +89,7 @@ User=$USER
 Group=$USER
 Restart=always
 RestartSec=1
-ExecStart=/var/www/server-status-api/status-linux-$ARCH --config /var/www/server-status-api/config.jsonc
+ExecStart=/var/www/server-status-api/status-linux-$ARCH serve --config /var/www/server-status-api/config.jsonc
 
 [Install]
 WantedBy=multi-user.target

@@ -2,7 +2,7 @@
 """Produce allowlisted Linux telemetry; no HTTP listener or shell commands.
 
 Keep the real configuration and all generated files OUTSIDE the checkout.
-Only process comm/PID/resource counters are read, never cmdline or environ.
+Process metadata includes parent IDs, executable basenames and service names; never cmdline or environ.
 """
 import argparse
 import datetime as dt
@@ -123,14 +123,30 @@ def proc_stat(text):
     left, right = text.rsplit(')', 1)
     fields = right.split()
     return {'name': left.split('(', 1)[1][:80], 'ticks': int(fields[11]) + int(fields[12]),
-            'start': int(fields[19]), 'rss_bytes': max(0, int(fields[21])) * os.sysconf('SC_PAGE_SIZE')}
+            'ppid': int(fields[1]), 'start': int(fields[19]), 'rss_bytes': max(0, int(fields[21])) * os.sysconf('SC_PAGE_SIZE')}
 
 
 def read_processes():
     result = {}
     for path in Path('/proc').glob('[0-9]*/stat'):
         try:
-            result[int(path.parent.name)] = proc_stat(path.read_text())
+            row = proc_stat(path.read_text())
+            try:
+                row['executable'] = Path(os.readlink(path.parent / 'exe')).name.removesuffix(' (deleted)')[:80]
+            except OSError:
+                row['executable'] = None
+            try:
+                lines = (path.parent / 'cgroup').read_text().splitlines()
+                cgroup = next((line.split(':', 2)[2] for line in lines if line.startswith('0::')), '')
+                parts = cgroup.split('/')
+                index = next((i for i in range(len(parts) - 1, -1, -1) if parts[i].endswith('.service')), None)
+                row['service'] = parts[index][:120] if index is not None else None
+                # Identity stays internal: equal unit names in different user
+                # managers must not collapse into a single service group.
+                row['service_key'] = '/'.join(parts[:index + 1]) if index is not None else None
+            except OSError:
+                row['service'] = None
+            result[int(path.parent.name)] = row
         except (OSError, ValueError, IndexError):
             continue  # Processes may exit between directory listing and read.
     return result
@@ -145,8 +161,85 @@ def top_processes(first, second, elapsed):
         if old and old['start'] == p['start'] and elapsed > 0:
             percent = round(max(0, p['ticks'] - old['ticks']) / ticks / elapsed * 100, 1)
         rows.append({'pid': pid, 'name': p['name'], 'rss_bytes': p['rss_bytes'], 'cpu_percent': percent})
-    return {'top_cpu': sorted(rows, key=lambda r: r['cpu_percent'] or 0, reverse=True)[:10],
-            'top_memory': sorted(rows, key=lambda r: r['rss_bytes'], reverse=True)[:10],
+    # All processes in a service, including browsers, share one resource group.
+    browsers = {'chrome', 'chrome-headless-shell', 'chromium', 'chromium-browser', 'firefox', 'firefox-bin'}
+    def service_key(p):
+        return p.get('service_key') or p.get('service')
+
+    service_members = {}
+    for pid, p in second.items():
+        if service_key(p):
+            service_members.setdefault(service_key(p), set()).add(pid)
+    service_roots = {}
+    for key, members in service_members.items():
+        roots = [pid for pid in members if second[pid].get('ppid') not in members]
+        service_roots[key] = min(roots or members, key=lambda pid: (second[pid]['start'], pid))
+
+    def executable_root(pid):
+        root, seen = pid, {pid}
+        executable = second[pid].get('executable')
+        while executable:
+            parent = second[root].get('ppid')
+            ancestor = second.get(parent)
+            if (not ancestor or parent in seen or ancestor.get('executable') != executable
+                    or service_key(ancestor) != service_key(second[pid])
+                    or ancestor['start'] > second[root]['start']):
+                break
+            seen.add(parent)
+            root = parent
+        return root
+
+    groups = {}
+    group_browsers = {}
+    for row in rows:
+        pid = row['pid']
+        p = second[pid]
+        executable = p.get('executable')
+        is_browser = executable in browsers
+        key = service_key(p)
+        browser_root = executable_root(pid) if is_browser else None
+        kind = 'browser' if is_browser else 'process'
+        if key:
+            root = service_roots[key]
+            kind = 'service'
+        else:
+            root = executable_root(pid)
+            if is_browser:
+                parent = second[root].get('ppid')
+                owner = second.get(parent)
+                if (parent and parent > 1 and owner and owner.get('executable')
+                        and owner.get('executable') not in browsers
+                        and not service_key(owner) and owner['start'] <= second[root]['start']):
+                    root = executable_root(parent)
+                    kind = 'process'
+        name = p['service'] if kind == 'service' else second[root].get('executable') or second[root]['name']
+        parent = second.get(p.get('ppid'), {})
+        row.update(ppid=p.get('ppid'), parent_name=parent.get('executable') or parent.get('name'),
+                   service=p.get('service'), instance_pid=root, instance_name=name, group_kind=kind, browser_instance_pid=browser_root)
+        group_key = ('service', key) if kind == 'service' else ('instance', root)
+        group = groups.setdefault(group_key, {'pid': root, 'name': name, 'group_kind': kind,
+                                  'rss_bytes': 0, 'cpu_percent': 0, 'process_count': 0,
+                                  'member_pids': [], 'service': second[root].get('service'),
+                                  'ppid': second[root].get('ppid'),
+                                  'parent_name': None})
+        if browser_root is not None:
+            group_browsers.setdefault(group_key, set()).add(browser_root)
+        group['browser_instance_count'] = len(group_browsers.get(group_key, ()))
+        group_parent = second.get(group['ppid'], {})
+        group['parent_name'] = group_parent.get('executable') or group_parent.get('name')
+        group['rss_bytes'] += row['rss_bytes']
+        group['process_count'] += 1
+        group['member_pids'].append(pid)
+        if row['cpu_percent'] is None or group['cpu_percent'] is None:
+            group['cpu_percent'] = None
+        else:
+            group['cpu_percent'] = round(group['cpu_percent'] + row['cpu_percent'], 1)
+    def ranked(items, key):
+        return sorted(items, key=lambda r: (r[key] or 0, -r['pid']), reverse=True)
+    return {'top_cpu': ranked(rows, 'cpu_percent'),
+            'top_memory': ranked(rows, 'rss_bytes'),
+            'groups_cpu': ranked(groups.values(), 'cpu_percent'),
+            'groups_memory': ranked(groups.values(), 'rss_bytes'),
             'sample_seconds': round(elapsed, 2), 'cpu_basis': '100% equals one logical CPU'}
 
 

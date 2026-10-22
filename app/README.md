@@ -32,7 +32,13 @@ ssh -N -L 4000:127.0.0.1:4000 user@server.example.com
 pnpm build
 ```
 
-The output is `dist/`. Build-time options:
+The output is `dist/`. For the standalone Go executable, run `./build.sh` from
+the repository root after installing dependencies. It embeds the production
+frontend and serves it together with `/api/*`; Node.js is only needed to build.
+See the [CLI and build guide](../api/README.md). Frontend changes require rebuilding
+the executable. Static hosting and the separate public demo remain supported.
+
+Build-time options:
 
 | Variable           | Default | Purpose                                          |
 | ------------------ | ------- | ------------------------------------------------ |

@@ -35,10 +35,8 @@ func TestTelemetryRequiresAuthentication(t *testing.T) {
 	if err := config.Initialize(path); err != nil {
 		t.Fatal(err)
 	}
-	previous := http.DefaultServeMux
-	http.DefaultServeMux = http.NewServeMux()
-	t.Cleanup(func() { http.DefaultServeMux = previous })
-	HandleWithAuth("/api/telemetry", mods.Telemetry)
+	mux := http.NewServeMux()
+	handleWithAuth(mux, "/api/telemetry", mods.Telemetry)
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{"name": "example-user"}).SignedString(config.GetAuthSecret())
 	if err != nil {
 		t.Fatal(err)
@@ -57,7 +55,7 @@ func TestTelemetryRequiresAuthentication(t *testing.T) {
 			r.Header.Set("Authorization", "Bearer "+tc.token)
 		}
 		w := httptest.NewRecorder()
-		http.DefaultServeMux.ServeHTTP(w, r)
+		mux.ServeHTTP(w, r)
 		if w.Code != tc.status {
 			t.Fatalf("%s token present=%t: got %d, want %d", tc.method, tc.token != "", w.Code, tc.status)
 		}

@@ -3,7 +3,9 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"os"
+	"strconv"
 )
 
 type ServerConfig struct {
@@ -38,6 +40,16 @@ type Service struct {
 var config *ServerConfig
 
 func Initialize(path string) error {
+	loaded, err := Load(path)
+	if err != nil {
+		return err
+	}
+	config = loaded
+	return nil
+}
+
+// Load validates configuration without changing the running server's settings.
+func Load(path string) (*ServerConfig, error) {
 	var configPath string
 
 	if path == "" {
@@ -47,41 +59,38 @@ func Initialize(path string) error {
 		} else if _, err := os.Stat("config.json"); err == nil {
 			configPath = "config.json"
 		} else {
-			return fmt.Errorf("config file not found: checked config.jsonc and config.json")
+			return nil, fmt.Errorf("config file not found: checked config.jsonc and config.json in the working directory")
 		}
 	} else {
 		configPath = path
 	}
 
-	return loadServerConfig(configPath)
-}
-
-func loadServerConfig(path string) error {
-	if config != nil {
-		return nil
-	}
-
-	b, err := os.ReadFile(path)
+	b, err := os.ReadFile(configPath)
 	if err != nil {
-		return fmt.Errorf("failed to read config file: %w", err)
+		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
 
-	if err := json.Unmarshal(b, &config); err != nil {
-		return fmt.Errorf("failed to parse config file: %w", err)
+	var loaded *ServerConfig
+	if err := json.Unmarshal(b, &loaded); err != nil {
+		// A type error can contain a supplied value. Do not print config contents.
+		return nil, fmt.Errorf("failed to parse config file: expected a JSON object with valid field types")
+	}
+	if loaded == nil {
+		return nil, fmt.Errorf("config must be a JSON object")
 	}
 
 	// Validate config
-	if config.Listen.Port < 1 || config.Listen.Port > 65535 {
-		return fmt.Errorf("invalid port number: %d", config.Listen.Port)
+	if loaded.Listen.Port < 1 || loaded.Listen.Port > 65535 {
+		return nil, fmt.Errorf("listen port must be between 1 and 65535")
 	}
-	if config.Auth.Secret == "" {
-		return fmt.Errorf("auth secret is required")
+	if loaded.Auth.Secret == "" {
+		return nil, fmt.Errorf("auth secret is required")
 	}
-	if len(config.Auth.Users) == 0 {
-		return fmt.Errorf("at least one user is required")
+	if len(loaded.Auth.Users) == 0 {
+		return nil, fmt.Errorf("at least one user is required")
 	}
 
-	return nil
+	return loaded, nil
 }
 
 func FindUser(name string) (ServerUser, error) {
@@ -119,7 +128,7 @@ func GetListenAddress() string {
 	if config == nil {
 		return "localhost:4000"
 	}
-	return fmt.Sprintf("%s:%d", config.Listen.Host, config.Listen.Port)
+	return net.JoinHostPort(config.Listen.Host, strconv.Itoa(config.Listen.Port))
 }
 
 func GetExternalStatusCodeURL() string {

@@ -6,7 +6,7 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 User=root
-ExecStart=/usr/bin/python3 /opt/server-status/collect.py --config /etc/server-status/collector.json
+ExecStart=/opt/server-status/server-status collect --config /etc/server-status/collector.json
 StateDirectory=server-status-collector
 StateDirectoryMode=0700
 ReadWritePaths=/var/lib/server-status

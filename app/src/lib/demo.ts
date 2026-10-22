@@ -1,4 +1,4 @@
-import type { Endpoint, EndpointMap, TelemetrySnapshot } from '@/types'
+import type { Endpoint, EndpointMap, ProcessInfo, TelemetrySnapshot } from '@/types'
 
 // Every value in this module is synthetic. Never import production snapshots.
 export function demoTelemetry(now = Date.now()): TelemetrySnapshot {
@@ -18,11 +18,87 @@ export function demoTelemetry(now = Date.now()): TelemetrySnapshot {
       },
     }
   })
-  const processes = [
+  const processes: ProcessInfo[] = [
+    {
+      pid: 100,
+      name: 'node',
+      instance_pid: 100,
+      service: 'example-browser.service',
+      cpu_percent: 0,
+      rss_bytes: 20 * 1024 ** 2,
+    },
+    {
+      pid: 200,
+      name: 'chrome',
+      instance_pid: 100,
+      service: 'example-browser.service',
+      browser_instance_pid: 200,
+      cpu_percent: 1,
+      rss_bytes: 40 * 1024 ** 2,
+    },
+    {
+      pid: 300,
+      name: 'chrome',
+      instance_pid: 100,
+      service: 'example-browser.service',
+      browser_instance_pid: 300,
+      cpu_percent: 1,
+      rss_bytes: 40 * 1024 ** 2,
+    },
     { pid: 120, name: 'example-worker', cpu_percent: 18.4, rss_bytes: 900 * 1024 ** 2 },
     { pid: 121, name: 'example-web', cpu_percent: 2.1, rss_bytes: 150 * 1024 ** 2 },
     { pid: 122, name: 'example-db', cpu_percent: 1.2, rss_bytes: 210 * 1024 ** 2 },
     { pid: 123, name: 'example-cache', cpu_percent: 0.3, rss_bytes: 85 * 1024 ** 2 },
+    {
+      pid: 201,
+      name: 'chrome-renderer',
+      cpu_percent: 4,
+      rss_bytes: 100 * 1024 ** 2,
+      instance_pid: 100,
+      instance_name: 'example-browser.service',
+      group_kind: 'service',
+      browser_instance_pid: 200,
+      ppid: 200,
+      parent_name: 'chrome',
+      service: 'example-browser.service',
+    },
+    {
+      pid: 301,
+      name: 'chrome-renderer',
+      cpu_percent: 1,
+      rss_bytes: 80 * 1024 ** 2,
+      instance_pid: 100,
+      instance_name: 'example-browser.service',
+      group_kind: 'service',
+      browser_instance_pid: 300,
+      ppid: 300,
+      parent_name: 'chrome',
+      service: 'example-browser.service',
+    },
+  ]
+  const groups: ProcessInfo[] = [
+    ...processes
+      .filter((p) => !p.instance_pid)
+      .map((p) => ({
+        ...p,
+        process_count: 1,
+        member_pids: [p.pid],
+        service: `${p.name}.service`,
+        group_kind: 'service' as const,
+      })),
+    {
+      pid: 100,
+      name: 'example-browser.service',
+      group_kind: 'service',
+      cpu_percent: 7,
+      rss_bytes: 280 * 1024 ** 2,
+      process_count: 5,
+      member_pids: [100, 200, 201, 300, 301],
+      browser_instance_count: 2,
+      service: 'example-browser.service',
+      ppid: 1,
+      parent_name: 'systemd',
+    },
   ]
   return {
     schema_version: 1,
@@ -50,6 +126,8 @@ export function demoTelemetry(now = Date.now()): TelemetrySnapshot {
     processes: {
       cpu_basis: '100% equals one logical CPU',
       sample_seconds: 1,
+      groups_cpu: [...groups].sort((a, b) => (b.cpu_percent || 0) - (a.cpu_percent || 0)),
+      groups_memory: [...groups].sort((a, b) => b.rss_bytes - a.rss_bytes),
       top_cpu: processes,
       top_memory: [...processes].sort((a, b) => b.rss_bytes - a.rss_bytes),
     },

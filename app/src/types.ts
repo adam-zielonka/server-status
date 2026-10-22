@@ -57,12 +57,24 @@ export interface ServiceHealth {
   error?: string
 }
 export interface ProcessInfo {
+  group_kind?: 'service' | 'browser' | 'process'
+  ppid?: number | null
+  parent_name?: string | null
+  service?: string | null
+  instance_pid?: number
+  instance_name?: string
+  browser_instance_pid?: number | null
+  browser_instance_count?: number
+  process_count?: number
+  member_pids?: number[]
   pid: number
   name: string
   rss_bytes: number
   cpu_percent: number | null
 }
 export interface Processes {
+  groups_cpu?: ProcessInfo[]
+  groups_memory?: ProcessInfo[]
   top_cpu: ProcessInfo[]
   top_memory: ProcessInfo[]
   sample_seconds: number

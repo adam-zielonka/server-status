@@ -13,3 +13,5 @@ __pycache__/
 *.pyc
 coverage/
 .coverage
+/build/
+/api/web/dist/

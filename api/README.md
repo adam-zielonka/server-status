@@ -2,21 +2,47 @@
 
 Go-based HTTP server for retrieving server status information through RESTful API endpoints.
 
-## Build
+## Build the standalone application
 
-Build the application:
+From the repository root, install frontend dependencies and build:
+
 ```bash
-$ go build -o build/status
+cd app && pnpm install --frozen-lockfile && cd ..
+./build.sh
 ```
 
-Build for Linux (cross-compilation):
+The result is `build/server-status`: a Go executable with the production React
+frontend embedded using `go:embed`. Go, Node.js and pnpm are build dependencies;
+none is required to run the resulting executable. The optional Linux collector
+is included as the `collect` subcommand and runs as a separate process.
+Configuration and collected data remain external.
+
+`./build.sh` forces real API mode with the same-origin `/api/` base URL, even if
+`VITE_FAKE_API` or `VITE_API_URL` is set in the build environment. Other frontend
+build options, such as `VITE_SHOW_VHOSTS=false`, are supported. Builds use the
+repository's `VERSION` file by default; set the `VERSION` environment variable to
+override it. A frontend change requires rebuilding the executable.
+
+Cross-compile, for example:
+
 ```bash
-$ env GOOS=linux GOARCH=amd64 go build -o build/status
+GOOS=linux GOARCH=arm64 VERSION=1.0.0 ./build.sh
 ```
+
+To prepare embedded assets before Go development or tests, run `./build.sh frontend`.
+Then use `go build -o build/status .` or `go test ./...` from `api/`.
+Compile the complete package (`.`), since the HTTP router is in a separate file.
+The generated `api/web/dist/` directory is ignored by Git; a fresh checkout needs
+this frontend build before Go compilation. Optional Make targets provide the same
+workflow: `make install`, `make build`, and `make test`.
+CI additionally uses `go test -race ./...`, which needs cgo and a C compiler.
 
 ## Configuration
 
-Create a configuration file in the same directory as the executable. By default, the server looks for `config.jsonc` first, then `config.json`. You can also specify a custom config file path using the `-config` flag.
+By default, the server looks for `config.jsonc` first, then `config.json` in the
+**current working directory**. Both names currently expect JSON syntax. Use
+`--config` for an explicit path, and keep production configuration outside the
+checkout. The executable never embeds configuration or telemetry.
 
 Example `config.jsonc`:
 
@@ -56,26 +82,48 @@ Example `config.jsonc`:
 }
 ```
 
-## Run
+## Run and CLI
 
-Run with default configuration file (config.jsonc or config.json):
 ```bash
-$ ./build/status
+./build/server-status serve --config /etc/server-status/config.json
+./build/server-status serve --config /etc/server-status/config.json --listen 127.0.0.1:8080
+./build/server-status config check --config /etc/server-status/config.json
+./build/server-status config check --collector --config /etc/server-status/collector.json
+./build/server-status collect --config /etc/server-status/collector.json
+./build/server-status version
+./build/server-status --help
+./build/server-status serve --help
 ```
 
-Run with a custom configuration file:
-```bash
-$ ./build/status -config /path/to/myconfig.json
-```
+`serve` exposes the embedded dashboard at `/` and the existing authenticated API
+at `/api/*` on the same listener. No static directory, Node server, or second
+frontend port is needed. Configure HTTPS or your existing reverse proxy to forward
+**all paths** to this listener. Keep the API's configured loopback bind when using
+Tailscale Serve or another local proxy. Authentication requirements are unchanged.
 
-The server will start and display the listening address:
-```
-http://localhost:4000/
-```
+`--listen` overrides the configured bind address; bracket IPv6 addresses, for
+example `[::1]:4000`. `--api-only` disables static serving for Vite development
+or deployments that intentionally keep separate frontend hosting.
 
-### Command-line Options
+`config check` validates API configuration by default; add `--collector` to
+validate collector configuration with an explicit `--config` path. Neither opens
+a listener, starts collection, prints credentials, or checks external services
+and telemetry file availability.
+Validation failures and unknown commands exit with a nonzero status. `version`
+and help do not require a configuration file. SIGINT/SIGTERM stop the HTTP server
+with up to ten seconds to complete active requests.
 
-- `-config` - Path to configuration file (default: checks config.jsonc, then config.json)
+For compatibility, running without a subcommand starts `serve`, and both
+`-config` and `--config` are supported. Existing systemd `ExecStart` lines continue
+to work; new units can use the explicit `serve` subcommand.
+
+`collect` takes one Linux telemetry sample without opening an HTTP listener.
+Run it from the existing systemd timer with its own permissions. The same Go
+executable implements both roles; the HTTP service remains unprivileged and
+never invokes collection. No Python interpreter is needed. Existing collector
+configuration, snapshot schema, history and locking are compatible. Optional
+integrations still use system tools such as `systemctl`, `du`, `tailscale`, `gh`
+and `psql`; see the [collector guide](../collector/README.md).
 
 ## API Endpoints
 
@@ -128,29 +176,17 @@ All endpoints except `/api/auth` require authentication via JWT token.
 error without exposing filesystem paths. See the [collector guide](../collector/README.md)
 for setup, data semantics, privacy boundaries, and the versioned snapshot format.
 
-## Project Structure
+## Project structure
 
-```
-src/
-├── status.go          # Main entry point, HTTP handlers
-├── config.jsonc       # Configuration file
-├── go.mod            # Go module definition
-├── auth/             # Authentication module
-│   └── auth.go       # JWT authentication logic
-├── config/           # Configuration module
-│   └── config.go     # Configuration loader and types
-├── mods/             # Information modules
-│   ├── fs.go         # File system information
-│   ├── loadavg.go    # Load average information
-│   ├── memory.go     # Memory information
-│   ├── net.go        # Network information
-│   ├── services.go   # Services status
-│   ├── system.go     # System information
-│   └── vhosts.go     # Virtual hosts information
-└── utils/            # Utility functions
-    ├── types.go      # Common types
-    └── utils.go      # Helper functions
-```
+- `status.go`: CLI, configuration flags, listener and graceful shutdown.
+- `server.go`: API routes and optional embedded dashboard handler.
+- `web/web.go`: embedded frontend and static-file serving.
+- `web/dist/`: generated production build, not tracked in Git.
+- `collector/`: Linux collection and optional integrations, invoked only by CLI.
+- `auth/`: JWT authentication.
+- `config/`: configuration loading and standalone validation.
+- `mods/`: system metrics and optional telemetry snapshot reader.
+- `utils/`: shared response types and helpers.
 
 ## Authentication
 

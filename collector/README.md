@@ -4,10 +4,33 @@ The Linux collector adds systemd health, process resource usage, container/cgrou
 allocation, Tailscale status, persistent resource history, directory growth, and
 scheduled task/backup results. Code, UI and examples use English.
 
-The collector is separate from the HTTP API. It runs read-only commands on a
-timer and atomically writes an allowlisted snapshot. The API remains an
+The Go collector runs as `server-status collect --config /path/to/collector.json`
+from the same executable that serves the dashboard and API. It is a separate
+process from the HTTP API. It runs read-only commands on a timer and atomically writes an allowlisted snapshot. The API remains an
 unprivileged process without command execution or service-control endpoints.
 `/api/telemetry` requires JWT authentication, like the existing metrics.
+
+## Migrating from Python
+
+Existing JSON configuration, version-1 snapshots, state/history and the
+`state_file + ".lock"` advisory lock remain compatible. Stop the timer and let an
+active sample finish before replacing the executable or unit. Change the
+collector unit to:
+
+```ini
+ExecStart=/opt/server-status/server-status collect --config /etc/server-status/collector.json
+```
+
+Run `systemctl daemon-reload`, take one sample with
+`systemctl start server-status-collector.service`, then enable the timer again.
+Keep the previous Python script/unit for rollback; it can read the same state.
+The legacy `collect.py` and its tests remain in the source tree as a migration
+reference, and are not invoked or embedded by the executable.
+
+Serve the embedded UI by forwarding all paths of your HTTPS reverse proxy to the
+Go listener. A separate static directory is optional. On Tailscale Serve, replace
+only this application's root mapping with the Go listener and remove its separate
+`/api` mapping; leave other ports and applications intact.
 
 ## Privacy boundaries
 
@@ -25,14 +48,14 @@ application config, frontend build variables or service unit.
 
 Snapshots contain operational information: store them privately and expose the
 API only behind authentication on the intended network. For Tailscale-only
-access, Serve can publish the built frontend directory and proxy `/api` to a
-loopback API. Keep Funnel disabled. Never publish the snapshot directory or its
-parents as static files.
+access, Serve can proxy all paths to the loopback Go listener, which serves the
+embedded frontend and API. Keep Funnel disabled. Never publish the snapshot
+directory or its parents as static files.
 
 ## Installation
 
-Requires Linux, cgroup v2, Python 3.10+, systemd and GNU `du`. Tailscale and `gh`
-are optional, depending on configured checks. The provided collector unit runs
+Requires Linux, cgroup v2, systemd and GNU `du`. Python is not required.
+Tailscale and `gh` are optional, depending on configured checks. The provided collector unit runs
 as root to read process counters and directory metadata. It has no listener,
 uses no shell, and has a read-only filesystem with limited capabilities. Only
 root may edit its configuration or installed code.
@@ -42,7 +65,11 @@ root may edit its configuration or installed code.
    `/etc/server-status/collector.json`, mode 0600, and configure the checks.
 3. Create `/var/lib/server-status`, owned by `root:server-status`, mode **2750**.
    The setgid bit makes atomic snapshots inherit the API's group.
-4. Install `collect.py` as `/opt/server-status/collect.py`, owned by root.
+4. Build the standalone executable with `./build.sh` from the repository root.
+   Install `build/server-status` as `/opt/server-status/server-status`, owned by
+   root with mode 0755. The same executable serves the frontend and API. Validate
+   configuration before enabling collection:
+   `/opt/server-status/server-status config check --collector --config /etc/server-status/collector.json`.
 5. Add `"telemetry_file": "/var/lib/server-status/telemetry.json"` to the
    private API configuration and restart the API.
 6. Install the supplied `.service` and `.timer` into `/etc/systemd/system/`, run
@@ -71,6 +98,24 @@ including weekends. Unreachable or missing sources are explicitly unknown.
   `NRestarts`. Last observed errors persist, without historical journal scraping.
 - Process CPU uses a roughly one-second sample: 100% means one logical CPU.
   Reused PIDs never inherit the previous process's counter.
+- Processes include parent PID/name, executable basename (no full path), and
+  the innermost systemd service name from cgroup metadata when available.
+  All members of the same systemd service cgroup are grouped together,
+  including browser instances and workers running different executables.
+  Service identity includes the cgroup hierarchy internally, so equal unit
+  names in separate user managers stay distinct. Each process is counted once.
+  Without a service, connected same-executable ancestors form an instance;
+  browsers join the group of their observed non-browser launching parent
+  (excluding PID 1), when it has no conflicting service metadata. Otherwise
+  browser instances stay standalone. Browser instance counts remain visible
+  in groups, and individual browser processes retain their browser main PID.
+  The group PID is the oldest observed root when a service has several roots.
+  All observed processes and groups are included in the sorted rankings, with
+  no top-N limit. The UI expands a group into its complete process list.
+  Summed RSS can count shared pages repeatedly; it is not unique physical memory.
+  A group CPU estimate is unavailable if any member lacks a valid CPU sample.
+  Exited/missing ancestors cannot be reconstructed. PID lists include every
+  observed member. Legacy top_cpu/top_memory field names now contain full rankings.
 - Overall CPU uses the visible cgroup CPU counter normalized to cpuset/quota.
   Memory working set is `memory.current - inactive_file`; its percentage uses
   a finite cgroup limit or visible `/proc/meminfo` memory as a fallback.
@@ -94,7 +139,8 @@ including weekends. Unreachable or missing sources are explicitly unknown.
 ## Validation and disabling
 
 ```bash
-python3 -m unittest discover -s collector -p 'test_*.py'
+./build.sh frontend
+(cd api && go test ./...)
 systemd-analyze verify collector/server-status-collector.service collector/server-status-collector.timer
 systemctl status server-status-collector.timer
 journalctl -u server-status-collector.service -n 20 --no-pager
