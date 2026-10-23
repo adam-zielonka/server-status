@@ -1,3 +1,4 @@
+import { TelemetryCard } from '@/components/telemetry-card'
 import { Globe, ShieldCheck } from 'lucide-react'
 import { DataCard, EmptyState, Facts } from '@/components/data-card'
 import { StatusBadge } from '@/components/status-badge'
@@ -15,10 +16,21 @@ import { formatBytes, formatDate } from '@/lib/format'
 import { snapshotIsStale } from '@/lib/monitoring'
 import type { TelemetrySnapshot } from '@/types'
 
-export function NetworkPage({ snapshot }: { snapshot?: TelemetrySnapshot }) {
+function HttpStatus({ code }: { code: string }) {
+  const value = Number(code)
+  return (
+    <StatusBadge
+      state={value >= 200 && value < 400 ? 'success' : value >= 400 ? 'failure' : 'unknown'}
+      label={value === 0 ? 'Not reachable' : code}
+    />
+  )
+}
+
+export function NetworkPage({ snapshot, now }: { snapshot?: TelemetrySnapshot; now: number }) {
   const net = useApi('net')
   const vhosts = useApi('vhosts', showVirtualHosts)
   const ts = snapshot?.tailscale
+  const stale = snapshotIsStale(snapshot, now)
   return (
     <div className="space-y-5">
       <DataCard
@@ -72,7 +84,7 @@ export function NetworkPage({ snapshot }: { snapshot?: TelemetrySnapshot }) {
           )
         )}
       </DataCard>
-      <DataCard
+      <TelemetryCard
         title="Cloudflare Tunnels"
         description="Local connector readiness and active edge connections. This does not verify application availability. Counters reset when the connector restarts."
         action={<ShieldCheck className="size-4 text-muted-foreground" />}
@@ -109,10 +121,7 @@ export function NetworkPage({ snapshot }: { snapshot?: TelemetrySnapshot }) {
                     )}
                   </TableCell>
                   <TableCell>
-                    <StatusBadge
-                      state={snapshotIsStale(snapshot) ? 'unknown' : tunnel.status}
-                      label={snapshotIsStale(snapshot) ? 'Stale' : undefined}
-                    />
+                    <StatusBadge state={tunnel.error ? 'unknown' : tunnel.status} stale={stale} />
                   </TableCell>
                   <TableCell className="tabular-nums">
                     {tunnel.connections == null
@@ -139,9 +148,9 @@ export function NetworkPage({ snapshot }: { snapshot?: TelemetrySnapshot }) {
             description="Configured local connectors will appear here when tunnel monitoring is enabled."
           />
         )}
-      </DataCard>
+      </TelemetryCard>
       <div className="grid gap-5 xl:grid-cols-2">
-        <DataCard
+        <TelemetryCard
           title="Tailscale connection"
           description="Node status and key lifetime. Peer identities and key material are excluded."
           action={<ShieldCheck className="size-4 text-muted-foreground" />}
@@ -153,6 +162,7 @@ export function NetworkPage({ snapshot }: { snapshot?: TelemetrySnapshot }) {
                   [
                     'Connection',
                     <StatusBadge
+                      stale={stale}
                       state={
                         !ts.error && ts.state === 'Running' && ts.online
                           ? 'connected'
@@ -190,8 +200,8 @@ export function NetworkPage({ snapshot }: { snapshot?: TelemetrySnapshot }) {
               description="Enable the Tailscale source in the optional collector configuration."
             />
           )}
-        </DataCard>
-        <DataCard
+        </TelemetryCard>
+        <TelemetryCard
           title="Shared routes"
           description="Services published through Tailscale Serve, including their exposure."
         >
@@ -226,12 +236,12 @@ export function NetworkPage({ snapshot }: { snapshot?: TelemetrySnapshot }) {
               description="Configured Tailscale Serve routes will appear here."
             />
           )}
-        </DataCard>
+        </TelemetryCard>
       </div>
       {showVirtualHosts && (
         <DataCard
           title="Virtual hosts"
-          description="Caddy virtual host response codes, when Caddy is configured."
+          description="Caddy listener responses before redirects. Local checks connect directly to loopback; external checks use the configured checker."
           loading={vhosts.isPending}
           error={vhosts.error}
           retry={() => void vhosts.refetch()}
@@ -252,16 +262,15 @@ export function NetworkPage({ snapshot }: { snapshot?: TelemetrySnapshot }) {
                     <TableCell className="font-medium">{row.name}</TableCell>
                     <TableCell className="font-mono">{row.port}</TableCell>
                     <TableCell>
-                      <StatusBadge
-                        state={
-                          Number(row.statusCode) >= 200 && Number(row.statusCode) < 400
-                            ? 'success'
-                            : 'unknown'
-                        }
-                        label={row.statusCode}
-                      />
+                      <HttpStatus code={row.statusCode} />
                     </TableCell>
-                    <TableCell>{row.externalStatusCode || 'Not configured'}</TableCell>
+                    <TableCell>
+                      {row.externalStatusCode && row.externalStatusCode !== 'Need setup' ? (
+                        <HttpStatus code={row.externalStatusCode} />
+                      ) : (
+                        'Not configured'
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

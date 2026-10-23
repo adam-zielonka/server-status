@@ -1,3 +1,4 @@
+import { TelemetryCard } from '@/components/telemetry-card'
 import { useState } from 'react'
 import { HardDrive, FolderOpen } from 'lucide-react'
 import { DataCard, EmptyState } from '@/components/data-card'
@@ -14,8 +15,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { useApi } from '@/hooks/use-api'
-import { formatBytes, formatDate, formatPercent } from '@/lib/format'
-import { directoryGrowth } from '@/lib/monitoring'
+import { availableDiskSpace, formatBytes, formatDate, formatPercent } from '@/lib/format'
+import { directoryGrowth, snapshotIsStale } from '@/lib/monitoring'
 import type { TelemetrySnapshot } from '@/types'
 
 const databaseSize = (bytes?: number) =>
@@ -26,7 +27,10 @@ export function StoragePage({ snapshot, now }: { snapshot?: TelemetrySnapshot; n
   const [hours, setHours] = useState('24')
   const root = fs.data?.find((row) => row.mount === '/')
   const history =
-    snapshot?.history.filter((row) => Date.parse(row.at) >= now - Number(hours) * 3600000) || []
+    snapshot?.history.filter(
+      (row) => Date.parse(row.at) >= now - Number(hours) * 3600000 && Date.parse(row.at) <= now,
+    ) || []
+  const filesystems = fs.data?.filter((row) => !row.mount.startsWith('/snap/'))
   return (
     <div className="space-y-5">
       <div className="grid gap-4 sm:grid-cols-3">
@@ -49,7 +53,7 @@ export function StoragePage({ snapshot, now }: { snapshot?: TelemetrySnapshot; n
         />
         <MetricCard
           title="Available space"
-          value={formatBytes(root ? root.size - root.used : undefined)}
+          value={formatBytes(availableDiskSpace(root))}
           detail="Root filesystem"
           icon={FolderOpen}
           loading={fs.isPending}
@@ -62,7 +66,7 @@ export function StoragePage({ snapshot, now }: { snapshot?: TelemetrySnapshot; n
         error={fs.error}
         retry={() => void fs.refetch()}
       >
-        {fs.data?.length ? (
+        {filesystems?.length ? (
           <Table>
             <TableHeader>
               <TableRow>
@@ -75,29 +79,27 @@ export function StoragePage({ snapshot, now }: { snapshot?: TelemetrySnapshot; n
               </TableRow>
             </TableHeader>
             <TableBody>
-              {fs.data
-                .filter((row) => !row.mount.startsWith('/snap/'))
-                .map((row) => (
-                  <TableRow key={`${row.fs}-${row.mount}`}>
-                    <TableCell className="font-mono font-medium">{row.mount}</TableCell>
-                    <TableCell className="text-muted-foreground">{row.type}</TableCell>
-                    <TableCell>{formatBytes(row.size)}</TableCell>
-                    <TableCell>{formatBytes(row.used)}</TableCell>
-                    <TableCell>{formatBytes(row.size - row.used)}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Progress
-                          value={row.use}
-                          aria-label={`${row.mount} disk utilization`}
-                          className="h-1.5"
-                        />
-                        <span className="text-[10px] tabular-nums text-muted-foreground">
-                          {formatPercent(row.use)}
-                        </span>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+              {filesystems.map((row) => (
+                <TableRow key={`${row.fs}-${row.mount}`}>
+                  <TableCell className="font-mono font-medium">{row.mount}</TableCell>
+                  <TableCell className="text-muted-foreground">{row.type}</TableCell>
+                  <TableCell>{formatBytes(row.size)}</TableCell>
+                  <TableCell>{formatBytes(row.used)}</TableCell>
+                  <TableCell>{formatBytes(availableDiskSpace(row))}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Progress
+                        value={row.use}
+                        aria-label={`${row.mount} disk utilization`}
+                        className="h-1.5"
+                      />
+                      <span className="text-[10px] tabular-nums text-muted-foreground">
+                        {formatPercent(row.use)}
+                      </span>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         ) : (
@@ -110,7 +112,7 @@ export function StoragePage({ snapshot, now }: { snapshot?: TelemetrySnapshot; n
         )}
       </DataCard>
       {!!snapshot?.databases?.length && (
-        <DataCard
+        <TelemetryCard
           title="Databases"
           description="Shared database capacity across all projects. Alerts start at 80% usage; critical at 95%. Limits are configured by the operator; 1 MB = 1,000,000 bytes."
         >
@@ -135,7 +137,10 @@ export function StoragePage({ snapshot, now }: { snapshot?: TelemetrySnapshot; n
                     {row.error && <span className="block text-xs text-amber-700">{row.error}</span>}
                   </TableCell>
                   <TableCell>
-                    <StatusBadge state={row.status} />
+                    <StatusBadge
+                      state={row.error ? 'unknown' : row.status}
+                      stale={snapshotIsStale(snapshot, now)}
+                    />
                   </TableCell>
                   <TableCell>
                     {databaseSize(row.bytes)} / {databaseSize(row.limit_bytes)}
@@ -159,9 +164,9 @@ export function StoragePage({ snapshot, now }: { snapshot?: TelemetrySnapshot; n
               ))}
             </TableBody>
           </Table>
-        </DataCard>
+        </TelemetryCard>
       )}
-      <DataCard
+      <TelemetryCard
         title="Directory growth"
         description="Allocated bytes, scanned periodically without reading file contents. Growth compares recorded observations."
         action={
@@ -223,7 +228,7 @@ export function StoragePage({ snapshot, now }: { snapshot?: TelemetrySnapshot; n
             description="Add directory labels and paths to the private collector configuration to track disk growth."
           />
         )}
-      </DataCard>
+      </TelemetryCard>
     </div>
   )
 }

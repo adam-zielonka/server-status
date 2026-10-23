@@ -31,8 +31,8 @@ func newHandler(apiOnly bool) (http.Handler, error) {
 	handleWithAuth(mux, "/api/load-average", mods.LoadAvg)
 	handleWithAuth(mux, "/api/file-system", mods.FileSystem)
 	handleWithAuth(mux, "/api/net", mods.Net)
-	handleWithAuth(mux, "/api/vhosts", mods.VHosts)
-	handleWithAuth(mux, "/api/services", mods.Services)
+	mux.HandleFunc("/api/vhosts", GetOnly(auth.WrapperContext(mods.VHosts)))
+	mux.HandleFunc("/api/services", GetOnly(auth.WrapperContext(mods.Services)))
 	handleWithAuth(mux, "/api/telemetry", mods.Telemetry)
 	// Unknown API paths must never return the dashboard HTML.
 	mux.HandleFunc("/api", http.NotFound)

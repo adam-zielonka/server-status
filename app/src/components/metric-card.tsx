@@ -22,8 +22,12 @@ export function MetricCard({
   className?: string
 }) {
   return (
-    <Card className={cn('gap-0 border-border/80 py-0 shadow-xs', className)}>
-      <CardContent className="p-5">
+    <Card
+      role="group"
+      aria-label={title}
+      className={cn('gap-0 border-border/80 py-0 shadow-xs', className)}
+    >
+      <CardContent className="p-4 sm:p-5">
         <div className="mb-4 flex items-center justify-between gap-2">
           <span className="text-xs font-medium text-muted-foreground">{title}</span>
           <Icon className="size-4 text-muted-foreground/70" />
@@ -31,14 +35,19 @@ export function MetricCard({
         {loading ? (
           <Skeleton className="mb-2 h-8 w-24" />
         ) : (
-          <p className="truncate text-[28px] font-semibold leading-none tracking-tight tabular-nums">
+          <p
+            title={value}
+            className="truncate text-2xl sm:text-[28px] font-semibold leading-none tracking-tight tabular-nums"
+          >
             {value}
           </p>
         )}
-        <p className="mt-2 truncate text-[11px] text-muted-foreground">{detail}</p>
+        <p title={detail} className="mt-2 truncate text-[11px] text-muted-foreground">
+          {detail}
+        </p>
         {progress != null && (
           <Progress
-            aria-label={`${title} utilization`}
+            aria-label={title}
             value={Math.min(100, Math.max(0, progress))}
             className="mt-4 h-1"
           />

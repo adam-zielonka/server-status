@@ -1,5 +1,18 @@
 # Changelog
 
+## 4.1.0 — 2026-10-23
+
+- Prioritize monitoring issues and link them to diagnostic views; add service
+  and task health filters, complete-list search and process pagination.
+- Restore browser navigation and keyboard focus, improve mobile layouts and
+  load the dashboard after authentication.
+- Distinguish stale samples, source errors and disabled monitoring; validate
+  API payloads, preserve request timeouts and provide a reload recovery view.
+- Correct available disk space and align collector utilization with the API.
+- Bound and cancel port/virtual-host checks; probe Caddy locally with the
+  correct listener, Host and SNI, and validate external TLS and response bodies.
+- Read interface addresses once and fix authentication limiting by peer IP.
+
 ## 4.0.1 — 2026-10-22
 
 - Remove the obsolete Python collector, startup script and legacy packaging.

@@ -1,6 +1,7 @@
 package mods
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/shirou/gopsutil/v4/cpu"
@@ -40,6 +41,9 @@ func System() (FullSystemInfo, error) {
 	cpuInfo, err := cpu.Info()
 	if err != nil {
 		return FullSystemInfo{}, err
+	}
+	if len(cpuInfo) == 0 {
+		return FullSystemInfo{}, fmt.Errorf("CPU information is unavailable")
 	}
 
 	return FullSystemInfo{

@@ -36,9 +36,63 @@ describe('typed API client', () => {
       expect.objectContaining({
         headers: { Authorization: 'Bearer test-token', Accept: 'application/json' },
         cache: 'no-store',
-        signal: controller.signal,
+        signal: expect.any(AbortSignal),
       }),
     )
+    const signal = fetch.mock.calls[0][1].signal as AbortSignal
+    controller.abort()
+    expect(signal.aborted).toBe(true)
+  })
+  it('keeps a timeout when the query supplies its own cancellation signal', async () => {
+    const timeout = new AbortController()
+    const spy = vi.spyOn(AbortSignal, 'timeout').mockReturnValue(timeout.signal)
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        (_url, { signal }: RequestInit) =>
+          new Promise((_resolve, reject) => {
+            signal!.addEventListener('abort', () => reject(signal!.reason), { once: true })
+          }),
+      ),
+    )
+    try {
+      const request = expect(
+        fetchEndpoint('ok', 'test', new AbortController().signal),
+      ).rejects.toThrow('Could not reach the server')
+      timeout.abort(new DOMException('Timed out', 'TimeoutError'))
+      await request
+    } finally {
+      spy.mockRestore()
+    }
+  })
+  it('rejects malformed basic metrics before rendering them', async () => {
+    for (const endpoint of [
+      'system',
+      'memory',
+      'load-average',
+      'net',
+      'services',
+      'vhosts',
+      'file-system',
+    ] as const) {
+      mockResponse({ data: { unexpected: true } })
+      await expect(fetchEndpoint(endpoint, 'test')).rejects.toThrow('invalid monitoring data')
+    }
+  })
+  it('rejects invalid rows inside an otherwise supported snapshot', async () => {
+    for (const key of [
+      'services',
+      'history',
+      'jobs',
+      'directories',
+      'databases',
+      'tunnels',
+    ] as const) {
+      mockResponse({ data: { ...demoTelemetry(), [key]: [null] } })
+      await expect(fetchEndpoint('telemetry', 'test')).rejects.toThrow('not supported')
+    }
+    mockResponse({ data: { ...demoTelemetry(), tailscale: { services: [null] } } })
+    await expect(fetchEndpoint('telemetry', 'test')).rejects.toThrow('not supported')
   })
   it('supports Unicode credentials without storing a password', async () => {
     const fetch = mockResponse({ data: { token: 'example-session' } })

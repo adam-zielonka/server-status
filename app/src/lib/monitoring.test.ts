@@ -6,6 +6,9 @@ import {
   directoryGrowth,
   jobHealth,
   monitoringAlerts,
+  monitoringIssues,
+  resourceSampleIsStale,
+  latestHistoryPoint,
   hasFullHistoryWindow,
   snapshotIsStale,
 } from './monitoring'
@@ -72,6 +75,26 @@ describe('freshness and health', () => {
   })
   it('does not invent alerts for a healthy snapshot', () =>
     expect(monitoringAlerts(demoTelemetry(now), now)).toEqual([]))
+  it('does not mistake a newly published snapshot for fresh resource samples', () => {
+    const snapshot = demoTelemetry(now - 600000)
+    snapshot.collected_at = new Date(now).toISOString()
+    expect(snapshotIsStale(snapshot, now)).toBe(false)
+    expect(resourceSampleIsStale(snapshot, now)).toBe(true)
+    expect(monitoringIssues(snapshot, now)).toContainEqual(
+      expect.objectContaining({ id: 'samples', page: 'overview' }),
+    )
+  })
+  it('prioritizes critical issues and links each issue to its diagnostic view', () => {
+    const snapshot = demoTelemetry(now)
+    snapshot.tailscale!.key_days_remaining = 3
+    snapshot.services[0].state = 'failed'
+    const issues = monitoringIssues(snapshot, now)
+    expect(issues[0]).toMatchObject({ severity: 'critical', page: 'services' })
+    expect(issues.find((issue) => issue.id === 'node-key')).toMatchObject({ page: 'network' })
+  })
+  it('does not trust success timestamps far in the future', () => {
+    expect(jobHealth({ ...goodJob, last_success_at: '2027-01-01T00:00:00Z' }, now)).toBe('unknown')
+  })
   it('alerts on degraded, disconnected and unavailable tunnel monitoring', () => {
     const snapshot = demoTelemetry(now)
     for (const status of ['degraded', 'failure', 'unknown'] as const) {
@@ -116,5 +139,14 @@ describe('history integrity', () => {
     expect(directoryGrowth([first], 'Data')).toBeNull()
     expect(directoryGrowth([first, second], 'Data')).toBe(-20)
     expect(directoryGrowth([], 'Missing')).toBeNull()
+  })
+  it('orders observations chronologically without allowing future samples to become current', () => {
+    const early = point('2026-01-05T11:00:00Z', 10)
+    const late = point('2026-01-05T11:01:00Z', 20)
+    const future = point('2026-01-06T12:00:00Z', 99)
+    expect(
+      chartHistory([late, early, future], now - 3600000, now, 180).map((row) => row.cpu_percent),
+    ).toEqual([10, 20])
+    expect(latestHistoryPoint([late, future, early], now)).toEqual(late)
   })
 })

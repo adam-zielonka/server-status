@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Component, lazy, Suspense, useState, type ReactNode } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Activity, LoaderCircle } from 'lucide-react'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -6,19 +6,52 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AuthProvider, useAuth } from '@/features/auth/auth-context'
 import { LoginPage } from '@/features/auth/login-page'
-import { Dashboard } from '@/features/dashboard/dashboard'
+
+const Dashboard = lazy(() =>
+  import('@/features/dashboard/dashboard').then(({ Dashboard }) => ({ default: Dashboard })),
+)
+
+class AppErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false }
+  static getDerivedStateFromError() {
+    return { failed: true }
+  }
+  render() {
+    if (!this.state.failed) return this.props.children
+    return (
+      <main className="grid min-h-svh place-items-center p-5">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle role="heading" aria-level={1}>
+              Could not load the dashboard
+            </CardTitle>
+            <CardDescription>
+              The dashboard could not be loaded. Reload the page to try again.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => window.location.reload()}>Reload page</Button>
+          </CardContent>
+        </Card>
+      </main>
+    )
+  }
+}
+
+function Connecting() {
+  return (
+    <main className="grid min-h-svh place-items-center">
+      <div className="flex items-center gap-3 text-sm text-muted-foreground" role="status">
+        <LoaderCircle className="size-5 animate-spin text-primary" />
+        Connecting to your server…
+      </div>
+    </main>
+  )
+}
 
 function AuthGate() {
   const { session, checking, validationError, retry, signOut } = useAuth()
-  if (checking)
-    return (
-      <main className="grid min-h-svh place-items-center">
-        <div className="flex items-center gap-3 text-sm text-muted-foreground" role="status">
-          <LoaderCircle className="size-5 animate-spin text-primary" />
-          Connecting to your server…
-        </div>
-      </main>
-    )
+  if (checking) return <Connecting />
   if (validationError && session)
     return (
       <main className="grid min-h-svh place-items-center p-5">
@@ -37,7 +70,13 @@ function AuthGate() {
         </Card>
       </main>
     )
-  return session ? <Dashboard /> : <LoginPage />
+  return session ? (
+    <Suspense fallback={<Connecting />}>
+      <Dashboard />
+    </Suspense>
+  ) : (
+    <LoginPage />
+  )
 }
 
 export default function App() {
@@ -45,12 +84,14 @@ export default function App() {
     () => new QueryClient({ defaultOptions: { queries: { gcTime: 300000 } } }),
   )
   return (
-    <QueryClientProvider client={client}>
-      <TooltipProvider>
-        <AuthProvider>
-          <AuthGate />
-        </AuthProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <AppErrorBoundary>
+      <QueryClientProvider client={client}>
+        <TooltipProvider>
+          <AuthProvider>
+            <AuthGate />
+          </AuthProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </AppErrorBoundary>
   )
 }

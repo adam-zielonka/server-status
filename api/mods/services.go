@@ -1,18 +1,18 @@
 package mods
 
 import (
+	"context"
+	"fmt"
 	"net"
+	"status/config"
 	"strconv"
 	"sync"
 	"time"
-
-	"status/config"
 )
 
 type Service struct {
 	Name  string  `json:"name"`
 	Port  string  `json:"port"`
-	Link  string  `json:"link,omitempty"`
 	Hosts []*Host `json:"hosts"`
 }
 
@@ -22,65 +22,61 @@ type Host struct {
 	Open bool   `json:"open"`
 }
 
-func Services() ([]Service, error) {
+func Services(ctx context.Context) ([]Service, error) {
 	services, hosts := config.GetServicesAndHosts()
+	return probeServices(ctx, services, hosts)
+}
+
+func probeServices(ctx context.Context, services []config.Service, hosts []string) ([]Service, error) {
+	ctx, cancel := context.WithTimeout(ctx, 8*time.Second)
+	defer cancel()
 	result := make([]Service, len(services))
-	var wg sync.WaitGroup
-
-	for i, svc := range services {
-		wg.Add(1)
-		go func(index int, service config.Service) {
-			defer wg.Done()
-			checkedHosts := getHosts(hosts, service.Port)
-			result[index] = Service{
-				Name:  service.Name,
-				Port:  service.Port,
-				Hosts: checkedHosts,
-			}
-		}(i, svc)
+	checks := []*Host{}
+	for i, service := range services {
+		result[i] = Service{Name: service.Name, Port: service.Port, Hosts: make([]*Host, len(hosts))}
+		for j, name := range hosts {
+			host := &Host{Name: name, Port: service.Port}
+			result[i].Hosts[j] = host
+			checks = append(checks, host)
+		}
 	}
-
-	wg.Wait()
+	work := make(chan *Host)
+	var workers sync.WaitGroup
+	for range min(16, len(checks)) {
+		workers.Add(1)
+		go func() {
+			defer workers.Done()
+			for host := range work {
+				host.Open = checkPort(ctx, host.Name, host.Port)
+			}
+		}()
+	}
+	for _, host := range checks {
+		if ctx.Err() != nil {
+			break
+		}
+		select {
+		case <-ctx.Done():
+		case work <- host:
+		}
+	}
+	close(work)
+	workers.Wait()
+	if ctx.Err() != nil {
+		return nil, fmt.Errorf("port checks did not complete in time")
+	}
 	return result, nil
 }
 
-func getHosts(hosts []string, port string) []*Host {
-	result := make([]*Host, len(hosts))
-	var wg sync.WaitGroup
-
-	for i, host := range hosts {
-		wg.Add(1)
-		go func(index int, hostname string) {
-			defer wg.Done()
-			open := checkPort(hostname, port)
-			result[index] = &Host{
-				Name: hostname,
-				Port: port,
-				Open: open,
-			}
-		}(i, host)
-	}
-
-	wg.Wait()
-	return result
-}
-
-func checkPort(host, portStr string) bool {
-	// Validate port
+func checkPort(ctx context.Context, host, portStr string) bool {
 	port, err := strconv.Atoi(portStr)
 	if err != nil || port < 1 || port > 65535 {
 		return false
 	}
-
-	// Try to connect to the port with a timeout
-	address := net.JoinHostPort(host, portStr)
-	timeout := 2 * time.Second
-
-	conn, err := net.DialTimeout("tcp", address, timeout)
+	conn, err := (&net.Dialer{Timeout: 2 * time.Second}).DialContext(ctx, "tcp", net.JoinHostPort(host, portStr))
 	if err != nil {
 		return false
 	}
-	defer conn.Close()
-
+	conn.Close()
 	return true
 }

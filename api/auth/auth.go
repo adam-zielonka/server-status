@@ -1,8 +1,10 @@
 package auth
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
+	"net"
 	"net/http"
 	"status/config"
 	"status/utils"
@@ -83,6 +85,10 @@ func init() {
 }
 
 func Wrapper[T any](f func() (T, error)) http.HandlerFunc {
+	return WrapperContext(func(context.Context) (T, error) { return f() })
+}
+
+func WrapperContext[T any](f func(context.Context) (T, error)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Cache-Control", "no-store")
@@ -106,7 +112,7 @@ func Wrapper[T any](f func() (T, error)) http.HandlerFunc {
 			return
 		}
 
-		data, err := f()
+		data, err := f(r.Context())
 
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -130,10 +136,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "no-store")
 	// Extract client IP for rate limiting
-	clientIP := r.RemoteAddr
-	if forwarded := r.Header.Get("X-Forwarded-For"); forwarded != "" {
-		clientIP = strings.Split(forwarded, ",")[0]
-	}
+	clientIP := clientAddress(r)
 
 	// Check rate limit
 	if !limiter.Allow(clientIP) {
@@ -205,6 +208,16 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		Errors: []string{},
 	}
 	fmt.Fprintf(w, "%s", utils.ToJSON(response))
+}
+
+// Forwarding headers are supplied by the caller unless a trusted proxy strips
+// them. Key the limiter by the direct peer, without its ephemeral source port.
+func clientAddress(r *http.Request) string {
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return r.RemoteAddr
+	}
+	return host
 }
 
 func ValidateToken(tokenString string) error {

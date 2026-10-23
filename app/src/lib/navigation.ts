@@ -9,6 +9,18 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import type { Page } from '@/types'
+import type { MouseEvent } from 'react'
+
+export function pageFromHash(hash = window.location.hash): Page | undefined {
+  return navigation.find((item) => `#${item.id}` === hash)?.id
+}
+
+// Keep native open-in-new-tab and modified clicks working.
+export function navigateLink(event: MouseEvent<HTMLAnchorElement>, go: () => void) {
+  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+  event.preventDefault()
+  go()
+}
 
 export const navigation: { id: Page; label: string; icon: LucideIcon; description: string }[] = [
   {

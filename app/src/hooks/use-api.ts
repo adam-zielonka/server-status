@@ -1,8 +1,21 @@
-import { useQuery } from '@tanstack/react-query'
-import { useEffect } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useCallback, useEffect, useSyncExternalStore } from 'react'
 import { useAuth } from '@/features/auth/auth-context'
 import { ApiError, fetchEndpoint } from '@/lib/api'
 import type { Endpoint } from '@/types'
+
+export function useMetricSourceErrors(): number {
+  const cache = useQueryClient().getQueryCache()
+  const subscribe = useCallback((notify: () => void) => cache.subscribe(notify), [cache])
+  const count = useCallback(
+    () =>
+      cache
+        .findAll({ queryKey: ['metrics'], type: 'active' })
+        .filter((query) => query.state.status === 'error').length,
+    [cache],
+  )
+  return useSyncExternalStore(subscribe, count, count)
+}
 
 export function useApi<K extends Endpoint>(endpoint: K, enabled = true) {
   const { session, signOut } = useAuth()

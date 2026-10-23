@@ -110,7 +110,9 @@ All endpoints except `/api/auth` require authentication via JWT token.
 
 **GET** `/api/file-system`
 - Retrieve file system information
-- Returns: Disk usage for mounted filesystems
+- Returns: Disk usage for mounted filesystems, including `available` bytes for
+  ordinary processes (excluding reserved blocks). Utilization uses used plus
+  available space, consistent with new collector history samples.
 
 **GET** `/api/net`
 - Retrieve network interface information
@@ -118,11 +120,22 @@ All endpoints except `/api/auth` require authentication via JWT token.
 
 **GET** `/api/vhosts`
 - Retrieve virtual hosts information
-- Returns: List of configured virtual hosts
+- Returns: Distinct host/listener pairs discovered from the local Caddy admin
+  API, including nested routes, with local and optional external response codes.
+- Local checks dial IPv4 loopback on the listener port with the virtual host's
+  Host header and TLS SNI. The first response is returned without following
+  redirects; `0` means no valid response. Local-only TLS checks accept local
+  certificates; external checker TLS certificates are verified normally.
+- HTTP calls have a two-second timeout; up to eight host checks run concurrently
+  within an eight-second budget. Configuration and checker bodies are bounded.
+  Probes not completed within the budget return `0`.
 
 **GET** `/api/services`
 - Retrieve services status
-- Returns: Status of configured services (listening on specified ports)
+- Returns: Status of configured services (listening on specified ports).
+- Up to 16 connections are checked concurrently, with two-second connection
+  timeouts and an eight-second request budget. Cancellation propagates to checks.
+  An incomplete batch returns a source error, not an unchecked availability list.
 
 ## Optional operations telemetry
 
@@ -145,6 +158,10 @@ for setup, data semantics, privacy boundaries, and the versioned snapshot format
 - `utils/`: shared response types and helpers.
 
 ## Authentication
+
+Authentication attempts are limited to five per minute per direct peer IP.
+Ephemeral source ports and client-supplied forwarding headers do not change that
+bucket. Clients behind the same reverse proxy peer share this limit.
 
 The server uses JWT (JSON Web Tokens) for authentication. To access protected endpoints:
 

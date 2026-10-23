@@ -22,6 +22,7 @@ export interface FileSystem {
   size: number
   used: number
   use: number
+  available?: number
   mount: string
 }
 export interface NetworkInterface {

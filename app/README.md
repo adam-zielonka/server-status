@@ -72,8 +72,15 @@ outside the checkout. See the [collector privacy guide](../collector/README.md).
 
 The interface uses one card/table/navigation system throughout, with responsive
 navigation, keyboard-accessible controls and a stored light/dark theme preference.
-History charts are loaded separately, preserve recording gaps and never synthesize
+The authenticated dashboard and history charts are loaded separately. History charts preserve recording gaps and never synthesize
 missing samples. Metrics refresh every 30 seconds while the dashboard is active.
+Issues link to diagnostic views and are prioritized by severity. Services and
+tasks support search and health filters. Process rankings are paged in groups of
+50; filtering still searches every recorded entry. Browser navigation restores
+views and page focus. Collector loading, failures and disabled integrations have
+distinct states, and stale readings are labeled. Current resource cards fall back
+to basic API readings when their collector samples are old. API data is validated
+before rendering; requests retain a 15-second timeout alongside cancellation.
 
 JWT login persists only the username and token, never passwords. Corrupted or
 blocked browser storage is handled. Logout and HTTP 401 clear
@@ -93,7 +100,7 @@ pnpm build
 
 `pnpm test` runs once; use `pnpm test:watch` during development. Vitest and Testing
 Library cover login/logout, expired sessions, network failures, API validation, navigation, filtering/sorting, disabled collectors,
-theme switching, task freshness, chart gaps, formatting and synthetic-only demo
+theme switching, browser history, actionable issues, pagination, source recovery, task freshness, chart gaps, formatting and synthetic-only demo
 requests. Test fixtures contain example data only.
 
 Use `pnpm format` to apply Prettier. Add or update shadcn components using

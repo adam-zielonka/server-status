@@ -1,8 +1,10 @@
+import { TelemetryCard } from '@/components/telemetry-card'
 import { useState } from 'react'
 import { Search } from 'lucide-react'
 import { DataCard, EmptyState } from '@/components/data-card'
 import { StatusBadge } from '@/components/status-badge'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import {
   Table,
   TableBody,
@@ -13,14 +15,17 @@ import {
 } from '@/components/ui/table'
 import { useApi } from '@/hooks/use-api'
 import { formatDate, formatDuration } from '@/lib/format'
+import { snapshotIsStale } from '@/lib/monitoring'
 import type { ServiceHealth, TelemetrySnapshot } from '@/types'
 
 export function ServiceTable({
   services,
   compact = false,
+  stale = false,
 }: {
   services: ServiceHealth[]
   compact?: boolean
+  stale?: boolean
 }) {
   return (
     <Table>
@@ -49,7 +54,7 @@ export function ServiceTable({
               )}
             </TableCell>
             <TableCell>
-              <StatusBadge state={row.state} />
+              <StatusBadge state={row.error ? 'unknown' : row.state} stale={stale} />
             </TableCell>
             <TableCell className="text-muted-foreground">
               {formatDuration(row.uptime_seconds)}
@@ -72,43 +77,74 @@ export function ServiceTable({
   )
 }
 
-export function ServicesPage({ snapshot }: { snapshot?: TelemetrySnapshot }) {
+export function ServicesPage({ snapshot, now }: { snapshot?: TelemetrySnapshot; now: number }) {
   const [search, setSearch] = useState('')
+  const [attentionOnly, setAttentionOnly] = useState(false)
   const ports = useApi('services')
+  const needsAttention = (row: ServiceHealth) => !!row.error || row.state !== 'active'
+  const attentionCount = snapshot?.services.filter(needsAttention).length || 0
+  const stale = snapshotIsStale(snapshot, now)
   const services =
-    snapshot?.services.filter((row) =>
-      `${row.name} ${row.unit}`.toLowerCase().includes(search.toLowerCase()),
-    ) || []
+    snapshot?.services
+      .filter(
+        (row) =>
+          (!attentionOnly || needsAttention(row)) &&
+          `${row.name} ${row.unit} ${row.scope} ${row.state}`
+            .toLowerCase()
+            .includes(search.trim().toLowerCase()),
+      )
+      .sort(
+        (a, b) =>
+          Number(needsAttention(b)) - Number(needsAttention(a)) || a.name.localeCompare(b.name),
+      ) || []
   return (
     <div className="space-y-5">
-      <DataCard
+      <TelemetryCard
         title="System services"
         description="Read-only systemd health. Last errors are retained once observed."
         action={
           <StatusBadge
-            state="active"
+            state={attentionCount ? 'warning' : 'active'}
+            stale={!!snapshot && stale}
             label={`${snapshot?.services.filter((s) => s.state === 'active').length || 0} active`}
           />
         }
       >
         {snapshot ? (
           <>
-            <div className="relative mb-4 max-w-xs">
-              <Search className="absolute left-3 top-2.5 size-3.5 text-muted-foreground" />
-              <Input
-                aria-label="Search services"
-                placeholder="Search services…"
-                className="h-8 pl-9 text-xs"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+            <div className="mb-4 flex flex-wrap items-center gap-3">
+              <div className="relative w-full max-w-xs">
+                <Search className="absolute left-3 top-2.5 size-3.5 text-muted-foreground" />
+                <Input
+                  aria-label="Search services"
+                  placeholder="Search services…"
+                  className="h-8 pl-9 text-xs"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+              <Button
+                variant={attentionOnly ? 'secondary' : 'outline'}
+                size="sm"
+                aria-pressed={attentionOnly}
+                onClick={() => setAttentionOnly(!attentionOnly)}
+              >
+                Needs attention ({attentionCount})
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                {services.length} / {snapshot.services.length} services
+              </span>
             </div>
             {services.length ? (
-              <ServiceTable services={services} />
+              <ServiceTable services={services} stale={stale} />
             ) : (
               <EmptyState
-                title="No matching services"
-                description="Try a different service name or unit."
+                title={snapshot.services.length ? 'No matching services' : 'No services configured'}
+                description={
+                  snapshot.services.length
+                    ? 'Try a different filter or service name.'
+                    : 'Add systemd units to the private collector configuration.'
+                }
               />
             )}
           </>
@@ -118,7 +154,7 @@ export function ServicesPage({ snapshot }: { snapshot?: TelemetrySnapshot }) {
             description="Configure systemd units in the optional operations collector. Port checks are available below."
           />
         )}
-      </DataCard>
+      </TelemetryCard>
       <DataCard
         title="Port availability"
         description="An open port confirms connectivity; systemd provides the service health above. Local-only services may intentionally be closed on other addresses."
@@ -146,7 +182,7 @@ export function ServicesPage({ snapshot }: { snapshot?: TelemetrySnapshot }) {
                         <StatusBadge
                           key={host.name}
                           state={host.open ? 'open' : 'closed'}
-                          label={host.name}
+                          label={`${host.name} · ${host.open ? 'Open' : 'Closed'}`}
                         />
                       ))}
                     </div>

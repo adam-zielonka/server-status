@@ -1,7 +1,9 @@
+import { TelemetryCard } from '@/components/telemetry-card'
 import { Fragment, useState } from 'react'
 import { ChevronDown, ChevronRight, Search } from 'lucide-react'
-import { DataCard, EmptyState } from '@/components/data-card'
+import { EmptyState } from '@/components/data-card'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Table,
@@ -18,6 +20,7 @@ export function ProcessesPage({ snapshot }: { snapshot?: TelemetrySnapshot }) {
   const [view, setView] = useState('instances')
   const [sort, setSort] = useState('top_memory')
   const [search, setSearch] = useState('')
+  const [pageIndex, setPageIndex] = useState(0)
   const [expanded, setExpanded] = useState<Set<number>>(new Set())
   const allProcesses =
     sort === 'top_cpu' ? snapshot?.processes.top_cpu : snapshot?.processes.top_memory
@@ -34,7 +37,7 @@ export function ProcessesPage({ snapshot }: { snapshot?: TelemetrySnapshot }) {
   const matches = (row: ProcessInfo) =>
     `${row.name} ${row.pid} ${row.service || ''} ${row.parent_name || ''} ${row.instance_pid || ''} ${row.instance_name || ''} ${row.browser_instance_pid || ''} ${row.member_pids?.join(' ') || ''}`
       .toLowerCase()
-      .includes(search.toLowerCase())
+      .includes(search.trim().toLowerCase())
   const toggle = (pid: number) =>
     setExpanded((previous) => {
       const next = new Set(previous)
@@ -52,12 +55,22 @@ export function ProcessesPage({ snapshot }: { snapshot?: TelemetrySnapshot }) {
       : snapshot?.processes.top_memory
   const rows =
     source?.filter((row) => matches(row) || (grouped && members(row).some(matches))) || []
+  const pageSize = 50
+  const lastPage = Math.max(0, Math.ceil(rows.length / pageSize) - 1)
+  const currentPage = Math.min(pageIndex, lastPage)
+  const offset = currentPage * pageSize
   return (
-    <DataCard
+    <TelemetryCard
       title="Processes"
       description="Processes include browsers launched by their service or application. 100% CPU equals one logical CPU."
       action={
-        <Tabs value={sort} onValueChange={setSort}>
+        <Tabs
+          value={sort}
+          onValueChange={(value) => {
+            setSort(value)
+            setPageIndex(0)
+          }}
+        >
           <TabsList className="h-7">
             <TabsTrigger value="top_memory" className="px-2.5 text-[10px]">
               Memory
@@ -77,7 +90,13 @@ export function ProcessesPage({ snapshot }: { snapshot?: TelemetrySnapshot }) {
       ) : (
         <>
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-            <Tabs value={view} onValueChange={setView}>
+            <Tabs
+              value={view}
+              onValueChange={(value) => {
+                setView(value)
+                setPageIndex(0)
+              }}
+            >
               <TabsList className="h-8">
                 <TabsTrigger value="instances">Services & instances</TabsTrigger>
                 <TabsTrigger value="individual">Individual processes</TabsTrigger>
@@ -90,7 +109,10 @@ export function ProcessesPage({ snapshot }: { snapshot?: TelemetrySnapshot }) {
                 aria-label="Search processes"
                 placeholder="Filter by name, PID or service…"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value)
+                  setPageIndex(0)
+                }}
               />
             </div>
             <p className="text-[10px] text-muted-foreground">
@@ -112,7 +134,7 @@ export function ProcessesPage({ snapshot }: { snapshot?: TelemetrySnapshot }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.map((row) => (
+                {rows.slice(offset, offset + pageSize).map((row) => (
                   <Fragment key={row.pid}>
                     <TableRow>
                       <TableCell className="font-medium">
@@ -238,6 +260,35 @@ export function ProcessesPage({ snapshot }: { snapshot?: TelemetrySnapshot }) {
               description="Try a different process name or PID."
             />
           )}
+          {rows.length > pageSize && (
+            <nav
+              aria-label="Process pages"
+              className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-3"
+            >
+              <p className="text-xs text-muted-foreground" aria-live="polite">
+                {offset + 1}–{Math.min(offset + pageSize, rows.length)} of {rows.length}{' '}
+                {grouped ? 'groups' : 'processes'}
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={currentPage === 0}
+                  onClick={() => setPageIndex(currentPage - 1)}
+                >
+                  Previous
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={currentPage === lastPage}
+                  onClick={() => setPageIndex(currentPage + 1)}
+                >
+                  Next
+                </Button>
+              </div>
+            </nav>
+          )}
           <p className="mt-4 border-t pt-3 text-[10px] leading-relaxed text-muted-foreground">
             Point-in-time usage, refreshed automatically. Service totals include their browser
             instances. Without a service, browsers join their observed launching application; other
@@ -249,6 +300,6 @@ export function ProcessesPage({ snapshot }: { snapshot?: TelemetrySnapshot }) {
           </p>
         </>
       )}
-    </DataCard>
+    </TelemetryCard>
   )
 }

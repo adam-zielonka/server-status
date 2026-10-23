@@ -16,17 +16,22 @@ func Net() ([]Network, error) {
 	if err != nil {
 		return nil, err
 	}
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return nil, err
+	}
+	addresses := make(map[string][]string, len(interfaces))
+	for _, iface := range interfaces {
+		for _, addr := range iface.Addrs {
+			addresses[iface.Name] = append(addresses[iface.Name], addr.Addr)
+		}
+	}
 
 	var result []Network
 	for _, p := range stats {
-		addrs := []string{}
-		n, _ := net.Interfaces()
-		for _, ni := range n {
-			if ni.Name == p.Name {
-				for _, addr := range ni.Addrs {
-					addrs = append(addrs, addr.Addr)
-				}
-			}
+		addrs := addresses[p.Name]
+		if addrs == nil {
+			addrs = []string{}
 		}
 		result = append(result, Network{
 			Interface: p.Name,

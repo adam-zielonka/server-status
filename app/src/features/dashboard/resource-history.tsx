@@ -1,3 +1,4 @@
+import { TelemetryCard } from '@/components/telemetry-card'
 import { useId, useState } from 'react'
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
 import {
@@ -7,8 +8,8 @@ import {
   type ChartConfig,
 } from '@/components/ui/chart'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { DataCard, EmptyState } from '@/components/data-card'
-import { chartHistory, hasFullHistoryWindow } from '@/lib/monitoring'
+import { EmptyState } from '@/components/data-card'
+import { chartHistory, hasFullHistoryWindow, latestHistoryPoint } from '@/lib/monitoring'
 import { formatDuration, formatPercent } from '@/lib/format'
 import type { TelemetrySnapshot } from '@/types'
 
@@ -34,12 +35,16 @@ export default function ResourceHistory({
     now,
     (snapshot?.sample_interval_seconds || 60) * 3,
   ).map((row) => ({ ...row, timestamp: Date.parse(row.at) }))
-  const recordedFor = snapshot?.history.length
-    ? (now - Date.parse(snapshot.history[0].at)) / 1000
-    : 0
-  const latest = snapshot?.history.at(-1)
+  const observations = data.filter((row) =>
+    Object.keys(config).some((key) => row[key as keyof typeof config] != null),
+  )
+  const recordedFor =
+    observations.length > 1
+      ? (observations.at(-1)!.timestamp - observations[0].timestamp) / 1000
+      : 0
+  const latest = latestHistoryPoint(observations, now)
   return (
-    <DataCard
+    <TelemetryCard
       title="Resource history"
       description="CPU, memory working set and root disk utilization."
       action={
@@ -58,9 +63,10 @@ export default function ResourceHistory({
         </Tabs>
       }
     >
-      {data.length ? (
+      {observations.length ? (
         <>
           <div className="mb-5 flex flex-wrap gap-x-6 gap-y-2">
+            <span className="text-[11px] text-muted-foreground">Last in range</span>
             {Object.entries(config).map(([key, value]) => (
               <div key={key} className="flex items-center gap-2 text-[11px]">
                 <span className="size-2 rounded-full" style={{ background: value.color }} />
@@ -143,12 +149,12 @@ export default function ResourceHistory({
           </ChartContainer>
           <div className="mt-4 flex flex-wrap justify-between gap-2 border-t pt-3 text-[10px] text-muted-foreground">
             <span>
-              {snapshot?.history.length} samples · {formatDuration(recordedFor)} recorded
+              {observations.length} samples · {formatDuration(recordedFor)} recorded in {hours}h
             </span>
             <span>
               {hasFullHistoryWindow(recordedFor, snapshot?.sample_interval_seconds)
                 ? '24-hour rolling history'
-                : 'Collecting the 24-hour window'}{' '}
+                : `Showing the ${hours}-hour window`}{' '}
               · gaps are preserved
             </span>
           </div>
@@ -163,6 +169,6 @@ export default function ResourceHistory({
           }
         />
       )}
-    </DataCard>
+    </TelemetryCard>
   )
 }

@@ -5,12 +5,13 @@ import (
 )
 
 type FileSystemType struct {
-	FS    string  `json:"fs"`
-	Type  string  `json:"type"`
-	Size  uint64  `json:"size"`
-	Used  uint64  `json:"used"`
-	Use   float64 `json:"use"`
-	Mount string  `json:"mount"`
+	FS        string  `json:"fs"`
+	Type      string  `json:"type"`
+	Size      uint64  `json:"size"`
+	Used      uint64  `json:"used"`
+	Available uint64  `json:"available"`
+	Use       float64 `json:"use"`
+	Mount     string  `json:"mount"`
 }
 
 func FileSystem() ([]FileSystemType, error) {
@@ -27,12 +28,13 @@ func FileSystem() ([]FileSystemType, error) {
 		}
 
 		fs := FileSystemType{
-			FS:    p.Device,
-			Type:  p.Fstype,
-			Size:  usage.Total,
-			Used:  usage.Used,
-			Use:   usage.UsedPercent,
-			Mount: p.Mountpoint,
+			FS:        p.Device,
+			Type:      p.Fstype,
+			Size:      usage.Total,
+			Used:      usage.Used,
+			Available: usage.Free,
+			Use:       usage.UsedPercent,
+			Mount:     p.Mountpoint,
 		}
 
 		result = append(result, fs)

@@ -84,6 +84,11 @@ func (s sampler) collect(ctx context.Context, cfg *Config) error {
 	}
 	total := float64(disk.Blocks) * float64(disk.Bsize)
 	used := float64(disk.Blocks-disk.Bfree) * float64(disk.Bsize)
+	available := float64(disk.Bavail) * float64(disk.Bsize)
+	diskPercent := float64(0)
+	if used+available > 0 {
+		diskPercent = round(used/(used+available)*100, 2)
+	}
 	if total <= 0 {
 		return errCollection
 	}
@@ -102,7 +107,7 @@ func (s sampler) collect(ctx context.Context, cfg *Config) error {
 			directoryBytes[text(entry["name"])] = entry["bytes"]
 		}
 	}
-	point := row{"at": iso(now), "cpu_percent": cpu, "memory_percent": memoryPercent, "disk_percent": round(used/total*100, 2), "memory_bytes": memory, "disk_used_bytes": int64(used), "directory_bytes": directoryBytes}
+	point := row{"at": iso(now), "cpu_percent": cpu, "memory_percent": memoryPercent, "disk_percent": diskPercent, "memory_bytes": memory, "disk_used_bytes": int64(used), "directory_bytes": directoryBytes}
 	history := retainHistory(rows(state["history"]), point, now)
 	var tailscale any
 	if cfg.Tailscale {

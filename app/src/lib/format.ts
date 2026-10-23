@@ -1,3 +1,10 @@
+import type { FileSystem } from '@/types'
+
+// Older API builds do not expose space available to unprivileged processes.
+export function availableDiskSpace(fs?: FileSystem): number | undefined {
+  return fs ? (fs.available ?? Math.max(0, fs.size - fs.used)) : undefined
+}
+
 export const isNumber = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value)
 

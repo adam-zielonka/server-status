@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
-interface DataCardProps {
+export interface DataCardProps {
   title: string
   description?: string
   children: ReactNode
@@ -29,8 +29,8 @@ export function DataCard({
     <Card
       className={cn('min-w-0 gap-0 overflow-hidden border-border/80 py-0 shadow-xs', className)}
     >
-      <CardHeader className="flex flex-row items-start justify-between gap-4 border-b border-border/70 px-5 py-4">
-        <div className="min-w-0">
+      <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3 border-b border-border/70 px-5 py-4">
+        <div className="min-w-0 flex-1 basis-48">
           <CardTitle role="heading" aria-level={2} className="text-sm font-semibold tracking-tight">
             {title}
           </CardTitle>

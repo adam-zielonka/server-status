@@ -20,11 +20,12 @@ import { useAuth } from '@/features/auth/auth-context'
 import { isDemo } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import type { Page } from '@/types'
-import { navigation } from '@/lib/navigation'
+import { navigateLink, navigation } from '@/lib/navigation'
 
 function readTheme(): boolean {
   try {
-    return localStorage.getItem('server-status.theme') === 'dark'
+    const saved = localStorage.getItem('server-status.theme')
+    return saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches
   } catch {
     return false
   }
@@ -37,6 +38,7 @@ export function AppShell({
   health,
   updatedAt,
   children,
+  issueCounts = {},
 }: {
   page: Page
   onPageChange: (page: Page) => void
@@ -44,12 +46,26 @@ export function AppShell({
   health: string
   updatedAt?: string
   children: ReactNode
+  issueCounts?: Partial<Record<Page, number>>
 }) {
   const { session, signOut } = useAuth()
   const queryClient = useQueryClient()
   const fetching = useIsFetching({ queryKey: ['metrics'] }) > 0
   const [dark, setDark] = useState(readTheme)
   const active = navigation.find((item) => item.id === page)!
+  useEffect(() => {
+    const nav = document.querySelector<HTMLElement>('[aria-label="Mobile navigation"]')
+    const selected = nav?.querySelector<HTMLElement>('[aria-current="page"]')
+    if (!nav || !selected) return
+    const align = () => {
+      if (nav.clientWidth)
+        nav.scrollLeft = selected.offsetLeft - (nav.clientWidth - selected.clientWidth) / 2
+    }
+    align()
+    const observer = new ResizeObserver(align)
+    observer.observe(nav)
+    return () => observer.disconnect()
+  }, [page])
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark)
     try {
@@ -68,7 +84,7 @@ export function AppShell({
         Skip to content
       </a>
       <aside
-        className="fixed inset-y-0 left-0 z-30 hidden w-[224px] flex-col border-r bg-card lg:flex"
+        className="fixed inset-y-0 left-0 z-30 hidden w-[224px] flex-col overflow-y-auto border-r bg-card lg:flex"
         aria-label="Sidebar"
       >
         <div className="flex h-[76px] items-center gap-2.5 px-6">
@@ -103,7 +119,7 @@ export function AppShell({
               <a
                 key={item.id}
                 href={`#${item.id}`}
-                onClick={() => onPageChange(item.id)}
+                onClick={(event) => navigateLink(event, () => onPageChange(item.id))}
                 aria-current={page === item.id ? 'page' : undefined}
                 className={cn(
                   'flex items-center gap-3 rounded-md px-3 py-2.5 text-xs font-medium transition-colors',
@@ -114,7 +130,14 @@ export function AppShell({
               >
                 <item.icon className="size-4" />
                 {item.label}
-                {page === item.id && <span className="ml-auto size-1 rounded-full bg-primary" />}
+                {!!issueCounts[item.id] && (
+                  <span
+                    className="ml-auto rounded bg-amber-500/10 px-1.5 py-0.5 text-[10px] text-amber-800 dark:text-amber-300"
+                    aria-label={`${issueCounts[item.id]} ${issueCounts[item.id] === 1 ? 'issue' : 'issues'}`}
+                  >
+                    {issueCounts[item.id]}
+                  </span>
+                )}
               </a>
             ))}
           </nav>
@@ -217,7 +240,7 @@ export function AppShell({
           <a
             key={item.id}
             href={`#${item.id}`}
-            onClick={() => onPageChange(item.id)}
+            onClick={(event) => navigateLink(event, () => onPageChange(item.id))}
             aria-current={page === item.id ? 'page' : undefined}
             className={cn(
               'flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-2 text-xs',
@@ -231,7 +254,11 @@ export function AppShell({
           </a>
         ))}
       </nav>
-      <main id="main-content" className="mx-auto max-w-[1600px] px-4 pb-8 pt-6 sm:px-7 sm:pt-8">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="mx-auto scroll-mt-20 max-w-[1600px] px-4 pb-8 pt-6 sm:px-7 sm:pt-8"
+      >
         <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="mb-2 flex items-center gap-2">
@@ -244,7 +271,11 @@ export function AppShell({
                 </span>
               )}
             </div>
-            <h1 className="text-2xl font-semibold tracking-tight">
+            <h1
+              id="page-heading"
+              tabIndex={-1}
+              className="outline-none text-2xl font-semibold tracking-tight"
+            >
               {active.label === 'Overview' ? 'Server overview' : active.label}
             </h1>
             <p className="mt-1.5 text-xs text-muted-foreground">{active.description}</p>

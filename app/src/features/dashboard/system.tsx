@@ -1,3 +1,4 @@
+import { TelemetryCard } from '@/components/telemetry-card'
 import { DataCard, EmptyState, Facts } from '@/components/data-card'
 import { Progress } from '@/components/ui/progress'
 import { useApi } from '@/hooks/use-api'
@@ -42,7 +43,7 @@ export function SystemPage({
           />
         )}
       </DataCard>
-      <DataCard
+      <TelemetryCard
         title="Container & allocation"
         description={
           c?.limit_scope || 'Resource allocation reported by the optional cgroup collector.'
@@ -79,7 +80,7 @@ export function SystemPage({
             description="Configure the operations collector to inspect visible cgroup limits and PID 1 lifetime."
           />
         )}
-      </DataCard>
+      </TelemetryCard>
       <DataCard
         title="Memory breakdown"
         description="Memory reported by the operating system, including reclaimable cache."

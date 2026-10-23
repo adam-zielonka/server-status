@@ -1,7 +1,21 @@
 import { describe, expect, it } from 'vitest'
-import { formatBytes, formatDate, formatDuration, formatPercent, safeWorkflowUrl } from './format'
+import {
+  availableDiskSpace,
+  formatBytes,
+  formatDate,
+  formatDuration,
+  formatPercent,
+  safeWorkflowUrl,
+} from './format'
 
 describe('metric formatting', () => {
+  it('uses available space excluding reserved blocks and supports older API builds', () => {
+    const fs = { fs: '/dev/example', mount: '/', type: 'ext4', size: 1000, used: 500, use: 55.6 }
+    expect(availableDiskSpace({ ...fs, available: 400 })).toBe(400)
+    expect(availableDiskSpace({ ...fs, available: 0 })).toBe(0)
+    expect(availableDiskSpace(fs)).toBe(500)
+    expect(availableDiskSpace()).toBeUndefined()
+  })
   it.each([
     [0, '0 B'],
     [1024, '1 KB'],

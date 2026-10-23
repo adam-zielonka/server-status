@@ -1,4 +1,4 @@
-import type { HistoryMetric, HistoryPoint, Job, JobHealth, TelemetrySnapshot } from '@/types'
+import type { HistoryMetric, HistoryPoint, Job, JobHealth, Page, TelemetrySnapshot } from '@/types'
 import { formatPercent, isNumber } from './format'
 
 export function ageSeconds(value?: string | null, now = Date.now()): number | null {
@@ -19,13 +19,17 @@ export function snapshotIsStale(snapshot?: Partial<TelemetrySnapshot>, now = Dat
 export function jobHealth(job: Job, now = Date.now()): JobHealth {
   if (job.error || job.status === 'unknown') return 'unknown'
   if (job.status === 'failure') return 'failure'
+  if (Date.parse(job.last_success_at || '') > now + 60000) return 'unknown'
   const age = ageSeconds(job.last_success_at, now)
   if (age === null || age > (job.max_age_seconds || 86400)) return 'overdue'
   return job.status === 'running' ? 'running' : 'success'
 }
 
 export function directoryGrowth(history: HistoryPoint[], name: string): number | null {
-  const points = history.map((p) => p.directory_bytes?.[name]).filter(isNumber)
+  const points = [...history]
+    .sort((a, b) => Date.parse(a.at) - Date.parse(b.at))
+    .map((p) => p.directory_bytes?.[name])
+    .filter(isNumber)
   return points.length < 2 ? null : points[points.length - 1] - points[0]
 }
 
@@ -42,7 +46,7 @@ export function chartHistory(
 ): HistoryPoint[] {
   const rows: HistoryPoint[] = []
   let last = 0
-  for (const point of history) {
+  for (const point of [...history].sort((a, b) => Date.parse(a.at) - Date.parse(b.at))) {
     const at = Date.parse(point.at)
     if (!Number.isFinite(at) || at < start || at > end) continue
     if (last && at - last > maxGapSeconds * 1000)
@@ -58,44 +62,135 @@ export function chartHistory(
   return rows
 }
 
-export function monitoringAlerts(snapshot: TelemetrySnapshot, now = Date.now()): string[] {
-  const alerts: string[] = []
+export interface MonitoringIssue {
+  id: string
+  message: string
+  page: Page
+  severity: 'critical' | 'warning'
+}
+
+export function latestHistoryPoint(
+  history: HistoryPoint[],
+  now = Date.now(),
+): HistoryPoint | undefined {
+  let latest: HistoryPoint | undefined
+  let last = -Infinity
+  for (const point of history) {
+    const at = Date.parse(point.at)
+    if (Number.isFinite(at) && at <= now + 60000 && at >= last) {
+      latest = point
+      last = at
+    }
+  }
+  return latest
+}
+
+export function resourceSampleIsStale(snapshot: TelemetrySnapshot, now = Date.now()): boolean {
+  return snapshotIsStale(
+    {
+      collected_at: latestHistoryPoint(snapshot.history, now)?.at,
+      sample_interval_seconds: snapshot.sample_interval_seconds,
+    },
+    now,
+  )
+}
+
+export function monitoringIssues(snapshot: TelemetrySnapshot, now = Date.now()): MonitoringIssue[] {
+  const issues: MonitoringIssue[] = []
+  const add = (
+    id: string,
+    message: string,
+    page: Page,
+    severity: MonitoringIssue['severity'] = 'warning',
+  ) => issues.push({ id, message, page, severity })
   if (snapshotIsStale(snapshot, now))
-    alerts.push('Monitoring data is stale. Current health cannot be confirmed.')
+    add('snapshot', 'Monitoring data is stale. Current health cannot be confirmed.', 'system')
+  else if (resourceSampleIsStale(snapshot, now))
+    add(
+      'samples',
+      'Resource samples are stale or unavailable. Current CPU usage cannot be confirmed.',
+      'overview',
+    )
   for (const service of snapshot.services)
-    if (service.state !== 'active') alerts.push(`${service.name}: ${service.state}`)
-  const point = snapshot.history.at(-1)
-  const thresholds: [HistoryMetric, number, string][] = [
-    ['cpu_percent', 85, 'CPU usage'],
-    ['memory_percent', 90, 'Memory working set'],
-    ['disk_percent', 85, 'Disk usage'],
+    if (service.error || service.state !== 'active')
+      add(
+        `service:${service.id}`,
+        `${service.name}: ${service.error ? 'state unavailable' : service.state}`,
+        'services',
+        service.state === 'failed' ? 'critical' : 'warning',
+      )
+  const point = latestHistoryPoint(snapshot.history, now)
+  const thresholds: [HistoryMetric, number, string, Page][] = [
+    ['cpu_percent', 85, 'CPU usage', 'processes'],
+    ['memory_percent', 90, 'Memory working set', 'processes'],
+    ['disk_percent', 85, 'Disk usage', 'storage'],
   ]
-  for (const [field, threshold, label] of thresholds) {
+  for (const [field, threshold, label, page] of thresholds) {
     const value = point?.[field]
     if (isNumber(value) && value >= threshold)
-      alerts.push(`${label} is high (${formatPercent(value)}).`)
+      add(
+        field,
+        resourceSampleIsStale(snapshot, now)
+          ? `${label} was high (${formatPercent(value)}) in the last recorded sample.`
+          : `${label} is high (${formatPercent(value)}).`,
+        page,
+        value >= 95 ? 'critical' : 'warning',
+      )
   }
   const ts = snapshot.tailscale
-  if (ts && (ts.state !== 'Running' || !ts.online))
-    alerts.push('Tailscale connectivity needs attention.')
+  if (ts && (ts.error || ts.state !== 'Running' || !ts.online))
+    add('tailscale', 'Tailscale connectivity needs attention.', 'network')
   if (ts?.services?.some((s) => s.funnel))
-    alerts.push('A Tailscale route is publicly exposed through Funnel.')
+    add('funnel', 'A Tailscale route is publicly exposed through Funnel.', 'network')
   if (isNumber(ts?.key_days_remaining) && ts.key_days_remaining <= 14)
-    alerts.push('The Tailscale node key expires within 14 days or has expired.')
+    add('node-key', 'The Tailscale node key expires within 14 days or has expired.', 'network')
   for (const job of snapshot.jobs) {
     const health = jobHealth(job, now)
-    if (['failure', 'overdue', 'unknown'].includes(health)) alerts.push(`${job.name}: ${health}`)
+    if (['failure', 'overdue', 'unknown'].includes(health))
+      add(
+        `job:${job.name}`,
+        `${job.name}: ${health}`,
+        'tasks',
+        health === 'failure' ? 'critical' : 'warning',
+      )
     if (job.timer_state && job.timer_state !== 'active')
-      alerts.push(`${job.name}: scheduler is ${job.timer_state}`)
+      add(`timer:${job.name}`, `${job.name}: scheduler is ${job.timer_state}`, 'tasks')
   }
   for (const directory of snapshot.directories)
-    if (directory.error) alerts.push(`${directory.name}: directory size could not be refreshed.`)
+    if (directory.error)
+      add(
+        `directory:${directory.name}`,
+        `${directory.name}: directory size could not be refreshed.`,
+        'storage',
+      )
   for (const database of snapshot.databases || []) {
-    if (database.status !== 'healthy') alerts.push(`${database.name}: database ${database.status}`)
+    if (database.error || database.status !== 'healthy')
+      add(
+        `database:${database.name}`,
+        `${database.name}: database ${database.error ? 'unknown' : database.status}`,
+        'storage',
+        database.status === 'failure' ? 'critical' : 'warning',
+      )
     if (database.tls === false)
-      alerts.push(`${database.name}: database connection is not encrypted`)
+      add(
+        `tls:${database.name}`,
+        `${database.name}: database connection is not encrypted`,
+        'storage',
+      )
   }
   for (const tunnel of snapshot.tunnels || [])
-    if (tunnel.status !== 'healthy') alerts.push(`${tunnel.name}: tunnel ${tunnel.status}`)
-  return alerts
+    if (tunnel.error || tunnel.status !== 'healthy')
+      add(
+        `tunnel:${tunnel.name}`,
+        `${tunnel.name}: tunnel ${tunnel.error ? 'unknown' : tunnel.status}`,
+        'network',
+        tunnel.status === 'failure' ? 'critical' : 'warning',
+      )
+  return issues.sort(
+    (a, b) => Number(b.severity === 'critical') - Number(a.severity === 'critical'),
+  )
+}
+
+export function monitoringAlerts(snapshot: TelemetrySnapshot, now = Date.now()): string[] {
+  return monitoringIssues(snapshot, now).map((issue) => issue.message)
 }

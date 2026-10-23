@@ -9,12 +9,14 @@ export function StatusBadge({
   state,
   label,
   className,
+  stale = false,
 }: {
   state?: string
   label?: string
   className?: string
+  stale?: boolean
 }) {
-  const value = state || 'unknown'
+  const value = stale ? 'stale' : state || 'unknown'
   const color = healthy.has(value)
     ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
     : failed.has(value)
@@ -24,6 +26,7 @@ export function StatusBadge({
         : 'bg-amber-500/10 text-amber-800 dark:text-amber-400'
   return (
     <Badge
+      title={stale ? `Last reported status: ${label || state || 'unknown'}` : undefined}
       variant="secondary"
       className={cn(
         'gap-1.5 border-0 px-2 py-0.5 text-[11px] font-medium capitalize',
@@ -32,7 +35,7 @@ export function StatusBadge({
       )}
     >
       <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-current" />
-      {label || value}
+      {stale ? 'Stale' : label || value}
     </Badge>
   )
 }

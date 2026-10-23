@@ -143,3 +143,29 @@ it('lists every group, expands its full members, sorts them and updates expanded
   await user.click(screen.getByRole('tab', { name: 'Individual processes' }))
   expect(screen.getAllByRole('row')).toHaveLength(25)
 })
+
+it('pages large rankings while searching the entire list and resets the page after filtering', async () => {
+  const user = userEvent.setup()
+  const snapshot = demoTelemetry()
+  const rows = Array.from({ length: 121 }, (_, index) => ({
+    pid: 1000 + index,
+    name: `worker-${index}`,
+    rss_bytes: 121 - index,
+    cpu_percent: index,
+  }))
+  snapshot.processes.top_memory = rows
+  render(<ProcessesPage snapshot={snapshot} />)
+  await user.click(screen.getByRole('tab', { name: 'Individual processes' }))
+  expect(screen.getAllByRole('row')).toHaveLength(51)
+  expect(screen.getByText('1–50 of 121 processes')).toBeInTheDocument()
+  await user.click(screen.getByRole('button', { name: 'Next' }))
+  expect(screen.getByText('51–100 of 121 processes')).toBeInTheDocument()
+  await user.click(screen.getByRole('button', { name: 'Next' }))
+  expect(screen.getAllByRole('row')).toHaveLength(22)
+  expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled()
+  await user.type(screen.getByRole('textbox', { name: 'Search processes' }), 'worker-120')
+  expect(screen.getAllByRole('row')).toHaveLength(2)
+  expect(screen.getByText('worker-120')).toBeInTheDocument()
+  await user.clear(screen.getByRole('textbox', { name: 'Search processes' }))
+  expect(screen.getByText('1–50 of 121 processes')).toBeInTheDocument()
+})

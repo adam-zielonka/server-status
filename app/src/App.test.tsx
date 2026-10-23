@@ -3,16 +3,21 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
 import { demoEndpoint, demoTelemetry } from '@/lib/demo'
-import type { Endpoint } from '@/types'
+import type { Endpoint, TelemetrySnapshot } from '@/types'
 
 vi.mock('@/features/dashboard/resource-history', () => ({
-  default: () => <div role="img" aria-label="Resource history chart" />,
+  default: () => {
+    if (chartFailure) throw new Error('Synthetic render failure')
+    return <div role="img" aria-label="Resource history chart" />
+  },
 }))
 
 const failures = new Set<string>()
 let authExpired = false
 let monitoringEnabled = true
 let databaseMonitoring = false
+let chartFailure = false
+let updateSnapshot: (snapshot: TelemetrySnapshot) => void = () => {}
 
 function signedIn() {
   localStorage.setItem(
@@ -29,6 +34,8 @@ beforeEach(() => {
   authExpired = false
   monitoringEnabled = true
   databaseMonitoring = false
+  chartFailure = false
+  updateSnapshot = () => {}
   vi.stubGlobal(
     'fetch',
     vi.fn(async (url: string | URL | Request) => {
@@ -41,6 +48,7 @@ beforeEach(() => {
         return new Response(JSON.stringify({ data: { token: 'test-session' } }))
       if (endpoint === 'telemetry') {
         const telemetry = demoTelemetry()
+        updateSnapshot(telemetry)
         if (databaseMonitoring)
           telemetry.databases = [
             {
@@ -103,6 +111,113 @@ describe('authentication flow', () => {
 })
 
 describe('dashboard features', () => {
+  it('does not show all systems operational when an active basic metric source fails', async () => {
+    signedIn()
+    failures.add('memory')
+    render(<App />)
+    await waitFor(() => expect(screen.getByText('Needs attention')).toBeInTheDocument(), {
+      timeout: 4000,
+    })
+    expect(screen.queryByText('All systems operational')).not.toBeInTheDocument()
+    expect(screen.getByText('System at a glance')).toBeInTheDocument()
+  })
+  it('shows a recovery action if rendering or a lazy component fails', async () => {
+    chartFailure = true
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      signedIn()
+      render(<App />)
+      expect(
+        await screen.findByRole('heading', { name: 'Could not load the dashboard' }),
+      ).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Reload page' })).toBeInTheDocument()
+      expect(localStorage.getItem('server-status.session')).toContain('test-session')
+    } finally {
+      errors.mockRestore()
+    }
+  })
+  it('restores views with browser Back and Forward, and keeps skip links on the current view', async () => {
+    const user = userEvent.setup()
+    signedIn()
+    render(<App />)
+    await screen.findByRole('heading', { name: 'Server overview' })
+    await user.click(navigation().getByRole('link', { name: 'Services' }))
+    await user.click(navigation().getByRole('link', { name: 'Storage' }))
+    window.history.back()
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: 'Services', level: 1 })).toBeInTheDocument(),
+    )
+    window.history.forward()
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: 'Storage', level: 1 })).toBeInTheDocument(),
+    )
+    expect(document.title).toBe('Storage · Server Status')
+    await user.click(screen.getByRole('link', { name: 'Skip to content' }))
+    await waitFor(() => expect(window.location.hash).toBe('#main-content'))
+    expect(screen.getByRole('heading', { name: 'Storage', level: 1 })).toBeInTheDocument()
+  })
+  it('prioritizes issues, expands the list and opens the related diagnostic view', async () => {
+    updateSnapshot = (snapshot) => {
+      snapshot.services.forEach((service) => {
+        service.state = 'failed'
+      })
+      snapshot.jobs[0].status = 'failure'
+    }
+    const user = userEvent.setup()
+    signedIn()
+    render(<App />)
+    const issues = await screen.findByRole('region', { name: 'Monitoring issues' })
+    expect(within(issues).getAllByRole('link')).toHaveLength(4)
+    await user.click(within(issues).getByRole('button', { name: 'Show all 7 issues' }))
+    expect(within(issues).getAllByRole('link')).toHaveLength(7)
+    await user.click(within(issues).getByRole('link', { name: /SSH: failed/ }))
+    expect(screen.getByRole('heading', { name: 'Services', level: 1 })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1 })).toHaveFocus()
+  })
+  it('uses live basic readings when resource history is stale', async () => {
+    updateSnapshot = (snapshot) => {
+      snapshot.history = demoTelemetry(Date.now() - 600000).history
+    }
+    signedIn()
+    render(<App />)
+    await screen.findByRole('region', { name: 'Monitoring issues' })
+    expect(
+      within(screen.getByRole('group', { name: 'CPU utilization' })).getByText('Unavailable'),
+    ).toBeInTheDocument()
+    expect(
+      within(screen.getByRole('group', { name: 'Memory usage' })).getByText('37.5%'),
+    ).toBeInTheDocument()
+  })
+  it('filters tasks by search and health, including stopped schedulers', async () => {
+    updateSnapshot = (snapshot) => {
+      snapshot.jobs[0].timer_state = 'inactive'
+    }
+    const user = userEvent.setup()
+    signedIn()
+    window.history.replaceState(null, '', '#tasks')
+    render(<App />)
+    const search = await screen.findByRole('textbox', { name: 'Search tasks' })
+    await user.click(screen.getByRole('button', { name: 'Needs attention (1)' }))
+    expect(screen.getByText('Scheduled maintenance')).toBeInTheDocument()
+    expect(screen.queryByText('Application backup')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Needs attention (1)' }))
+    await user.type(search, 'backup')
+    expect(screen.getByText('Application backup')).toBeInTheDocument()
+    expect(screen.queryByText('Scheduled maintenance')).not.toBeInTheDocument()
+  })
+  it('does not describe a failed collector request as disabled', async () => {
+    signedIn()
+    failures.add('telemetry')
+    window.history.replaceState(null, '', '#processes')
+    render(<App />)
+    await screen.findByRole('button', { name: 'Retry Processes' }, { timeout: 4000 })
+    expect(screen.queryByText('Process monitoring is not enabled')).not.toBeInTheDocument()
+    expect(
+      screen
+        .getAllByRole('alert')
+        .some((alert) => alert.textContent?.includes('Source unavailable')),
+    ).toBe(true)
+  })
   it('navigates through all views and keeps system metrics accessible', async () => {
     const user = userEvent.setup()
     signedIn()
@@ -166,9 +281,17 @@ describe('dashboard features', () => {
     signedIn()
     failures.add('telemetry')
     render(<App />)
-    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Source unavailable'), {
-      timeout: 4000,
-    })
+    await waitFor(
+      () =>
+        expect(
+          screen
+            .getAllByRole('alert')
+            .some((alert) => alert.textContent?.includes('Source unavailable')),
+        ).toBe(true),
+      {
+        timeout: 4000,
+      },
+    )
     expect(screen.getByText('System at a glance')).toBeInTheDocument()
     expect(screen.getByText('Ubuntu 24.04')).toBeInTheDocument()
     expect(screen.getByText('Needs attention')).toBeInTheDocument()

@@ -1,4 +1,5 @@
-import type { Endpoint, EndpointMap, Session, Telemetry } from '@/types'
+import type { Endpoint, EndpointMap, Session } from '@/types'
+import { validEndpoint } from './validation'
 
 export const isDemo = import.meta.env.VITE_FAKE_API === 'true'
 export const showVirtualHosts = import.meta.env.VITE_SHOW_VHOSTS !== 'false'
@@ -14,26 +15,6 @@ export class ApiError extends Error {
   }
 }
 
-function validTelemetry(data: unknown): data is Telemetry {
-  if (!data || typeof data !== 'object' || !('enabled' in data)) return false
-  if (data.enabled === false) return true
-  if (data.enabled !== true) return false
-  const value = data as Record<string, unknown>
-  const processes = value.processes as Record<string, unknown> | null
-  return (
-    value.schema_version === 1 &&
-    typeof value.collected_at === 'string' &&
-    ['services', 'directories', 'jobs', 'history'].every((key) => Array.isArray(value[key])) &&
-    typeof value.container === 'object' &&
-    value.container !== null &&
-    typeof processes === 'object' &&
-    processes !== null &&
-    ['top_cpu', 'top_memory', 'groups_cpu', 'groups_memory'].every((key) =>
-      Array.isArray(processes[key]),
-    )
-  )
-}
-
 async function request(
   path: string,
   authorization: string,
@@ -45,7 +26,9 @@ async function request(
       method: 'GET',
       headers: { Authorization: authorization, Accept: 'application/json' },
       cache: 'no-store',
-      signal: signal ?? AbortSignal.timeout(15000),
+      signal: signal
+        ? AbortSignal.any([signal, AbortSignal.timeout(15000)])
+        : AbortSignal.timeout(15000),
     })
   } catch (error) {
     if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError')
@@ -80,12 +63,14 @@ export async function fetchEndpoint<K extends Endpoint>(
 ): Promise<EndpointMap[K]> {
   if (isDemo) return (await import('./demo')).demoEndpoint(endpoint)
   const data = await request(endpoint, `Bearer ${token}`, signal)
-  if (endpoint === 'telemetry' && !validTelemetry(data))
-    throw new ApiError(
-      'This monitoring snapshot is not supported. Update the collector and try again.',
-    )
   if (['services', 'net', 'file-system', 'vhosts'].includes(endpoint) && data === null)
     return [] as unknown as EndpointMap[K]
+  if (!validEndpoint(endpoint, data))
+    throw new ApiError(
+      endpoint === 'telemetry'
+        ? 'This monitoring snapshot is not supported. Update the collector and try again.'
+        : 'The server returned invalid monitoring data. Try refreshing this source.',
+    )
   return data as EndpointMap[K]
 }
 
