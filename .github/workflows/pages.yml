@@ -3,15 +3,14 @@ name: Deploy site to Pages
 on:
   push:
     branches: ["main"]
+  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: "pages"
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -46,6 +45,8 @@ jobs:
           cache-dependency-path: api/go.sum
       - name: Install app dependencies
         run: cd app && pnpm install --frozen-lockfile
+      - name: Audit app dependencies
+        run: cd app && pnpm audit --audit-level=high
       - name: Typecheck app
         run: cd app && pnpm typecheck
       - name: Test app
@@ -68,6 +69,7 @@ jobs:
       - name: Build public demo
         run: cd app && VITE_FAKE_API=true pnpm build
       - name: Upload artifact
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v5
         with:
           path: ./app/dist
@@ -79,6 +81,10 @@ jobs:
 
   # Deployment job
   deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
