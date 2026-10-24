@@ -39,7 +39,7 @@ jobs:
           cache: pnpm
           cache-dependency-path: app/pnpm-lock.yaml
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version-file: api/go.mod
           cache-dependency-path: api/go.sum
