@@ -98,6 +98,27 @@ func keyValues(body, separator string) map[string]string {
 	}
 	return result
 }
+
+// Store each point's denominator so calibration changes rescale history once.
+// Legacy points use the allocation from the previous snapshot.
+func normalizeCPUHistory(history []row, legacyCapacity, capacity float64) []row {
+	for _, point := range history {
+		old := numeric(point["cpu_capacity_cores"])
+		if old <= 0 {
+			old = legacyCapacity
+		}
+		if point["cpu_percent"] != nil {
+			if old <= 0 {
+				point["cpu_percent"] = nil
+			} else if old != capacity {
+				point["cpu_percent"] = round(numeric(point["cpu_percent"])*old/capacity, 2)
+			}
+		}
+		point["cpu_capacity_cores"] = capacity
+	}
+	return history
+}
+
 func retainHistory(previous []row, point row, now time.Time) []row {
 	result := []row{}
 	for _, p := range previous {

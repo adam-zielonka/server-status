@@ -58,6 +58,10 @@ export function SystemPage({
               ['Available logical CPUs', String(c.cpu_count)],
               ['CPU set', c.cpuset || 'Unavailable'],
               [
+                'CPU utilization scale',
+                `100% = ${c.effective_cpu_cores ?? c.cpu_count} CPU · ${c.cpu_capacity_cores != null ? 'configured capacity, bounded by visible limits' : 'visible allocation'}`,
+              ],
+              [
                 'CPU quota',
                 c.cpu_quota_cores == null
                   ? 'No finite limit visible'

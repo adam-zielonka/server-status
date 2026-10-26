@@ -87,6 +87,7 @@ export interface ContainerInfo {
   cpuset: string
   cpu_quota_cores: number | null
   effective_cpu_cores?: number
+  cpu_capacity_cores?: number
   memory_limit_bytes: number | null
   visible_memory_bytes: number
   memory_current_bytes: number | null

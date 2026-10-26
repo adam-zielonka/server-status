@@ -1,6 +1,7 @@
 package collector
 
 import (
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -36,6 +37,10 @@ func TestCollectorConfiguration(t *testing.T) {
 		strings.TrimSuffix(base, "}") + `,"backup_stores":[{"name":"Backup","status_file":"/private/check","max_age_seconds":0}]}`,
 		strings.TrimSuffix(base, "}") + `,"backup_stores":[{"name":"Backup","status_file":"/private/check","max_age_seconds":1800},{"name":"Backup","status_file":"/private/other","max_age_seconds":1800}]}`,
 		strings.TrimSuffix(base, "}") + `,"sample_interval_seconds":0}`,
+		strings.TrimSuffix(base, "}") + `,"cpu_capacity_cores":0}`,
+		strings.TrimSuffix(base, "}") + `,"cpu_capacity_cores":-1}`,
+		strings.TrimSuffix(base, "}") + `,"cpu_capacity_cores":true}`,
+		strings.TrimSuffix(base, "}") + `,"cpu_capacity_cores":"1"}`,
 		strings.TrimSuffix(base, "}") + `,"software":{"interval_seconds":60}}`,
 		strings.TrimSuffix(base, "}") + `,"software":{"tools":[{"name":"CLI","kind":"npm","package":"https://example.com","executable":"/bin/cli"}]}}`,
 		strings.TrimSuffix(base, "}") + `,"software":{"tools":[{"name":"CLI","kind":"shell","executable":"/bin/cli"}]}}`,
@@ -47,6 +52,18 @@ func TestCollectorConfiguration(t *testing.T) {
 	}
 	if _, err := Load(""); err == nil {
 		t.Fatal("collector must require explicit config")
+	}
+	for _, capacity := range []string{"1", "0.5"} {
+		cfg, err := load(strings.TrimSuffix(base, "}") + `,"cpu_capacity_cores":` + capacity + `}`)
+		if err != nil || cfg.CPUCapacityCores == nil {
+			t.Fatalf("valid CPU capacity %s rejected: %v", capacity, err)
+		}
+	}
+	for _, capacity := range []float64{math.NaN(), math.Inf(1), math.Inf(-1)} {
+		cfg.CPUCapacityCores = &capacity
+		if err := cfg.Validate(); err == nil {
+			t.Fatal("accepted nonfinite CPU capacity")
+		}
 	}
 	// Public example must remain loadable by the standalone collector.
 	if _, err := Load("../../collector/config.example.json"); err != nil {

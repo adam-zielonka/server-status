@@ -96,6 +96,16 @@ including weekends. Unreachable or missing sources are explicitly unknown.
   Exited/missing ancestors cannot be reconstructed. PID lists include every
   observed member. `top_cpu` and `top_memory` contain full rankings.
 - Overall CPU uses the visible cgroup CPU counter normalized to cpuset/quota.
+  Optional `cpu_capacity_cores` sets a positive capacity in logical CPU units
+  when a host limit is hidden. For example, `"cpu_capacity_cores": 1` makes
+  one fully used CPU equal 100%, even with two visible logical CPUs (previously
+  50%). The smaller of configured capacity and visible cpuset/quota is used;
+  omitting the setting preserves automatic detection. This is operator
+  calibration, not proof of a host quota. Overview and System label the scale.
+  Retained CPU history is rescaled using each point's saved capacity (legacy
+  points use the previous snapshot's allocation); values with an unknown
+  original scale become unavailable. Process CPU remains per logical CPU.
+  Short sampling bursts may exceed 100%; values are not clipped.
   Memory working set is `memory.current - inactive_file`; its percentage uses
   a finite cgroup limit or visible `/proc/meminfo` memory as a fallback.
   Total cgroup memory including file cache is displayed separately.

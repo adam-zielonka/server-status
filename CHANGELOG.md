@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Allow CPU capacity calibration for hidden host limits, show the configured
+  scale and keep retained CPU history consistent when capacity changes.
+
 ## 4.2.0 — 2026-10-26
 
 - Add a Software page with installed/available CLI versions, APT update

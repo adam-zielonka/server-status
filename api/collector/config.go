@@ -5,6 +5,7 @@ package collector
 import (
 	"encoding/json"
 	"errors"
+	"math"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -17,6 +18,7 @@ type Config struct {
 	SampleInterval    int             `json:"sample_interval_seconds"`
 	DirectoryInterval int             `json:"directory_interval_seconds"`
 	GitHubInterval    int             `json:"github_interval_seconds"`
+	CPUCapacityCores  *float64        `json:"cpu_capacity_cores"`
 	Software          *SoftwareConfig `json:"software"`
 	Tailscale         bool            `json:"tailscale"`
 	Units             []Unit          `json:"units"`
@@ -144,6 +146,9 @@ func (c *Config) Validate() error {
 	}
 	if c.SampleInterval < 1 || c.DirectoryInterval < 1 || c.GitHubInterval < 1 {
 		return errors.New("collector intervals must be positive seconds")
+	}
+	if c.CPUCapacityCores != nil && (*c.CPUCapacityCores <= 0 || math.IsNaN(*c.CPUCapacityCores) || math.IsInf(*c.CPUCapacityCores, 0)) {
+		return errors.New("CPU capacity must be a finite positive number of cores")
 	}
 	if c.Software != nil {
 		if c.Software.interval() < 3600 || c.Software.interval() > 604800 || len(c.Software.Tools) > 24 {

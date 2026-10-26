@@ -60,7 +60,7 @@ export function Overview({
             sampleStale
               ? 'Waiting for a current collector sample'
               : snapshot
-                ? `${snapshot.container.effective_cpu_cores ?? snapshot.container.cpu_count} CPU cores · normalized allocation`
+                ? `100% = ${snapshot.container.effective_cpu_cores ?? snapshot.container.cpu_count} CPU · ${snapshot.container.cpu_capacity_cores != null ? 'configured capacity' : 'visible allocation'}`
                 : 'Operations collector required'
           }
           icon={Cpu}

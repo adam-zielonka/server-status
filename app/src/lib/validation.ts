@@ -53,6 +53,7 @@ function validTelemetry(value: Record<string, unknown>): boolean {
       [
         'cpu_quota_cores',
         'effective_cpu_cores',
+        'cpu_capacity_cores',
         'memory_limit_bytes',
         'memory_current_bytes',
         'memory_working_set_bytes',

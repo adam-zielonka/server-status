@@ -49,6 +49,7 @@ func (s sampler) collect(ctx context.Context, cfg *Config) error {
 	if err != nil {
 		return err
 	}
+	applyCPUCapacity(container, cfg.CPUCapacityCores)
 	before := readProcesses("/proc")
 	cpuBefore := optionalCPUCounter()
 	sampleAt := time.Now()
@@ -107,8 +108,11 @@ func (s sampler) collect(ctx context.Context, cfg *Config) error {
 			directoryBytes[text(entry["name"])] = entry["bytes"]
 		}
 	}
-	point := row{"at": iso(now), "cpu_percent": cpu, "memory_percent": memoryPercent, "disk_percent": diskPercent, "memory_bytes": memory, "disk_used_bytes": int64(used), "directory_bytes": directoryBytes}
-	history := retainHistory(rows(state["history"]), point, now)
+	capacity := numeric(container["effective_cpu_cores"])
+	point := row{"at": iso(now), "cpu_percent": cpu, "cpu_capacity_cores": capacity, "memory_percent": memoryPercent, "disk_percent": diskPercent, "memory_bytes": memory, "disk_used_bytes": int64(used), "directory_bytes": directoryBytes}
+	previousContainer, _ := previous["container"].(map[string]any)
+	history := normalizeCPUHistory(rows(state["history"]), numeric(previousContainer["effective_cpu_cores"]), capacity)
+	history = retainHistory(history, point, now)
 	var tailscale any
 	if cfg.Tailscale {
 		tailscale = s.tailscale(ctx)
@@ -118,10 +122,12 @@ func (s sampler) collect(ctx context.Context, cfg *Config) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if err := atomicJSON(cfg.SnapshotFile, snapshot, 0640); err != nil {
+	// Persist per-point CPU denominators before publishing the new allocation.
+	// If publication fails, a retry can safely normalize the same legacy history.
+	if err := atomicJSON(cfg.StateFile, row{"history": history}, 0600); err != nil {
 		return err
 	}
-	return atomicJSON(cfg.StateFile, row{"history": history}, 0600)
+	return atomicJSON(cfg.SnapshotFile, snapshot, 0640)
 }
 
 func optionalCPUCounter() *int64 {
