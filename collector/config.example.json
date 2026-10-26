@@ -8,7 +8,9 @@
   "tunnels": [
     {
       "name": "Example application tunnel",
-      "hostnames": ["app.example.com"],
+      "hostnames": [
+        "app.example.com"
+      ],
       "metrics_port": 20241,
       "expected_connections": 4
     }
@@ -62,5 +64,33 @@
       "service_file": "/etc/server-status/pg_service.conf",
       "limit_bytes": 200000000
     }
-  ]
+  ],
+  "software": {
+    "interval_seconds": 21600,
+    "apt": true,
+    "tools": [
+      {
+        "name": "Node.js",
+        "kind": "node",
+        "executable": "/usr/bin/node"
+      },
+      {
+        "name": "pnpm",
+        "kind": "npm",
+        "package": "pnpm",
+        "executable": "/usr/local/bin/pnpm"
+      },
+      {
+        "name": "Go",
+        "kind": "go",
+        "executable": "/usr/local/go/bin/go"
+      },
+      {
+        "name": "Example CLI",
+        "kind": "github",
+        "repository": "example/project",
+        "executable": "/usr/local/bin/example"
+      }
+    ]
+  }
 }

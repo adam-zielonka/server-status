@@ -73,8 +73,16 @@ describe('freshness and health', () => {
     expect(alerts.some((row) => row.includes('expires'))).toBe(true)
     expect(alerts.some((row) => row.includes('SSH: failed'))).toBe(true)
   })
-  it('does not invent alerts for a healthy snapshot', () =>
-    expect(monitoringAlerts(demoTelemetry(now), now)).toEqual([]))
+  it('does not invent alerts for a healthy snapshot', () => {
+    const snapshot = demoTelemetry(now)
+    snapshot.software!.tools.forEach((t) => {
+      t.status = 'current'
+      delete t.error
+    })
+    snapshot.software!.apt!.updates = []
+    snapshot.software!.apt!.status = 'current'
+    expect(monitoringAlerts(snapshot, now)).toEqual([])
+  })
   it('does not mistake a newly published snapshot for fresh resource samples', () => {
     const snapshot = demoTelemetry(now - 600000)
     snapshot.collected_at = new Date(now).toISOString()
@@ -104,6 +112,7 @@ describe('freshness and health', () => {
       )
     }
     delete snapshot.tunnels
+    delete snapshot.software
     expect(monitoringAlerts(snapshot, now)).toEqual([])
   })
 })

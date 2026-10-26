@@ -38,7 +38,7 @@ systemd using the same executable; see the [collector guide](collector/README.md
 - [Application review and improvements](docs/application-review.md)
 - [Optional operations monitoring](collector/README.md): service health, top
   processes, container allocation, Tailscale status, resource history, directory
-  growth, and scheduled tasks/backups. Host configuration and collected data
+  growth, scheduled tasks/backups and software update availability. Host configuration and collected data
   stay outside the public repository; the demo uses synthetic examples.
 
 ## License

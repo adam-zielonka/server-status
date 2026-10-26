@@ -1,5 +1,6 @@
 import {
   Boxes,
+  PackageCheck,
   CheckCheck,
   Cpu,
   HardDrive,
@@ -58,6 +59,12 @@ export const navigation: { id: Page; label: string; icon: LucideIcon; descriptio
     label: 'System',
     icon: Server,
     description: 'Your operating system and container allocation.',
+  },
+  {
+    id: 'software',
+    label: 'Software',
+    icon: PackageCheck,
+    description: 'Installed tools and available updates.',
   },
   {
     id: 'tasks',

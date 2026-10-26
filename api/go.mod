@@ -4,6 +4,8 @@ go 1.26.0
 
 require github.com/shirou/gopsutil/v4 v4.26.9
 
+require golang.org/x/mod v0.34.0
+
 require (
 	github.com/ebitengine/purego v0.11.1 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect

@@ -33,6 +33,10 @@ func TestCollectorConfiguration(t *testing.T) {
 		strings.TrimSuffix(base, "}") + `,"databases":[{"name":"DB","service":"example","service_file":"/private/service","limit_bytes":true}]}`,
 		strings.TrimSuffix(base, "}") + `,"jobs":[{"name":"Backup","kind":"github","repository":"example/project","workflow":"--help"}]}`,
 		strings.TrimSuffix(base, "}") + `,"sample_interval_seconds":0}`,
+		strings.TrimSuffix(base, "}") + `,"software":{"interval_seconds":60}}`,
+		strings.TrimSuffix(base, "}") + `,"software":{"tools":[{"name":"CLI","kind":"npm","package":"https://example.com","executable":"/bin/cli"}]}}`,
+		strings.TrimSuffix(base, "}") + `,"software":{"tools":[{"name":"CLI","kind":"shell","executable":"/bin/cli"}]}}`,
+		strings.TrimSuffix(base, "}") + `,"software":{"tools":[{"name":"CLI","kind":"manual","executable":"relative"}]}}`,
 	} {
 		if _, err := load(body); err == nil {
 			t.Errorf("accepted invalid config: %s", body)

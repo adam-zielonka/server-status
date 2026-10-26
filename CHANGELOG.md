@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Add a Software page with installed/available CLI versions, APT update candidates, filters and independent freshness warnings.
+- Check configured npm/GitHub releases and the installed Node.js/Go series on a bounded, read-only schedule. Failed checks remain unknown; package updates are never installed automatically.
+
 ## 4.1.0 — 2026-10-23
 
 - Prioritize monitoring issues and link them to diagnostic views; add service

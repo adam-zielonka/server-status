@@ -156,6 +156,46 @@ export function demoTelemetry(now = Date.now()): TelemetrySnapshot {
         { address: 'example-node.example.ts.net:8443', paths: ['/', '/api'], funnel: false },
       ],
     },
+    software: {
+      checked_at: new Date(now).toISOString(),
+      interval_seconds: 21600,
+      apt: {
+        status: 'update_available',
+        checked_at: new Date(now).toISOString(),
+        security_index_at: new Date(now - 3600000).toISOString(),
+        updates: [
+          { name: 'example-utils', installed_version: '1.2.0-1', available_version: '1.2.1-1' },
+        ],
+      },
+      tools: [
+        {
+          name: 'Node.js',
+          source: 'node',
+          channel: '24.x',
+          installed_version: '24.4.0',
+          available_version: '24.5.0',
+          status: 'update_available',
+          checked_at: new Date(now).toISOString(),
+        },
+        {
+          name: 'pnpm',
+          source: 'npm',
+          channel: 'latest',
+          installed_version: '12.0.0',
+          available_version: '12.0.0',
+          status: 'current',
+          checked_at: new Date(now).toISOString(),
+        },
+        {
+          name: 'Example CLI',
+          source: 'github',
+          installed_version: '2.1.0',
+          status: 'unknown',
+          error: 'Release source unavailable or unsupported',
+          checked_at: new Date(now).toISOString(),
+        },
+      ],
+    },
     tunnels: [
       {
         name: 'Example application tunnel',

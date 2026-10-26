@@ -172,3 +172,36 @@ Counters are since connector start, not a historical error rate. A successful
 readiness check does not clear historical request errors.
 
 Reference: [Cloudflare tunnel metrics](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/monitor-tunnels/metrics/).
+
+## Software updates
+
+Optional `software` enables read-only APT and explicitly configured CLI checks.
+`interval_seconds` defaults to 21600 (six hours), with a range of 3600 to 604800 seconds.
+Up to 24 `tools` accept a unique `name`, absolute `executable` and `kind`:
+
+- `npm`: `package`, optional dist-tag `channel` (default `latest`).
+- `github`: `repository` (`owner/repo`), latest non-prerelease GitHub release.
+- `node`: latest stable release in the installed major from nodejs.org.
+- `go`: latest stable patch in the installed major.minor from go.dev.
+- `manual`: installed version only, explicitly unknown release availability.
+
+Each executable runs with `--version` (`go` uses `version`), without a shell.
+Choose trusted, root-owned executables. Commands and HTTP requests have time and
+output bounds; at most four tools run concurrently. Only fixed public registry
+hosts are queried, without credentials, proxies or redirects. No update command
+is run. An available release is informational, not a compatibility assessment.
+Missing binaries, unsupported version formats and failed/rate-limited sources
+remain unknown. Checks cache by configuration fingerprint and expire independently
+of minute-by-minute telemetry. New installations invalidate the cache at the next
+scheduled check. The Software page marks stale results and provides search and
+an updates filter; Overview links to update/source warnings.
+
+`apt: true` lists all installed packages reported by local `apt list --upgradable`,
+preserving Debian epochs/revisions. It neither refreshes indexes nor installs
+packages. Refresh indexes separately with your normal maintenance process.
+The local security index publication date is shown; missing indexes or a date
+older than 48 hours make APT status unknown while retaining reported candidates.
+Held/phased packages may be listed; availability does not promise an upgrade.
+Distribution-managed tools should normally use APT, since upstream version
+numbers do not account for distribution security backports. CLI executable paths
+and package/repository configuration are not exported in telemetry.

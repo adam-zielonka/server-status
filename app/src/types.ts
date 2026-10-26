@@ -165,6 +165,28 @@ export interface TunnelInfo {
   locations?: string[]
   error?: string
 }
+export interface SoftwareVersion {
+  name: string
+  source: string
+  channel?: string
+  installed_version?: string | null
+  available_version?: string | null
+  status: 'current' | 'update_available' | 'unknown'
+  checked_at: string
+  error?: string
+}
+export interface SoftwareInfo {
+  checked_at: string
+  interval_seconds: number
+  tools: SoftwareVersion[]
+  apt: {
+    status: 'current' | 'update_available' | 'unknown'
+    checked_at: string
+    security_index_at: string | null
+    error?: string
+    updates: { name: string; installed_version: string; available_version: string }[]
+  } | null
+}
 export interface TelemetrySnapshot {
   enabled: true
   schema_version: 1
@@ -176,6 +198,7 @@ export interface TelemetrySnapshot {
   container: ContainerInfo
   tailscale: TailscaleInfo | null
   databases?: DatabaseInfo[]
+  software?: SoftwareInfo | null
   tunnels?: TunnelInfo[]
   directories: DirectoryInfo[]
   jobs: Job[]
@@ -195,4 +218,4 @@ export interface EndpointMap {
 }
 export type Endpoint = keyof EndpointMap
 export type Page =
-  'overview' | 'services' | 'processes' | 'storage' | 'network' | 'system' | 'tasks'
+  'overview' | 'services' | 'processes' | 'storage' | 'network' | 'system' | 'tasks' | 'software'

@@ -145,6 +145,35 @@ function validTelemetry(value: Record<string, unknown>): boolean {
           ),
         ),
     ) &&
+    optional(
+      value.software,
+      (sw) =>
+        record(sw) &&
+        text(sw, ['checked_at']) &&
+        number(sw.interval_seconds) &&
+        sw.interval_seconds >= 3600 &&
+        array(
+          sw.tools,
+          (row) =>
+            text(row, ['name', 'source', 'status', 'checked_at']) &&
+            ['current', 'update_available', 'unknown'].includes(row.status as string) &&
+            fields(row, ['installed_version', 'available_version', 'channel'], (f) =>
+              optional(f, string),
+            ),
+        ) &&
+        optional(
+          sw.apt,
+          (apt) =>
+            record(apt) &&
+            text(apt, ['status', 'checked_at']) &&
+            ['current', 'update_available', 'unknown'].includes(apt.status as string) &&
+            optional(apt.error, string) &&
+            optional(apt.security_index_at, string) &&
+            array(apt.updates, (row) =>
+              text(row, ['name', 'installed_version', 'available_version']),
+            ),
+        ),
+    ) &&
     optional(value.databases, (rows) =>
       array(
         rows,

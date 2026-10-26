@@ -12,17 +12,39 @@ import (
 )
 
 type Config struct {
-	SnapshotFile      string      `json:"snapshot_file"`
-	StateFile         string      `json:"state_file"`
-	SampleInterval    int         `json:"sample_interval_seconds"`
-	DirectoryInterval int         `json:"directory_interval_seconds"`
-	GitHubInterval    int         `json:"github_interval_seconds"`
-	Tailscale         bool        `json:"tailscale"`
-	Units             []Unit      `json:"units"`
-	Directories       []Directory `json:"directories"`
-	Jobs              []Job       `json:"jobs"`
-	Databases         []Database  `json:"databases"`
-	Tunnels           []Tunnel    `json:"tunnels"`
+	SnapshotFile      string          `json:"snapshot_file"`
+	StateFile         string          `json:"state_file"`
+	SampleInterval    int             `json:"sample_interval_seconds"`
+	DirectoryInterval int             `json:"directory_interval_seconds"`
+	GitHubInterval    int             `json:"github_interval_seconds"`
+	Software          *SoftwareConfig `json:"software"`
+	Tailscale         bool            `json:"tailscale"`
+	Units             []Unit          `json:"units"`
+	Directories       []Directory     `json:"directories"`
+	Jobs              []Job           `json:"jobs"`
+	Databases         []Database      `json:"databases"`
+	Tunnels           []Tunnel        `json:"tunnels"`
+}
+
+type SoftwareConfig struct {
+	Interval int            `json:"interval_seconds"`
+	APT      bool           `json:"apt"`
+	Tools    []SoftwareTool `json:"tools"`
+}
+type SoftwareTool struct {
+	Name       string `json:"name"`
+	Executable string `json:"executable"`
+	Kind       string `json:"kind"`
+	Package    string `json:"package"`
+	Repository string `json:"repository"`
+	Channel    string `json:"channel"`
+}
+
+func (c *SoftwareConfig) interval() int {
+	if c.Interval == 0 {
+		return 21600
+	}
+	return c.Interval
 }
 
 type Unit struct {
@@ -113,6 +135,31 @@ func (c *Config) Validate() error {
 	}
 	if c.SampleInterval < 1 || c.DirectoryInterval < 1 || c.GitHubInterval < 1 {
 		return errors.New("collector intervals must be positive seconds")
+	}
+	if c.Software != nil {
+		if c.Software.interval() < 3600 || c.Software.interval() > 604800 || len(c.Software.Tools) > 24 {
+			return errors.New("software checks require an interval between one hour and one week and at most 24 tools")
+		}
+		names := map[string]bool{}
+		for _, tool := range c.Software.Tools {
+			if strings.TrimSpace(tool.Name) == "" || names[tool.Name] || !filepath.IsAbs(tool.Executable) {
+				return errors.New("invalid software name or executable")
+			}
+			names[tool.Name] = true
+			switch tool.Kind {
+			case "npm":
+				if !regexp.MustCompile(`^(@[a-z0-9_-]+/)?[a-z0-9_.-]+$`).MatchString(tool.Package) || (tool.Channel != "" && !regexp.MustCompile(`^[a-zA-Z0-9_-]+$`).MatchString(tool.Channel)) {
+					return errors.New("invalid npm package or channel")
+				}
+			case "github":
+				if !repositoryPattern.MatchString(tool.Repository) {
+					return errors.New("invalid software release repository")
+				}
+			case "node", "go", "manual":
+			default:
+				return errors.New("unsupported software source")
+			}
+		}
 	}
 	for _, item := range c.Units {
 		if !validUnit(item) {

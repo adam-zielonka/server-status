@@ -15,6 +15,7 @@ import { ProcessesPage } from './processes'
 import { StoragePage } from './storage'
 import { NetworkPage } from './network'
 import { SystemPage } from './system'
+import { SoftwarePage } from './software'
 import { TasksPage } from './tasks'
 
 export function Dashboard() {
@@ -131,6 +132,7 @@ export function Dashboard() {
             error={system.error}
           />
         )}
+        {page === 'software' && <SoftwarePage snapshot={snapshot} now={now} />}
         {page === 'tasks' && <TasksPage snapshot={snapshot} now={now} />}
       </AppShell>
     </TelemetrySourceProvider>

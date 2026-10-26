@@ -186,6 +186,17 @@ export function monitoringIssues(snapshot: TelemetrySnapshot, now = Date.now()):
         'network',
         tunnel.status === 'failure' ? 'critical' : 'warning',
       )
+  const software = snapshot.software
+  if (software) {
+    if (softwareIsStale(software, now))
+      add('software-stale', 'Software update checks are stale.', 'software')
+    const count =
+      software.tools.filter((t) => t.status === 'update_available').length +
+      (software.apt?.updates.length || 0)
+    if (count) add('software-updates', `${count} software updates available.`, 'software')
+    if (software.apt?.error || software.tools.some((t) => t.error || t.status === 'unknown'))
+      add('software-unknown', 'Some software versions could not be checked.', 'software')
+  }
   return issues.sort(
     (a, b) => Number(b.severity === 'critical') - Number(a.severity === 'critical'),
   )
@@ -193,4 +204,13 @@ export function monitoringIssues(snapshot: TelemetrySnapshot, now = Date.now()):
 
 export function monitoringAlerts(snapshot: TelemetrySnapshot, now = Date.now()): string[] {
   return monitoringIssues(snapshot, now).map((issue) => issue.message)
+}
+
+export function softwareIsStale(software: import('@/types').SoftwareInfo, now: number): boolean {
+  const age = ageSeconds(software.checked_at, now)
+  return (
+    age === null ||
+    Date.parse(software.checked_at) > now + 60000 ||
+    age > software.interval_seconds * 1.25 + 60
+  )
 }
