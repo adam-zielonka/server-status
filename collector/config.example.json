@@ -92,5 +92,12 @@
         "executable": "/usr/local/bin/example"
       }
     ]
-  }
+  },
+  "backup_stores": [
+    {
+      "name": "Configuration backups",
+      "status_file": "/var/lib/example-backup/status.json",
+      "max_age_seconds": 1800
+    }
+  ]
 }

@@ -205,3 +205,20 @@ Held/phased packages may be listed; availability does not promise an upgrade.
 Distribution-managed tools should normally use APT, since upstream version
 numbers do not account for distribution security backports. CLI executable paths
 and package/repository configuration are not exported in telemetry.
+
+
+## Backup storage measurements
+
+`backup_stores` optionally reads small JSON status files produced by a separate
+backup checker. Configure a label, absolute `status_file`, and
+`max_age_seconds` (60–604800). The collector only reads these files; it does not
+receive SSH keys, connect to remote stores, create backups, or delete archives.
+The source may contain `status`, `checked_at` (RFC 3339), `bytes`, `limit_bytes`,
+`backup_count`, `last_success_at`, and `latest_backup_bytes`. Use `status: unknown`
+when a remote check fails. Capacity is recomputed at 80%/95% thresholds.
+Missing, invalid, stale, future-dated or oversized measurements become unknown;
+unavailable capacity is never reported as zero. Extra fields and raw source
+errors are omitted from the published snapshot. The UI independently expires
+old measurements and shows alerts in Overview and capacity in Storage.
+Monitor the actual backup service/timer separately under `jobs` with category
+`backup` to detect failed runs and overdue copies.

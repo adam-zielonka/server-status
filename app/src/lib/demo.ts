@@ -156,6 +156,21 @@ export function demoTelemetry(now = Date.now()): TelemetrySnapshot {
         { address: 'example-node.example.ts.net:8443', paths: ['/', '/api'], funnel: false },
       ],
     },
+    backup_stores: [
+      {
+        name: 'Configuration backups',
+        status: 'healthy',
+        checked_at: at(120),
+        max_age_seconds: 1800,
+        bytes: 4200000,
+        limit_bytes: 200000000,
+        available_bytes: 195800000,
+        used_percent: 2.1,
+        backup_count: 7,
+        last_success_at: at(7200),
+        latest_backup_bytes: 600000,
+      },
+    ],
     software: {
       checked_at: new Date(now).toISOString(),
       interval_seconds: 21600,

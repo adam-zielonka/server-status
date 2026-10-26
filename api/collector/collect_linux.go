@@ -114,6 +114,7 @@ func (s sampler) collect(ctx context.Context, cfg *Config) error {
 		tailscale = s.tailscale(ctx)
 	}
 	snapshot := row{"schema_version": 1, "enabled": true, "collected_at": iso(time.Now()), "sample_at": iso(now), "sample_interval_seconds": cfg.SampleInterval, "services": services, "processes": topProcesses(before, after, elapsed, float64(ticks)), "container": container, "tailscale": tailscale, "directories": directories, "jobs": jobs, "databases": s.databases(ctx, cfg.Databases), "tunnels": collectTunnels(ctx, cfg.Tunnels), "history": history, "software": s.software(ctx, cfg.Software, previous["software"], now)}
+	snapshot["backup_stores"] = collectBackupStores(cfg.BackupStores, now)
 	if err := ctx.Err(); err != nil {
 		return err
 	}

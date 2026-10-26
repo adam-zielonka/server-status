@@ -1,4 +1,12 @@
-import type { HistoryMetric, HistoryPoint, Job, JobHealth, Page, TelemetrySnapshot } from '@/types'
+import type {
+  BackupStoreInfo,
+  HistoryMetric,
+  HistoryPoint,
+  Job,
+  JobHealth,
+  Page,
+  TelemetrySnapshot,
+} from '@/types'
 import { formatPercent, isNumber } from './format'
 
 export function ageSeconds(value?: string | null, now = Date.now()): number | null {
@@ -23,6 +31,13 @@ export function jobHealth(job: Job, now = Date.now()): JobHealth {
   const age = ageSeconds(job.last_success_at, now)
   if (age === null || age > (job.max_age_seconds || 86400)) return 'overdue'
   return job.status === 'running' ? 'running' : 'success'
+}
+
+export function backupStoreIsStale(store: BackupStoreInfo, now = Date.now()): boolean {
+  const age = ageSeconds(store.checked_at, now)
+  return (
+    age === null || Date.parse(store.checked_at || '') > now + 60000 || age > store.max_age_seconds
+  )
 }
 
 export function directoryGrowth(history: HistoryPoint[], name: string): number | null {
@@ -176,6 +191,16 @@ export function monitoringIssues(snapshot: TelemetrySnapshot, now = Date.now()):
         `tls:${database.name}`,
         `${database.name}: database connection is not encrypted`,
         'storage',
+      )
+  }
+  for (const store of snapshot.backup_stores || []) {
+    const stale = backupStoreIsStale(store, now)
+    if (store.error || stale || store.status !== 'healthy')
+      add(
+        `backup-store:${store.name}`,
+        `${store.name}: backup storage ${stale ? 'stale' : store.error ? 'unknown' : store.status}`,
+        'storage',
+        !stale && !store.error && store.status === 'failure' ? 'critical' : 'warning',
       )
   }
   for (const tunnel of snapshot.tunnels || [])

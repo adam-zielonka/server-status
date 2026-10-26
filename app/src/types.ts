@@ -153,6 +153,20 @@ export interface DatabaseInfo {
   latency_ms?: number
   error?: string
 }
+export interface BackupStoreInfo {
+  name: string
+  status: 'healthy' | 'warning' | 'failure' | 'unknown'
+  checked_at: string | null
+  max_age_seconds: number
+  bytes?: number
+  limit_bytes?: number
+  available_bytes?: number
+  used_percent?: number
+  backup_count?: number
+  latest_backup_bytes?: number
+  last_success_at?: string
+  error?: string
+}
 export interface TunnelInfo {
   name: string
   hostnames: string[]
@@ -198,6 +212,7 @@ export interface TelemetrySnapshot {
   container: ContainerInfo
   tailscale: TailscaleInfo | null
   databases?: DatabaseInfo[]
+  backup_stores?: BackupStoreInfo[]
   software?: SoftwareInfo | null
   tunnels?: TunnelInfo[]
   directories: DirectoryInfo[]

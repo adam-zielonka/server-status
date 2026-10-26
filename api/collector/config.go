@@ -24,6 +24,15 @@ type Config struct {
 	Jobs              []Job           `json:"jobs"`
 	Databases         []Database      `json:"databases"`
 	Tunnels           []Tunnel        `json:"tunnels"`
+	BackupStores      []BackupStore   `json:"backup_stores"`
+}
+
+// BackupStore reads sanitized measurements from a separate backup checker.
+// The collector never receives remote credentials or runs backup operations.
+type BackupStore struct {
+	Name       string `json:"name"`
+	StatusFile string `json:"status_file"`
+	MaxAge     int    `json:"max_age_seconds"`
 }
 
 type SoftwareConfig struct {
@@ -170,6 +179,13 @@ func (c *Config) Validate() error {
 		if strings.TrimSpace(item.Name) == "" || !filepath.IsAbs(item.Path) {
 			return errors.New("invalid directory configuration")
 		}
+	}
+	storeNames := map[string]bool{}
+	for _, item := range c.BackupStores {
+		if strings.TrimSpace(item.Name) == "" || storeNames[item.Name] || !filepath.IsAbs(item.StatusFile) || item.MaxAge < 60 || item.MaxAge > 604800 {
+			return errors.New("invalid backup store name, status file or maximum age")
+		}
+		storeNames[item.Name] = true
 	}
 	ports := map[int]bool{}
 	for _, item := range c.Tunnels {

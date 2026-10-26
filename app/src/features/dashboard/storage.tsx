@@ -18,6 +18,7 @@ import { useApi } from '@/hooks/use-api'
 import { availableDiskSpace, formatBytes, formatDate, formatPercent } from '@/lib/format'
 import { directoryGrowth, snapshotIsStale } from '@/lib/monitoring'
 import type { TelemetrySnapshot } from '@/types'
+import { BackupStores } from './backup-stores'
 
 const databaseSize = (bytes?: number) =>
   bytes === undefined ? 'Unavailable' : `${Number((bytes / 1_000_000).toFixed(1))} MB`
@@ -166,6 +167,11 @@ export function StoragePage({ snapshot, now }: { snapshot?: TelemetrySnapshot; n
           </Table>
         </TelemetryCard>
       )}
+      <BackupStores
+        stores={snapshot?.backup_stores}
+        now={now}
+        stale={snapshotIsStale(snapshot, now)}
+      />
       <TelemetryCard
         title="Directory growth"
         description="Allocated bytes, scanned periodically without reading file contents. Growth compares recorded observations."

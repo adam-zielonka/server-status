@@ -43,3 +43,10 @@ systemd using the same executable; see the [collector guide](collector/README.md
 
 ## License
 MIT
+
+
+Optional backup storage monitoring accepts sanitized JSON measurements from a
+separate backup checker. Storage shows capacity, available space, retained copy
+count and the latest verified backup; Overview flags capacity issues and expired
+measurements. Pair it with a backup job in Tasks to monitor schedule/failures.
+See [collector configuration](collector/README.md#backup-storage-measurements).
