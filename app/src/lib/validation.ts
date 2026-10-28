@@ -175,6 +175,30 @@ function validTelemetry(value: Record<string, unknown>): boolean {
             ),
         ),
     ) &&
+    optional(value.backup_stores, (rows) =>
+      array(
+        rows,
+        (row) =>
+          text(row, ['name', 'status']) &&
+          ['healthy', 'warning', 'failure', 'unknown'].includes(row.status as string) &&
+          (row.checked_at === null || string(row.checked_at)) &&
+          number(row.max_age_seconds) &&
+          row.max_age_seconds > 0 &&
+          optional(row.last_success_at, string) &&
+          fields(
+            row,
+            [
+              'bytes',
+              'limit_bytes',
+              'available_bytes',
+              'used_percent',
+              'backup_count',
+              'latest_backup_bytes',
+            ],
+            (field) => optional(field, number),
+          ),
+      ),
+    ) &&
     optional(value.databases, (rows) =>
       array(
         rows,

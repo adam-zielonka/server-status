@@ -10,5 +10,7 @@ state.json
 *.local
 *.private.*
 coverage/
+test-results/
+playwright-report/
 /build/
 /api/web/dist/

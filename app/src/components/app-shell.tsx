@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { StatusBadge } from '@/components/status-badge'
+import { AppVersion } from '@/components/app-version'
 import { useAuth } from '@/features/auth/auth-context'
 import { isDemo } from '@/lib/api'
 import { cn } from '@/lib/utils'
@@ -180,84 +181,86 @@ export function AppShell({
           </div>
         </div>
       </aside>
-      <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b bg-card/95 px-4 backdrop-blur sm:px-7">
-        <div className="flex min-w-0 items-center gap-2 text-xs">
-          <Activity className="mr-1 size-5 text-primary lg:hidden" />
-          <span className="hidden text-muted-foreground sm:inline">Workspace</span>
-          <ChevronRight className="hidden size-3 text-muted-foreground sm:inline" />
-          <span className="truncate font-medium">{active.label}</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="mr-2 hidden items-center gap-1.5 text-[11px] text-muted-foreground sm:flex">
-            <span
+      <div className="sticky top-0 z-20">
+        <header className="flex h-16 items-center justify-between gap-3 border-b bg-card/95 px-4 backdrop-blur sm:px-7">
+          <div className="flex min-w-0 items-center gap-2 text-xs">
+            <Activity className="mr-1 size-5 text-primary lg:hidden" />
+            <span className="hidden text-muted-foreground sm:inline">Workspace</span>
+            <ChevronRight className="hidden size-3 text-muted-foreground sm:inline" />
+            <span className="truncate font-medium">{active.label}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="mr-2 hidden items-center gap-1.5 text-[11px] text-muted-foreground sm:flex">
+              <span
+                className={cn(
+                  'size-1.5 rounded-full',
+                  health === 'healthy' ? 'bg-emerald-500' : 'bg-amber-500',
+                )}
+              />
+              {isDemo ? 'Demo' : 'Live'}
+            </span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  aria-label="Refresh all metrics"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8"
+                  onClick={() => void queryClient.invalidateQueries({ queryKey: ['metrics'] })}
+                  disabled={fetching}
+                >
+                  <RefreshCw className={cn('size-4', fetching && 'animate-spin')} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Refresh all metrics</TooltipContent>
+            </Tooltip>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8"
+              onClick={() => setDark((value) => !value)}
+              aria-label={dark ? 'Use light theme' : 'Use dark theme'}
+            >
+              {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8 lg:hidden"
+              aria-label="Sign out"
+              onClick={() => signOut()}
+            >
+              <LogOut className="size-4" />
+            </Button>
+          </div>
+        </header>
+        <nav
+          aria-label="Mobile navigation"
+          className="flex gap-1 overflow-x-auto border-b bg-card px-3 py-2 lg:hidden"
+        >
+          {navigation.map((item) => (
+            <a
+              key={item.id}
+              href={`#${item.id}`}
+              onClick={(event) => navigateLink(event, () => onPageChange(item.id))}
+              aria-current={page === item.id ? 'page' : undefined}
               className={cn(
-                'size-1.5 rounded-full',
-                health === 'healthy' ? 'bg-emerald-500' : 'bg-amber-500',
+                'flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-2 text-xs',
+                page === item.id
+                  ? 'bg-accent font-medium text-accent-foreground'
+                  : 'text-muted-foreground',
               )}
-            />
-            {isDemo ? 'Demo' : 'Live'}
-          </span>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                aria-label="Refresh all metrics"
-                variant="ghost"
-                size="icon"
-                className="size-8"
-                onClick={() => void queryClient.invalidateQueries({ queryKey: ['metrics'] })}
-                disabled={fetching}
-              >
-                <RefreshCw className={cn('size-4', fetching && 'animate-spin')} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Refresh all metrics</TooltipContent>
-          </Tooltip>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-8"
-            onClick={() => setDark((value) => !value)}
-            aria-label={dark ? 'Use light theme' : 'Use dark theme'}
-          >
-            {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-8 lg:hidden"
-            aria-label="Sign out"
-            onClick={() => signOut()}
-          >
-            <LogOut className="size-4" />
-          </Button>
-        </div>
-      </header>
-      <nav
-        aria-label="Mobile navigation"
-        className="flex gap-1 overflow-x-auto border-b bg-card px-3 py-2 lg:hidden"
-      >
-        {navigation.map((item) => (
-          <a
-            key={item.id}
-            href={`#${item.id}`}
-            onClick={(event) => navigateLink(event, () => onPageChange(item.id))}
-            aria-current={page === item.id ? 'page' : undefined}
-            className={cn(
-              'flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-2 text-xs',
-              page === item.id
-                ? 'bg-accent font-medium text-accent-foreground'
-                : 'text-muted-foreground',
-            )}
-          >
-            <item.icon className="size-3.5" />
-            {item.label}
-          </a>
-        ))}
-      </nav>
+            >
+              <item.icon className="size-3.5" />
+              {item.label}
+            </a>
+          ))}
+        </nav>
+      </div>
       <main
         id="main-content"
         tabIndex={-1}
-        className="mx-auto scroll-mt-20 max-w-[1600px] px-4 pb-8 pt-6 sm:px-7 sm:pt-8"
+        className="mx-auto scroll-mt-32 max-w-[1600px] px-4 pb-8 pt-6 sm:px-7 sm:pt-8 lg:scroll-mt-20"
       >
         <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -298,7 +301,7 @@ export function AppShell({
         </div>
         {children}
         <footer className="mt-8 flex flex-wrap items-center justify-between gap-2 border-t pt-4 text-[10px] text-muted-foreground">
-          <span>Server Status · Infrastructure monitoring</span>
+          <AppVersion />
           <a
             href="https://github.com/adam-zielonka/server-status"
             target="_blank"

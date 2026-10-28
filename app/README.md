@@ -38,6 +38,10 @@ frontend and serves it together with `/api/*`; Node.js is only needed to build.
 See the [CLI and build guide](../api/README.md). Frontend changes require rebuilding
 the executable. Static hosting and the separate public demo remain supported.
 
+The dashboard footer and sign-in page show the version from the repository's
+`VERSION` file and link to its release notes. The `VERSION` environment override
+also applies to the frontend when building the standalone executable.
+
 Build-time options:
 
 | Variable           | Default | Purpose                                          |
@@ -64,7 +68,7 @@ outside the checkout. See the [collector privacy guide](../collector/README.md).
   cache and automatic refresh.
 - `src/features/auth/`: sign-in, session validation and logout.
 - `src/features/dashboard/`: overview, services, processes, storage, network,
-  system and scheduled tasks.
+  system, software and scheduled tasks.
 - `src/components/`: shared shell, cards, tables and status indicators.
 - `src/components/ui/`: locally owned TypeScript shadcn/ui components from the
   official registry. Components use the shared `cn` utility and CSS theme tokens.
@@ -95,6 +99,8 @@ pnpm lint
 pnpm format:check
 pnpm test
 pnpm test:coverage
+pnpm exec playwright install chromium
+pnpm test:e2e
 pnpm build
 ```
 
@@ -102,6 +108,12 @@ pnpm build
 Library cover login/logout, expired sessions, network failures, API validation, navigation, filtering/sorting, disabled collectors,
 theme switching, browser history, actionable issues, pagination, source recovery, task freshness, chart gaps, formatting and synthetic-only demo
 requests. Test fixtures contain example data only.
+
+Playwright checks all eight views in Chromium at phone, small-phone, landscape
+and desktop sizes. It verifies that navigation stays visible after view changes
+and scrolling, avoids page-wide horizontal overflow, and exercises browser
+history, deep links, keyboard focus, theme persistence, sign-out and version
+links. CI installs Chromium and runs these checks against the synthetic demo.
 
 Use `pnpm format` to apply Prettier. Add or update shadcn components using
 `pnpm dlx shadcn@latest add <component>`; review generated changes and keep imports

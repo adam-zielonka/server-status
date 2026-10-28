@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { isDemo } from '@/lib/api'
+import { AppVersion } from '@/components/app-version'
 
 export function LoginPage() {
   const { signIn, signingIn, error } = useAuth()
@@ -81,6 +82,9 @@ export function LoginPage() {
         <p className="mt-6 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
           <ShieldCheck className="size-3.5" />
           {isDemo ? 'Demo mode · Synthetic data only' : 'Authenticated access to your server'}
+        </p>
+        <p className="mt-3 text-center text-[10px] text-muted-foreground">
+          <AppVersion />
         </p>
       </div>
     </main>

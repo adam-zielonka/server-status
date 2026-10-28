@@ -87,12 +87,42 @@ describe('typed API client', () => {
       'directories',
       'databases',
       'tunnels',
+      'backup_stores',
     ] as const) {
       mockResponse({ data: { ...demoTelemetry(), [key]: [null] } })
       await expect(fetchEndpoint('telemetry', 'test')).rejects.toThrow('not supported')
     }
     mockResponse({ data: { ...demoTelemetry(), tailscale: { services: [null] } } })
     await expect(fetchEndpoint('telemetry', 'test')).rejects.toThrow('not supported')
+  })
+  it('validates backup measurements while accepting missing monitoring and failed checks', async () => {
+    const snapshot = demoTelemetry()
+    for (const backup_stores of [
+      undefined,
+      [],
+      [
+        {
+          name: 'Example backup',
+          status: 'unknown',
+          checked_at: null,
+          max_age_seconds: 1800,
+          error: 'Check failed',
+        },
+      ],
+    ]) {
+      mockResponse({ data: { ...snapshot, backup_stores } })
+      await expect(fetchEndpoint('telemetry', 'test')).resolves.toBeDefined()
+    }
+    const store = snapshot.backup_stores![0]
+    for (const invalid of [
+      { backup_count: 'seven' },
+      { last_success_at: {} },
+      { max_age_seconds: 0 },
+      { used_percent: 'full' },
+    ]) {
+      mockResponse({ data: { ...snapshot, backup_stores: [{ ...store, ...invalid }] } })
+      await expect(fetchEndpoint('telemetry', 'test')).rejects.toThrow('not supported')
+    }
   })
   it('supports Unicode credentials without storing a password', async () => {
     const fetch = mockResponse({ data: { token: 'example-session' } })

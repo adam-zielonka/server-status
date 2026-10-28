@@ -47,7 +47,7 @@ export function BackupStores({
               <TableCell className="font-medium">
                 {store.name}
                 {store.error && (
-                  <span className="block max-w-64 whitespace-normal text-xs text-amber-700">
+                  <span className="block max-w-64 whitespace-normal text-xs text-amber-700 dark:text-amber-400">
                     {store.error}
                   </span>
                 )}

@@ -43,7 +43,7 @@ export function Dashboard() {
     document.title = `${navigation.find((item) => item.id === page)!.label} · Server Status`
     if (previousPage.current !== page) {
       document.getElementById('page-heading')?.focus({ preventScroll: true })
-      document.getElementById('main-content')?.scrollIntoView({ block: 'start' })
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
       previousPage.current = page
     }
   }, [page])

@@ -1,9 +1,15 @@
 import { fileURLToPath, URL } from 'node:url'
+import { readFileSync } from 'node:fs'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(
+      process.env.VERSION || readFileSync(new URL('../VERSION', import.meta.url), 'utf8').trim(),
+    ),
+  },
   plugins: [react(), tailwindcss()],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   base: './',

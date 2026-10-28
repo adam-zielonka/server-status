@@ -1,7 +1,13 @@
 # Changelog
 
-## Unreleased
+## 4.3.0 — 2026-10-28
 
+- Keep mobile navigation visible together with the header when switching views
+  or scrolling, and return each new view to the top without hiding its menu.
+- Show the build version with release notes in the dashboard footer and login page.
+- Validate optional backup storage payloads before rendering, so malformed
+  measurements produce a recoverable source error instead of breaking the dashboard.
+- Add optional backup storage capacity, retained-copy and verification monitoring.
 - Allow CPU capacity calibration for hidden host limits, show the configured
   scale and keep retained CPU history consistent when capacity changes.
 
