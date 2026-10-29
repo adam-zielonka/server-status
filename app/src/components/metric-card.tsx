@@ -3,11 +3,13 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
+import { MetricInfo } from '@/components/metric-info'
 
 export function MetricCard({
   title,
   value,
   detail,
+  info,
   icon: Icon,
   progress,
   loading,
@@ -16,6 +18,7 @@ export function MetricCard({
   title: string
   value: string
   detail: string
+  info?: string
   icon: LucideIcon
   progress?: number | null
   loading?: boolean
@@ -29,7 +32,10 @@ export function MetricCard({
     >
       <CardContent className="p-4 sm:p-5">
         <div className="mb-4 flex items-center justify-between gap-2">
-          <span className="text-xs font-medium text-muted-foreground">{title}</span>
+          <div className="flex items-center gap-1">
+            <span className="text-xs font-medium text-muted-foreground">{title}</span>
+            {info && <MetricInfo label={`About ${title}`}>{info}</MetricInfo>}
+          </div>
           <Icon className="size-4 text-muted-foreground/70" />
         </div>
         {loading ? (

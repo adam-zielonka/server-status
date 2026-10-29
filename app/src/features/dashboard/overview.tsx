@@ -61,9 +61,12 @@ export function Overview({
             sampleStale
               ? 'Waiting for a current collector sample'
               : snapshot
-                ? cpuCapacityDescription(snapshot)
+                ? cpuRelativePercent(latest, snapshot) != null
+                  ? 'Relative to peak'
+                  : cpuCapacityDescription(snapshot)
                 : 'Operations collector required'
           }
+          info={!sampleStale && snapshot ? cpuCapacityDescription(snapshot) : undefined}
           icon={Cpu}
           progress={cpuRelativePercent(latest, snapshot)}
           loading={loading}

@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.3.2 — 2026-10-29
+
+- Keep the CPU card compact with a short relative-scale label. Show its full
+  reference in an information panel available by hover, keyboard focus or tap,
+  with Escape and outside-click dismissal. CPU calculations are unchanged.
+
 ## 4.3.1 — 2026-10-29
 
 - Scale CPU capacity and CPU history against the highest observed use, with a

@@ -82,3 +82,41 @@ test('history, deep links, skip link, theme and version remain usable', async ({
   await expect(page.getByLabel('Username')).toBeVisible()
   await expect(release).toBeVisible()
 })
+
+test('CPU explanation stays compact and works with pointer, keyboard and touch', async ({
+  page,
+}, testInfo) => {
+  await page.goto('/')
+  const card = page.getByRole('group', { name: 'CPU capacity', exact: true })
+  await expect(card.getByText('Relative to peak', { exact: true })).toBeVisible()
+  const value = await card.locator('p[title]').first().innerText()
+  const trigger = card.getByRole('button', { name: 'About CPU capacity' })
+  const panel = page.getByRole('dialog', { name: 'About CPU capacity' })
+  await expect(panel).not.toBeVisible()
+  const screenshotDir = process.env.CPU_HELP_SCREENSHOTS_DIR
+  if (screenshotDir && testInfo.project.name === 'desktop') {
+    await card.screenshot({ path: `${screenshotDir}/cpu-capacity-compact.png` })
+  }
+  if (testInfo.project.use.hasTouch) await trigger.tap()
+  else await trigger.hover()
+  await expect(panel).toBeVisible()
+  await expect(panel).toContainText('100% = highest observed use')
+  const box = await panel.boundingBox()
+  expect(box!.x).toBeGreaterThanOrEqual(0)
+  expect(box!.x + box!.width).toBeLessThanOrEqual(page.viewportSize()!.width)
+  if (screenshotDir && testInfo.project.name === 'desktop') {
+    await page.screenshot({ path: `${screenshotDir}/cpu-capacity-explanation.png` })
+  }
+  await page.keyboard.press('Escape')
+  await expect(panel).not.toBeVisible()
+  await trigger.blur()
+  await trigger.focus()
+  await expect(panel).toBeVisible()
+  await page.getByRole('heading', { name: 'Server overview' }).click()
+  await expect(panel).not.toBeVisible()
+  await trigger.click()
+  await expect(panel).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(panel).not.toBeVisible()
+  await expect(card.locator('p[title]').first()).toHaveText(value)
+})

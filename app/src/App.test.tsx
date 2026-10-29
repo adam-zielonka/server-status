@@ -175,6 +175,7 @@ describe('dashboard features', () => {
     expect(screen.getByRole('heading', { level: 1 })).toHaveFocus()
   })
   it('shows CPU capacity against the observed peak and explains its reference', async () => {
+    const user = userEvent.setup()
     updateSnapshot = (s) => {
       s.cpu_capacity = { peak_cores: 0.8, observed_since: s.history[0].at }
       s.history = [
@@ -193,7 +194,17 @@ describe('dashboard features', () => {
     await screen.findByRole('region', { name: 'Monitoring issues' })
     const card = within(screen.getByRole('group', { name: 'CPU capacity' }))
     expect(card.getByText('50.0%')).toBeInTheDocument()
-    expect(card.getByText(/100% = highest observed use.*since/)).toBeInTheDocument()
+    expect(card.getByText('Relative to peak')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog', { name: 'About CPU capacity' })).not.toBeInTheDocument()
+    await user.hover(card.getByRole('button', { name: 'About CPU capacity' }))
+    expect(await screen.findByRole('dialog', { name: 'About CPU capacity' })).toHaveTextContent(
+      /100% = highest observed use.*since/,
+    )
+    expect(card.getByText('50.0%')).toBeInTheDocument()
+    await user.keyboard('{Escape}')
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'About CPU capacity' })).not.toBeInTheDocument(),
+    )
   })
   it('does not label legacy raw CPU readings as relative capacity', async () => {
     updateSnapshot = (s) => {
