@@ -111,23 +111,25 @@ func (s sampler) collect(ctx context.Context, cfg *Config) error {
 	capacity := numeric(container["effective_cpu_cores"])
 	point := row{"at": iso(now), "cpu_percent": cpu, "cpu_capacity_cores": capacity, "memory_percent": memoryPercent, "disk_percent": diskPercent, "memory_bytes": memory, "disk_used_bytes": int64(used), "directory_bytes": directoryBytes}
 	previousContainer, _ := previous["container"].(map[string]any)
-	history := normalizeCPUHistory(rows(state["history"]), numeric(previousContainer["effective_cpu_cores"]), capacity)
+	history := rows(state["history"])
+	if _, hasHistory := state["history"]; !hasHistory {
+		history = rows(previous["history"])
+	}
+	legacyCapacity := numeric(previousContainer["effective_cpu_cores"])
+	peak := observeCPUPeak(state, previous, history, point, legacyCapacity, now)
+	history = normalizeCPUHistory(history, legacyCapacity, capacity)
 	history = retainHistory(history, point, now)
 	var tailscale any
 	if cfg.Tailscale {
 		tailscale = s.tailscale(ctx)
 	}
 	snapshot := row{"schema_version": 1, "enabled": true, "collected_at": iso(time.Now()), "sample_at": iso(now), "sample_interval_seconds": cfg.SampleInterval, "services": services, "processes": topProcesses(before, after, elapsed, float64(ticks)), "container": container, "tailscale": tailscale, "directories": directories, "jobs": jobs, "databases": s.databases(ctx, cfg.Databases), "tunnels": collectTunnels(ctx, cfg.Tunnels), "history": history, "software": s.software(ctx, cfg.Software, previous["software"], now)}
+	snapshot["cpu_capacity"] = peak
 	snapshot["backup_stores"] = collectBackupStores(cfg.BackupStores, now)
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	// Persist per-point CPU denominators before publishing the new allocation.
-	// If publication fails, a retry can safely normalize the same legacy history.
-	if err := atomicJSON(cfg.StateFile, row{"history": history}, 0600); err != nil {
-		return err
-	}
-	return atomicJSON(cfg.SnapshotFile, snapshot, 0640)
+	return persistCollection(cfg, history, peak, snapshot)
 }
 
 func optionalCPUCounter() *int64 {

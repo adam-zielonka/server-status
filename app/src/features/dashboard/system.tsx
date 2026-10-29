@@ -1,3 +1,4 @@
+import { cpuCapacityDescription } from '@/lib/cpu-capacity'
 import { TelemetryCard } from '@/components/telemetry-card'
 import { DataCard, EmptyState, Facts } from '@/components/data-card'
 import { Progress } from '@/components/ui/progress'
@@ -57,8 +58,9 @@ export function SystemPage({
               ['Kernel clock uptime', formatDuration(c.host_uptime_seconds)],
               ['Available logical CPUs', String(c.cpu_count)],
               ['CPU set', c.cpuset || 'Unavailable'],
+              ['CPU capacity scale', cpuCapacityDescription(snapshot)],
               [
-                'CPU utilization scale',
+                'Raw CPU utilization scale',
                 `100% = ${c.effective_cpu_cores ?? c.cpu_count} CPU · ${c.cpu_capacity_cores != null ? 'configured capacity, bounded by visible limits' : 'visible allocation'}`,
               ],
               [

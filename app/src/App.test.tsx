@@ -174,6 +174,38 @@ describe('dashboard features', () => {
     expect(screen.getByRole('heading', { name: 'Services', level: 1 })).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 1 })).toHaveFocus()
   })
+  it('shows CPU capacity against the observed peak and explains its reference', async () => {
+    updateSnapshot = (s) => {
+      s.cpu_capacity = { peak_cores: 0.8, observed_since: s.history[0].at }
+      s.history = [
+        {
+          at: new Date().toISOString(),
+          cpu_percent: 20,
+          cpu_usage_cores: 0.4,
+          cpu_capacity_cores: 2,
+          memory_percent: 20,
+          disk_percent: 30,
+        },
+      ]
+    }
+    signedIn()
+    render(<App />)
+    await screen.findByRole('region', { name: 'Monitoring issues' })
+    const card = within(screen.getByRole('group', { name: 'CPU capacity' }))
+    expect(card.getByText('50.0%')).toBeInTheDocument()
+    expect(card.getByText(/100% = highest observed use.*since/)).toBeInTheDocument()
+  })
+  it('does not label legacy raw CPU readings as relative capacity', async () => {
+    updateSnapshot = (s) => {
+      delete s.cpu_capacity
+    }
+    signedIn()
+    render(<App />)
+    await screen.findByRole('region', { name: 'Monitoring issues' })
+    const card = within(screen.getByRole('group', { name: 'CPU capacity' }))
+    expect(card.getByText('Unavailable')).toBeInTheDocument()
+    expect(card.getByText(/Historical CPU reference unavailable/)).toBeInTheDocument()
+  })
   it('uses live basic readings when resource history is stale', async () => {
     updateSnapshot = (snapshot) => {
       snapshot.history = demoTelemetry(Date.now() - 600000).history
@@ -182,7 +214,7 @@ describe('dashboard features', () => {
     render(<App />)
     await screen.findByRole('region', { name: 'Monitoring issues' })
     expect(
-      within(screen.getByRole('group', { name: 'CPU utilization' })).getByText('Unavailable'),
+      within(screen.getByRole('group', { name: 'CPU capacity' })).getByText('Unavailable'),
     ).toBeInTheDocument()
     expect(
       within(screen.getByRole('group', { name: 'Memory usage' })).getByText('37.5%'),

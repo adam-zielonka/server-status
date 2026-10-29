@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Scale CPU capacity and CPU history against the highest observed use, with a
+  durable reference, observation start date, and explicit unavailable states.
+  Keep allocation-based CPU readings for resource alerts and per-process metrics.
+
 ## 4.3.0 — 2026-10-28
 
 - Keep mobile navigation visible together with the header when switching views

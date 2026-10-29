@@ -108,10 +108,11 @@ func normalizeCPUHistory(history []row, legacyCapacity, capacity float64) []row 
 			old = legacyCapacity
 		}
 		if point["cpu_percent"] != nil {
-			if old <= 0 {
+			value, valid := finiteNonnegative(point["cpu_percent"])
+			if !valid || old <= 0 || math.IsNaN(old) || math.IsInf(old, 0) || capacity <= 0 || math.IsNaN(capacity) || math.IsInf(capacity, 0) {
 				point["cpu_percent"] = nil
 			} else if old != capacity {
-				point["cpu_percent"] = round(numeric(point["cpu_percent"])*old/capacity, 2)
+				point["cpu_percent"] = round(value*old/capacity, 2)
 			}
 		}
 		point["cpu_capacity_cores"] = capacity
@@ -132,4 +133,14 @@ func retainHistory(previous []row, point row, now time.Time) []row {
 		result = result[len(result)-1441:]
 	}
 	return result
+}
+
+func finiteNonnegative(value any) (float64, bool) {
+	switch value.(type) {
+	case float64, int, int64, uint64:
+		n := numeric(value)
+		return n, n >= 0 && !math.IsNaN(n) && !math.IsInf(n, 0)
+	default:
+		return 0, false
+	}
 }

@@ -8,6 +8,8 @@ export function demoTelemetry(now = Date.now()): TelemetrySnapshot {
     return {
       at: at((1439 - i) * 60),
       cpu_percent: 8 + wave * 35,
+      cpu_usage_cores: ((8 + wave * 35) / 100) * 2,
+      cpu_capacity_cores: 2,
       memory_percent: 32 + wave * 12,
       disk_percent: 24 + i / 1440,
       memory_bytes: ((32 + wave * 12) / 100) * 8 * 1024 ** 3,
@@ -106,6 +108,7 @@ export function demoTelemetry(now = Date.now()): TelemetrySnapshot {
     collected_at: at(0),
     sample_interval_seconds: 60,
     history,
+    cpu_capacity: { peak_cores: 0.86, observed_since: history[0].at },
     services: [
       'SSH',
       'Application',

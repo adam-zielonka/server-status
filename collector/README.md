@@ -101,7 +101,22 @@ including weekends. Unreachable or missing sources are explicitly unknown.
   one fully used CPU equal 100%, even with two visible logical CPUs (previously
   50%). The smaller of configured capacity and visible cpuset/quota is used;
   omitting the setting preserves automatic detection. This is operator
-  calibration, not proof of a host quota. Overview and System label the scale.
+  calibration, not proof of a host quota. Raw utilization and resource-alert
+  thresholds keep this allocation-based scale.
+  The **CPU capacity** card and CPU history line instead use the highest observed
+  CPU use as 100%; lower readings are proportional to that same current peak.
+  A new record updates the reference before display. The collector saves the
+  peak in logical CPU units, independently of allocation/calibration changes,
+  together with history in its private state before publishing the snapshot.
+  It survives restarts and the 24-hour chart retention. On first migration it
+  starts with valid retained samples whose original allocation is known, then
+  includes new observations; it cannot recover records older than that history.
+  The interface shows the observation start date. Snapshot metadata can recover
+  the reference if state metadata is missing; removing both state and snapshot
+  resets it. Without a positive reference, including zero-only history and older
+  collectors, CPU capacity is unavailable; a zero sample after a positive peak
+  is 0%. Unknown CPU samples remain gaps. This is an observed peak, not a hardware
+  limit. System also describes the separate raw allocation-based scale.
   Retained CPU history is rescaled using each point's saved capacity (legacy
   points use the previous snapshot's allocation); values with an unknown
   original scale become unavailable. Process CPU remains per logical CPU.

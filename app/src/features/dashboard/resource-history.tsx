@@ -1,3 +1,4 @@
+import { cpuCapacityDescription, cpuRelativePercent } from '@/lib/cpu-capacity'
 import { TelemetryCard } from '@/components/telemetry-card'
 import { useId, useState } from 'react'
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
@@ -14,7 +15,7 @@ import { formatDuration, formatPercent } from '@/lib/format'
 import type { TelemetrySnapshot } from '@/types'
 
 const config = {
-  cpu_percent: { label: 'CPU', color: 'var(--chart-1)' },
+  cpu_percent: { label: 'CPU capacity', color: 'var(--chart-1)' },
   memory_percent: { label: 'Memory', color: 'var(--chart-3)' },
   disk_percent: { label: 'Disk', color: 'var(--chart-2)' },
 } satisfies ChartConfig
@@ -30,7 +31,10 @@ export default function ResourceHistory({
   const id = useId().replace(/[^a-zA-Z0-9]/g, '')
   const start = now - Number(hours) * 3600000
   const data = chartHistory(
-    snapshot?.history || [],
+    (snapshot?.history || []).map((point) => ({
+      ...point,
+      cpu_percent: cpuRelativePercent(point, snapshot),
+    })),
     start,
     now,
     (snapshot?.sample_interval_seconds || 60) * 3,
@@ -46,7 +50,7 @@ export default function ResourceHistory({
   return (
     <TelemetryCard
       title="Resource history"
-      description="CPU, memory working set and root disk utilization."
+      description={`CPU relative to its observed peak; memory working set and root disk utilization. ${cpuCapacityDescription(snapshot)}`}
       action={
         <Tabs value={hours} onValueChange={setHours}>
           <TabsList className="h-7">

@@ -155,6 +155,23 @@ describe('typed API client', () => {
     mockResponse({ data: { enabled: true, schema_version: 2 } })
     await expect(fetchEndpoint('telemetry', 'test')).rejects.toThrow('not supported')
   })
+  it('accepts peak metadata and legacy snapshots, rejecting invalid references', async () => {
+    const s = demoTelemetry()
+    mockResponse({ data: s })
+    expect(await fetchEndpoint('telemetry', 'test')).toEqual(s)
+    const legacy = { ...s }
+    delete legacy.cpu_capacity
+    mockResponse({ data: legacy })
+    expect(await fetchEndpoint('telemetry', 'test')).toEqual(legacy)
+    for (const peak of [
+      { peak_cores: -1, observed_since: s.collected_at },
+      { peak_cores: '1', observed_since: s.collected_at },
+      { peak_cores: 1, observed_since: 'invalid' },
+    ]) {
+      mockResponse({ data: { ...s, cpu_capacity: peak } })
+      await expect(fetchEndpoint('telemetry', 'test')).rejects.toThrow('not supported')
+    }
+  })
   it('requires complete process and group rankings', async () => {
     const snapshot = demoTelemetry()
     mockResponse({ data: snapshot })

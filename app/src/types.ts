@@ -132,8 +132,14 @@ export interface Job {
   error?: string
 }
 export type HistoryMetric = 'cpu_percent' | 'memory_percent' | 'disk_percent'
+export interface CPUCapacity {
+  peak_cores: number
+  observed_since: string | null
+}
 export interface HistoryPoint {
   at: string
+  cpu_usage_cores?: number | null
+  cpu_capacity_cores?: number
   cpu_percent: number | null
   memory_percent: number | null
   disk_percent: number | null
@@ -211,6 +217,7 @@ export interface TelemetrySnapshot {
   services: ServiceHealth[]
   processes: Processes
   container: ContainerInfo
+  cpu_capacity?: CPUCapacity
   tailscale: TailscaleInfo | null
   databases?: DatabaseInfo[]
   backup_stores?: BackupStoreInfo[]

@@ -93,6 +93,15 @@ function validTelemetry(value: Record<string, unknown>): boolean {
   )
     return false
   return (
+    optional(
+      value.cpu_capacity,
+      (peak) =>
+        record(peak) &&
+        number(peak.peak_cores) &&
+        peak.peak_cores >= 0 &&
+        (peak.observed_since === null ||
+          (string(peak.observed_since) && Number.isFinite(Date.parse(peak.observed_since)))),
+    ) &&
     array(
       value.services,
       (row) =>
@@ -123,6 +132,8 @@ function validTelemetry(value: Record<string, unknown>): boolean {
           ['cpu_percent', 'memory_percent', 'disk_percent'],
           (field) => field === null || number(field),
         ) &&
+        optional(row.cpu_usage_cores, (value) => number(value) && value >= 0) &&
+        optional(row.cpu_capacity_cores, (value) => number(value) && value > 0) &&
         optional(
           row.directory_bytes,
           (directories) => record(directories) && Object.values(directories).every(number),
