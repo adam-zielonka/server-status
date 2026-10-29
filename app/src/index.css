@@ -113,3 +113,8 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Override Recharts' #666 presentation attribute in both themes. */
+.resource-history-chart .recharts-cartesian-axis-tick-value {
+  fill: var(--muted-foreground);
+}

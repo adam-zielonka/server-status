@@ -135,7 +135,11 @@ export function StoragePage({ snapshot, now }: { snapshot?: TelemetrySnapshot; n
                 <TableRow key={row.name}>
                   <TableCell className="font-medium">
                     {row.name}
-                    {row.error && <span className="block text-xs text-amber-700">{row.error}</span>}
+                    {row.error && (
+                      <span className="block text-xs text-amber-800 dark:text-amber-300">
+                        {row.error}
+                      </span>
+                    )}
                   </TableCell>
                   <TableCell>
                     <StatusBadge
@@ -209,7 +213,7 @@ export function StoragePage({ snapshot, now }: { snapshot?: TelemetrySnapshot; n
                     <TableCell className="font-medium">
                       {row.name}
                       {row.error && (
-                        <span className="mt-1 block max-w-64 whitespace-normal text-[10px] text-amber-700">
+                        <span className="mt-1 block max-w-64 whitespace-normal text-[10px] text-amber-800 dark:text-amber-300">
                           {row.error}
                         </span>
                       )}

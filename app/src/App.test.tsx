@@ -111,6 +111,27 @@ describe('authentication flow', () => {
 })
 
 describe('dashboard features', () => {
+  it('does not call an empty service configuration healthy, and keeps stale state first', async () => {
+    signedIn()
+    updateSnapshot = (snapshot) => {
+      snapshot.services = []
+    }
+    const { unmount } = render(<App />)
+    expect(
+      await screen.findByText('No system services configured for monitoring'),
+    ).toBeInTheDocument()
+    expect(screen.queryByText('All monitored services are active')).not.toBeInTheDocument()
+    unmount()
+    updateSnapshot = (snapshot) => {
+      snapshot.services = []
+      snapshot.collected_at = new Date(Date.now() - 3600000).toISOString()
+    }
+    render(<App />)
+    expect(
+      await screen.findByText('Last observed state · monitoring data is stale'),
+    ).toBeInTheDocument()
+  })
+
   it('does not show all systems operational when an active basic metric source fails', async () => {
     signedIn()
     failures.add('memory')

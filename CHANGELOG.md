@@ -1,5 +1,14 @@
 # Changelog
 
+## 4.3.3 — 2026-10-29
+
+- Distinguish CPU, memory and disk history with line patterns and symbols in the
+  chart, legend and tooltip. Isolate a series when curves overlap, and inspect
+  recorded values in a collapsible, paginated sample table with explicit gaps.
+- Improve history axis and storage error text contrast in light and dark themes.
+- Report an empty service monitoring configuration without claiming all services
+  are healthy. Keep stale monitoring warnings and CPU calculations unchanged.
+
 ## 4.3.2 — 2026-10-29
 
 - Keep the CPU card compact with a short relative-scale label. Show its full

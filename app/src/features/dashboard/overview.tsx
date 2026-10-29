@@ -100,9 +100,11 @@ export function Overview({
             snapshot && snapshotIsStale(snapshot, now)
               ? 'Last observed state · monitoring data is stale'
               : snapshot
-                ? active === total
-                  ? 'All monitored services are active'
-                  : 'Some services need attention'
+                ? !total
+                  ? 'No system services configured for monitoring'
+                  : active === total
+                    ? 'All monitored services are active'
+                    : 'Some services need attention'
                 : 'Port checks available in Services'
           }
           icon={Boxes}
