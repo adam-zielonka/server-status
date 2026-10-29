@@ -1,10 +1,11 @@
 # Changelog
 
-## Unreleased
+## 4.3.1 — 2026-10-29
 
 - Scale CPU capacity and CPU history against the highest observed use, with a
   durable reference, observation start date, and explicit unavailable states.
   Keep allocation-based CPU readings for resource alerts and per-process metrics.
+- Update the Go module inspection dependency (`golang.org/x/mod` to 0.42.0).
 
 ## 4.3.0 — 2026-10-28
 
