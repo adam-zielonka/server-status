@@ -1,3 +1,4 @@
+import { AgentTasks } from './agent-tasks'
 import { TelemetryCard } from '@/components/telemetry-card'
 import { useState } from 'react'
 import { ExternalLink, Search, Timer } from 'lucide-react'
@@ -137,6 +138,12 @@ export function TasksPage({ snapshot, now }: { snapshot?: TelemetrySnapshot; now
     )
   return (
     <div className="space-y-5">
+      <AgentTasks
+        queue={snapshot?.agent_queue}
+        now={now}
+        snapshotStale={snapshotIsStale(snapshot, now)}
+        expanded
+      />
       <TelemetryCard
         title="Scheduled tasks & backups"
         description="Last reported results, freshness deadlines and next scheduled runs."

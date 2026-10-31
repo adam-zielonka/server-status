@@ -1,5 +1,14 @@
 # Changelog
 
+## 4.4.0 — 2026-10-31
+
+- Add optional read-only GitHub Project issue counts through the existing collector.
+  Validate status IDs, paginate and deduplicate, retain complete results on errors,
+  and expire the source independently of other telemetry.
+- Show Agent tasks in Overview and Tasks with disjoint groups, exact status
+  details, timestamps and a safe board link. Missing data remains unavailable;
+  public demo data and screenshots are synthetic.
+
 ## 4.3.3 — 2026-10-29
 
 - Distinguish CPU, memory and disk history with line patterns and symbols in the

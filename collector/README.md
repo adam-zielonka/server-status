@@ -247,3 +247,55 @@ errors are omitted from the published snapshot. The UI independently expires
 old measurements and shows alerts in Overview and capacity in Storage.
 Monitor the actual backup service/timer separately under `jobs` with category
 `backup` to detect failed runs and overdue copies.
+
+
+## Optional agent task board
+
+Add `"agent_queue": {"github_config_file": "/private/queue/github.json"}`
+to the collector configuration. Omit it to preserve the existing snapshot format
+and hide the cards. No new service, timer, token or authentication flow is needed.
+The collector uses the existing logged-in `gh api graphql --hostname github.com`
+identity with read access to the configured project and issues; it never invokes
+queue commands or mutates the project. The HTTP process cannot query GitHub.
+
+The referenced canonical JSON must contain `repository` (`owner/repo`),
+`project_id`, `project_url` (HTTPS github.com users/orgs project, optionally a view)
+and `fields.status.id` plus `fields.status.options`. The latter maps all nine
+board names to their unique GitHub option IDs: `Nowe`, `Gotowe`, `Analiza`,
+`W toku`, `Weryfikacja`, `Czeka na Ciebie`, `Zablokowane`, `Zakończone`,
+`Anulowane`. Other configuration fields are ignored. Read IDs from the canonical
+queue configuration; do not duplicate real identifiers in public examples.
+The remote field must be named `Status` and its IDs/names must match exactly.
+
+Snapshot v1 optionally adds `agent_queue`:
+
+- `counts`: `open`, `queued`, `active`, `waiting`, `blocked`, and `statuses`
+  (`new`, `ready`, `analysis`, `in_progress`, `review`, `waiting`, `blocked`).
+  Queued = new + ready; active = analysis + in progress + review;
+  open = queued + active + waiting + blocked. Only open issues in the configured
+  repository with nonterminal status count. Drafts/PRs and closed/completed/
+  cancelled issues do not. IDs deduplicate project items; parent and child count
+  once each, with no recursive relation or progress aggregation. Counts describe
+  the board, not scheduler eligibility or exclusively AI activity.
+- `status`: `ok`, `error` (retained complete counts), or `unavailable` (no counts).
+  `counts` and `last_success_at` are null until the first complete read. A complete
+  empty board returns actual zeros. `last_attempt_at`, `last_success_at`, `stale`,
+  optional generic `error` and `source_url` complete the allowlist.
+- Every 300 seconds, the existing collector queries up to 25 pages of 100 items,
+  with an 8 second page timeout, 35 second total budget, 4 MiB page and 16 MiB
+  total response limits. The source file is capped at 64 KiB. Failure, GraphQL
+  partial errors, missing/unknown statuses, inaccessible issues, cursor cycles,
+  or exhausted bounds reject the entire attempt. This can conservatively keep
+  an older result during concurrent board changes; it never publishes a partial
+  count as success. Stale begins at 900 seconds since the last complete result,
+  also checked by the frontend even when other telemetry is fresh.
+- Source path/content changes invalidate the private cache. Configuration and
+  its fingerprint remain only in the collector state (0600); the public snapshot
+  contains no paths, IDs, issue titles/bodies, actors, comments or credentials.
+  Both cards and board link use the existing JWT protected telemetry endpoint.
+  Public fixtures, demo and screenshots contain only synthetic measurements.
+
+The source cache is additive and independent of history and CPU state. An older
+collector ignores the new configuration option and drops that cache on its next
+sample; original history/CPU fields remain compatible. Restore the matching
+previous binary and collector configuration when rolling back an installation.

@@ -12,21 +12,26 @@ import (
 	"strings"
 )
 
+type AgentQueueConfig struct {
+	GitHubConfigFile string `json:"github_config_file"`
+}
+
 type Config struct {
-	SnapshotFile      string          `json:"snapshot_file"`
-	StateFile         string          `json:"state_file"`
-	SampleInterval    int             `json:"sample_interval_seconds"`
-	DirectoryInterval int             `json:"directory_interval_seconds"`
-	GitHubInterval    int             `json:"github_interval_seconds"`
-	CPUCapacityCores  *float64        `json:"cpu_capacity_cores"`
-	Software          *SoftwareConfig `json:"software"`
-	Tailscale         bool            `json:"tailscale"`
-	Units             []Unit          `json:"units"`
-	Directories       []Directory     `json:"directories"`
-	Jobs              []Job           `json:"jobs"`
-	Databases         []Database      `json:"databases"`
-	Tunnels           []Tunnel        `json:"tunnels"`
-	BackupStores      []BackupStore   `json:"backup_stores"`
+	AgentQueue        *AgentQueueConfig `json:"agent_queue"`
+	SnapshotFile      string            `json:"snapshot_file"`
+	StateFile         string            `json:"state_file"`
+	SampleInterval    int               `json:"sample_interval_seconds"`
+	DirectoryInterval int               `json:"directory_interval_seconds"`
+	GitHubInterval    int               `json:"github_interval_seconds"`
+	CPUCapacityCores  *float64          `json:"cpu_capacity_cores"`
+	Software          *SoftwareConfig   `json:"software"`
+	Tailscale         bool              `json:"tailscale"`
+	Units             []Unit            `json:"units"`
+	Directories       []Directory       `json:"directories"`
+	Jobs              []Job             `json:"jobs"`
+	Databases         []Database        `json:"databases"`
+	Tunnels           []Tunnel          `json:"tunnels"`
+	BackupStores      []BackupStore     `json:"backup_stores"`
 }
 
 // BackupStore reads sanitized measurements from a separate backup checker.
@@ -149,6 +154,9 @@ func (c *Config) Validate() error {
 	}
 	if c.CPUCapacityCores != nil && (*c.CPUCapacityCores <= 0 || math.IsNaN(*c.CPUCapacityCores) || math.IsInf(*c.CPUCapacityCores, 0)) {
 		return errors.New("CPU capacity must be a finite positive number of cores")
+	}
+	if c.AgentQueue != nil && !filepath.IsAbs(c.AgentQueue.GitHubConfigFile) {
+		return errors.New("agent queue requires an absolute GitHub configuration path")
 	}
 	if c.Software != nil {
 		if c.Software.interval() < 3600 || c.Software.interval() > 604800 || len(c.Software.Tools) > 24 {

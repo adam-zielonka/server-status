@@ -25,7 +25,7 @@ func TestCollectorConfiguration(t *testing.T) {
 	if cfg.SampleInterval != 60 || cfg.DirectoryInterval != 900 || cfg.GitHubInterval != 300 {
 		t.Fatal("unexpected default collection intervals")
 	}
-	for _, body := range []string{"null", "[]", "{}", strings.Replace(base, "/private/snapshot", "relative", 1), strings.Replace(base, "/private/snapshot", "/private/state", 1),
+	for _, body := range []string{strings.TrimSuffix(base, "}") + `,"agent_queue":{"github_config_file":"relative"}}`, "null", "[]", "{}", strings.Replace(base, "/private/snapshot", "relative", 1), strings.Replace(base, "/private/snapshot", "/private/state", 1),
 		strings.TrimSuffix(base, "}") + `,"units":[{"unit":"--help.service"}]}`,
 		strings.TrimSuffix(base, "}") + `,"tunnels":[{"name":"Example","metrics_port":true}]}`,
 		strings.TrimSuffix(base, "}") + `,"tunnels":[{"name":"Example","metrics_port":20241,"expected_connections":0}]}`,

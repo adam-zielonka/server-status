@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"status/config"
 	"status/mods"
+	"strings"
 	"testing"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -16,7 +17,7 @@ import (
 func TestTelemetryRequiresAuthentication(t *testing.T) {
 	dir := t.TempDir()
 	snapshot := filepath.Join(dir, "snapshot.json")
-	if err := os.WriteFile(snapshot, []byte(`{"enabled":true,"schema_version":1,"collected_at":"2026-01-01T00:00:00Z","services":[]}`), 0600); err != nil {
+	if err := os.WriteFile(snapshot, []byte(`{"enabled":true,"schema_version":1,"collected_at":"2026-01-01T00:00:00Z","services":[],"agent_queue":{"status":"ok","counts":{"open":7},"source_url":"https://github.com/users/example/projects/1"}}`), 0600); err != nil {
 		t.Fatal(err)
 	}
 	settings := config.ServerConfig{
@@ -58,6 +59,12 @@ func TestTelemetryRequiresAuthentication(t *testing.T) {
 		mux.ServeHTTP(w, r)
 		if w.Code != tc.status {
 			t.Fatalf("%s token present=%t: got %d, want %d", tc.method, tc.token != "", w.Code, tc.status)
+		}
+		if tc.status == http.StatusOK && !strings.Contains(w.Body.String(), `"agent_queue"`) {
+			t.Fatal("authenticated queue missing")
+		}
+		if tc.status == http.StatusUnauthorized && strings.Contains(w.Body.String(), `"agent_queue"`) {
+			t.Fatal("unauthorized queue disclosed")
 		}
 		if tc.method == "GET" && w.Header().Get("Cache-Control") != "no-store" {
 			t.Fatal("telemetry response must not be cached")

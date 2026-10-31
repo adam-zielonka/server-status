@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ServiceTable } from './services'
 import { TaskTable } from './tasks'
+import { AgentTasks } from './agent-tasks'
 import { useApi } from '@/hooks/use-api'
 import { availableDiskSpace, formatBytes, formatDuration, formatPercent } from '@/lib/format'
 import { latestHistoryPoint, resourceSampleIsStale, snapshotIsStale } from '@/lib/monitoring'
@@ -111,6 +112,12 @@ export function Overview({
           loading={loading}
         />
       </div>
+      <AgentTasks
+        queue={snapshot?.agent_queue}
+        now={now}
+        snapshotStale={snapshotIsStale(snapshot, now)}
+        onExpand={() => onPageChange('tasks')}
+      />
       <Suspense fallback={<Skeleton className="h-[360px] w-full rounded-xl" />}>
         <ResourceHistory snapshot={snapshot} now={now} />
       </Suspense>

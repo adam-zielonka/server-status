@@ -22,6 +22,11 @@ Read the current [build and CLI guide](../../../api/README.md),
   and Go tests/vet; CI also runs `go test -race ./...`. A machine without a C
   compiler cannot run the race detector, so verify the matching CI run rather
   than claiming it ran locally.
+- For browser checks after a version bump, restart an owned reused Vite server:
+  the configuration captures `VERSION` at startup. Finish coverage generation
+  before browser checks against the dev server; its generated HTML files can
+  trigger Vite full-page reloads during a test. Neither a build nor an interrupted
+  browser run is evidence that a responsive scenario passed.
 - Compile release binaries from the intended clean commit for Linux amd64 and
   arm64 with `CGO_ENABLED=0`, `-trimpath`, and `-X main.version=<version>`.
   Check `version` on the native binary and `go version -m` for both architectures:

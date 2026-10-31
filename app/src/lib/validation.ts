@@ -1,4 +1,5 @@
 import type { Endpoint } from '@/types'
+import { safeQueueUrl } from './agent-queue'
 
 const record = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === 'object' && !Array.isArray(value)
@@ -25,6 +26,65 @@ const numbers = (value: Record<string, unknown>, names: string[]): boolean =>
   fields(value, names, number)
 const text = (value: Record<string, unknown>, names: string[]): boolean =>
   fields(value, names, string)
+
+const date = (value: unknown): value is string =>
+  string(value) && Number.isFinite(Date.parse(value))
+const count = (value: unknown): value is number =>
+  number(value) && Number.isSafeInteger(value) && value >= 0
+export function validAgentQueue(value: unknown): boolean {
+  if (
+    !record(value) ||
+    !['ok', 'error', 'unavailable'].includes(value.status as string) ||
+    typeof value.stale !== 'boolean' ||
+    !date(value.last_attempt_at) ||
+    !(value.last_success_at === null || date(value.last_success_at)) ||
+    !optional(value.source_url, (url) => string(url) && !!safeQueueUrl(url)) ||
+    !optional(value.error, string)
+  )
+    return false
+  // Reject unexpected/private fields at this contract boundary.
+  if (
+    Object.keys(value).some(
+      (key) =>
+        ![
+          'status',
+          'stale',
+          'last_attempt_at',
+          'last_success_at',
+          'source_url',
+          'counts',
+          'error',
+        ].includes(key),
+    )
+  )
+    return false
+  if (value.counts === null) return value.status === 'unavailable' && value.last_success_at === null
+  const c = value.counts
+  if (
+    !record(c) ||
+    !fields(c, ['open', 'queued', 'active', 'waiting', 'blocked'], count) ||
+    Object.keys(c).length !== 6 ||
+    !record(c.statuses) ||
+    Object.keys(c.statuses).length !== 7 ||
+    !fields(
+      c.statuses,
+      ['new', 'ready', 'analysis', 'in_progress', 'review', 'waiting', 'blocked'],
+      count,
+    ) ||
+    !date(value.last_success_at) ||
+    value.status === 'unavailable'
+  )
+    return false
+  const s = c.statuses as Record<string, number>
+  return (
+    c.queued === s.new + s.ready &&
+    c.active === s.analysis + s.in_progress + s.review &&
+    c.waiting === s.waiting &&
+    c.blocked === s.blocked &&
+    c.open ===
+      (c.queued as number) + (c.active as number) + (c.waiting as number) + (c.blocked as number)
+  )
+}
 
 function validTelemetry(value: Record<string, unknown>): boolean {
   if (value.enabled === false) return true
@@ -93,6 +153,7 @@ function validTelemetry(value: Record<string, unknown>): boolean {
   )
     return false
   return (
+    optional(value.agent_queue, validAgentQueue) &&
     optional(
       value.cpu_capacity,
       (peak) =>
