@@ -4,7 +4,12 @@ go 1.26.0
 
 require github.com/shirou/gopsutil/v4 v4.26.9
 
-require golang.org/x/mod v0.42.0
+require (
+	github.com/go-sql-driver/mysql v1.10.1
+	golang.org/x/mod v0.42.0
+)
+
+require filippo.io/edwards25519 v1.2.0 // indirect
 
 require (
 	github.com/ebitengine/purego v0.11.1 // indirect

@@ -268,14 +268,8 @@ func (s sampler) databases(ctx context.Context, items []Database) []row {
 	for _, item := range items {
 		entry := row{"name": item.Name, "status": "unknown", "checked_at": iso(time.Now()), "limit_bytes": item.LimitBytes}
 		start := time.Now()
-		env := map[string]string{"PGSERVICEFILE": item.ServiceFile, "PGCONNECT_TIMEOUT": "5", "PGOPTIONS": "-c default_transaction_read_only=on -c statement_timeout=5000"}
-		body, err := s.query(ctx, []string{"/usr/bin/psql", "--no-psqlrc", "--no-password", "--dbname=service=" + item.Service, "-At", "-c", databaseQuery}, 12*time.Second, env)
-		var data struct {
-			Bytes       *int64 `json:"bytes"`
-			Connections *int   `json:"connections"`
-			TLS         *bool  `json:"tls"`
-		}
-		if err != nil || json.Unmarshal(body, &data) != nil || data.Bytes == nil || data.Connections == nil || data.TLS == nil || *data.Bytes < 0 || *data.Connections < 0 || item.LimitBytes <= 0 {
+		data, err := s.databaseMetrics(ctx, item)
+		if err != nil || data.Bytes == nil || data.Connections == nil || data.TLS == nil || *data.Bytes < 0 || *data.Connections < 0 || item.LimitBytes <= 0 {
 			entry["error"] = "Database metrics are unavailable"
 		} else {
 			size := *data.Bytes
@@ -292,6 +286,30 @@ func (s sampler) databases(ctx context.Context, items []Database) []row {
 		result = append(result, entry)
 	}
 	return result
+}
+
+// The same allowlisted row is used for both database engines.
+type databaseMetrics struct {
+	Bytes       *int64 `json:"bytes"`
+	Connections *int   `json:"connections"`
+	TLS         *bool  `json:"tls"`
+}
+
+func (s sampler) databaseMetrics(ctx context.Context, item Database) (databaseMetrics, error) {
+	switch item.kind() {
+	case "mysql", "mariadb":
+		return collectMySQL(ctx, item.MySQLConfigFile)
+	case "postgres":
+		env := map[string]string{"PGSERVICEFILE": item.ServiceFile, "PGCONNECT_TIMEOUT": "5", "PGOPTIONS": "-c default_transaction_read_only=on -c statement_timeout=5000"}
+		body, err := s.query(ctx, []string{"/usr/bin/psql", "--no-psqlrc", "--no-password", "--dbname=service=" + item.Service, "-At", "-c", databaseQuery}, 12*time.Second, env)
+		var data databaseMetrics
+		if err != nil || json.Unmarshal(body, &data) != nil {
+			return databaseMetrics{}, errQuery
+		}
+		return data, nil
+	default:
+		return databaseMetrics{}, errQuery
+	}
 }
 
 func (s sampler) tailscale(ctx context.Context) row {

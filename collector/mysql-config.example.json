@@ -1,0 +1,9 @@
+{
+  "host": "db.example.test",
+  "port": 3306,
+  "user": "example-monitor",
+  "database": "example_schema",
+  "password_file": "/etc/server-status/mysql.password",
+  "tls_ca_file": "/etc/server-status/mysql-ca.pem",
+  "tls_server_name": "db.example.test"
+}

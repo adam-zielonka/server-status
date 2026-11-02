@@ -63,6 +63,12 @@
       "service": "example",
       "service_file": "/etc/server-status/pg_service.conf",
       "limit_bytes": 200000000
+    },
+    {
+      "name": "Example MySQL schema",
+      "kind": "mysql",
+      "mysql_config_file": "/etc/server-status/mysql.json",
+      "limit_bytes": 200000000
     }
   ],
   "software": {

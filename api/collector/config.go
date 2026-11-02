@@ -85,10 +85,19 @@ type Job struct {
 }
 
 type Database struct {
-	Name        string `json:"name"`
-	Service     string `json:"service"`
-	ServiceFile string `json:"service_file"`
-	LimitBytes  int64  `json:"limit_bytes"`
+	Name            string `json:"name"`
+	Kind            string `json:"kind,omitempty"`
+	Service         string `json:"service,omitempty"`
+	ServiceFile     string `json:"service_file,omitempty"`
+	MySQLConfigFile string `json:"mysql_config_file,omitempty"`
+	LimitBytes      int64  `json:"limit_bytes"`
+}
+
+func (d Database) kind() string {
+	if d.Kind == "" {
+		return "postgres"
+	}
+	return d.Kind
 }
 
 type Tunnel struct {
@@ -213,8 +222,20 @@ func (c *Config) Validate() error {
 		}
 	}
 	for _, item := range c.Databases {
-		if strings.TrimSpace(item.Name) == "" || !servicePattern.MatchString(item.Service) || !filepath.IsAbs(item.ServiceFile) || item.LimitBytes <= 0 {
+		if strings.TrimSpace(item.Name) == "" || item.LimitBytes <= 0 {
 			return errors.New("invalid database configuration")
+		}
+		switch item.kind() {
+		case "postgres":
+			if !servicePattern.MatchString(item.Service) || !filepath.IsAbs(item.ServiceFile) || item.MySQLConfigFile != "" {
+				return errors.New("invalid PostgreSQL configuration")
+			}
+		case "mysql", "mariadb":
+			if !filepath.IsAbs(item.MySQLConfigFile) || item.Service != "" || item.ServiceFile != "" {
+				return errors.New("invalid MySQL configuration")
+			}
+		default:
+			return errors.New("unsupported database kind")
 		}
 	}
 	for _, item := range c.Jobs {

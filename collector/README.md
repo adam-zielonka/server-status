@@ -158,10 +158,13 @@ unrelated Tailscale Serve mappings.
 References: [cgroup v2](https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html),
 [systemd services](https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html).
 
-## PostgreSQL capacity
+## Database capacity
 
-Optional `databases` entries contain `name`, `service`, `service_file` (absolute
-path to a private libpq service file) and `limit_bytes` (bytes, not MiB). Requires
+### PostgreSQL (default)
+
+Optional `databases` entries default to `kind: "postgres"` when `kind` is omitted,
+preserving existing configuration. PostgreSQL entries contain `name`, `service`,
+`service_file` (absolute path to a private libpq service file) and `limit_bytes` (bytes, not MiB). Requires
 `psql`. Store credentials in a separate 0600 passfile referenced by that service;
 use verified TLS. Credentials are never passed in process arguments or snapshot
 fields. The collector executes a fixed read-only query with connection and
@@ -169,6 +172,99 @@ statement timeouts, returning database size, remaining capacity, connection
 count, TLS status and round-trip latency. The Storage page shows warnings at
 80% and critical usage at 95%. Query errors show unknown usage, never zero.
 Capacity is operator supplied; this check does not impose a database quota.
+
+### MySQL / MariaDB
+
+Set `kind: "mysql"` (or `"mariadb"`), `name`, positive `limit_bytes`, and an
+absolute `mysql_config_file`; omit `service` and `service_file`. The existing
+Storage row and capacity alerts are reused without changing the snapshot contract.
+The private JSON file has exactly the fields shown in
+[`mysql-config.example.json`](mysql-config.example.json):
+
+```json
+{
+  "host": "db.example.test",
+  "port": 3306,
+  "user": "example-monitor",
+  "database": "example_schema",
+  "password_file": "/etc/server-status/mysql.password",
+  "tls_ca_file": "/etc/server-status/mysql-ca.pem",
+  "tls_server_name": "db.example.test"
+}
+```
+
+All fields above are required in CA mode. Host is a bare DNS name or IP, not a
+URL; port is an integer 1–65535. File paths must be absolute. Configuration and
+password files must be regular files with no group/other permission bits
+(0600 or 0400 recommended), in private directories outside the checkout. Reads
+are capped at 16 KiB for JSON, 64 KiB for password and 1 MiB for CA PEM. The
+password is read **byte-exact**, including spaces, Unicode, CR/LF or an empty
+file; write the submitted secret without appending a newline. Unknown fields,
+invalid types and invalid TLS combinations are rejected. The collector validates
+private input each attempt; the top-level `config check` validates the engine
+and config path, without connecting or opening the referenced private files.
+
+TLS 1.2+ is mandatory, with no plaintext fallback. CA mode requires both the
+trusted CA PEM and the expected certificate DNS/IP SAN in `tls_server_name`,
+even when connecting by a different address. A self-signed server certificate
+works as the trust anchor if its SAN matches that name.
+
+For a self-signed leaf without usable SANs, replace **both** `tls_ca_file` and
+`tls_server_name` with the single optional field `tls_cert_sha256`, containing
+exactly 64 hexadecimal characters (case insensitive, no colons/prefix), the
+SHA-256 digest of the **DER leaf certificate**. Empty/null/malformed pins and
+combinations with either CA/name field are invalid. For example, the TLS part
+of a synthetic pinned configuration is:
+
+```json
+"tls_cert_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+```
+
+Pin mode replaces PKI/hostname verification with mandatory constant-time leaf
+hash comparison, certificate validity-date checks and verification of its
+self-signature. There is no configurable skip-verification option. An initial
+certificate fetched over an unauthenticated handshake is **TOFU** (trust on
+first use), not proof of provider identity; confirm the fingerprint through a
+trusted independent channel when possible. A changed/renewed certificate fails
+closed until its replacement fingerprint is independently checked and the
+private config updated. Check the local clock; expiry and not-yet-valid
+certificates fail even with the correct pin. Pinning does not add revocation
+checks or establish a DNS identity.
+
+The native `go-sql-driver/mysql` connector uses no shell, DSN string or external
+client. Each attempt opens one connection, starts `START TRANSACTION READ ONLY`,
+executes fixed metadata queries, and rolls back. Dial/read/write timeouts are
+5 seconds each; the entire attempt has a 12-second context budget (an earlier
+caller deadline wins). No table contents, configurable SQL, writes, quota
+changes, schema names, addresses, credentials, certificate pins, cipher names
+or raw driver/server errors enter telemetry or logs. TLS status is checked using
+that same session's `Ssl_cipher`; a missing/empty value fails the whole sample.
+
+Size is the selected schema's visible non-view `DATA_LENGTH + INDEX_LENGTH`
+sum from `information_schema.TABLES`. It is an **estimate**, often cached and
+engine dependent, not billed storage or all server disk usage: it excludes
+other schemas, logs, free space and shared server overhead. Require schema-wide
+metadata visibility; restricted table privileges can silently undercount.
+Unknown/NULL statistics, numeric overflow, permissions/query errors or invalid
+input yield unknown metrics, never zero. A successfully observed empty schema
+has zero size. No statistics refresh or `ANALYZE TABLE` is performed.
+
+Connections count only visible `information_schema.PROCESSLIST` sessions whose
+default schema is the selected database and whose username matches the
+collector session's processlist username, including the collector connection.
+This remains username-filtered with `PROCESS` privileges; it is not a total of
+all users/clients, and accounts with the same username but different host parts
+may share that scope. Broad `PROCESS` grants are unnecessary; the account needs
+schema metadata visibility and access to its own processlist/session status.
+Use a dedicated account with read-only grants; the transaction is an additional
+guard, not a replacement for account permissions.
+
+References (verified for this implementation):
+[driver v1.10.1 configuration](https://github.com/go-sql-driver/mysql/blob/v1.10.1/dsn.go),
+[driver TLS/timeouts](https://github.com/go-sql-driver/mysql#readme),
+[MySQL table statistics](https://dev.mysql.com/doc/refman/8.4/en/information-schema-tables-table.html),
+[MySQL processlist visibility](https://dev.mysql.com/doc/refman/8.4/en/information-schema-processlist-table.html),
+[MariaDB read-only transactions](https://mariadb.com/docs/server/reference/sql-statements/transactions/start-transaction).
 
 ## Cloudflare Tunnels
 
