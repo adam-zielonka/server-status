@@ -1,5 +1,16 @@
 # Changelog
 
+## 4.5.0 — 2026-11-02
+
+- Add optional MySQL/MariaDB database monitoring alongside PostgreSQL: estimated
+  schema data/index usage, configured capacity, visible user connections, TLS
+  status and response time in the existing Storage view.
+- Require verified TLS using a CA and server name or an explicit self-signed
+  certificate pin. Keep credentials in private files and expose only allowlisted
+  metrics; failed measurements remain unavailable rather than reporting zero.
+- Bound read-only metadata collection and transaction cleanup by one deadline.
+  Preserve existing PostgreSQL configuration and snapshot compatibility.
+
 ## 4.4.0 — 2026-10-31
 
 - Add optional read-only GitHub Project issue counts through the existing collector.
