@@ -190,12 +190,32 @@ func mysqlDriverConfig(path string) (*mysql.Config, error) {
 	return cfg, nil
 }
 
+// database/sql's Rollback has no context and the driver's query watcher ends
+// after rows close. Keep cancellation on the underlying socket through cleanup.
+type mysqlAttemptConn struct {
+	net.Conn
+	stop func() bool
+}
+
+func (c *mysqlAttemptConn) Close() error {
+	c.stop()
+	return c.Conn.Close()
+}
+
 func collectMySQL(parent context.Context, path string) (databaseMetrics, error) {
 	ctx, cancel := context.WithTimeout(parent, mysqlTotalTimeout)
 	defer cancel()
 	cfg, err := mysqlDriverConfig(path)
 	if err != nil {
 		return databaseMetrics{}, errQuery
+	}
+	cfg.DialFunc = func(dialCtx context.Context, network, address string) (net.Conn, error) {
+		conn, err := (&net.Dialer{Timeout: mysqlConnectTimeout}).DialContext(dialCtx, network, address)
+		if err != nil {
+			return nil, err
+		}
+		stop := context.AfterFunc(ctx, func() { _ = conn.Close() })
+		return &mysqlAttemptConn{Conn: conn, stop: stop}, nil
 	}
 	connector, err := mysql.NewConnector(cfg)
 	if err != nil {

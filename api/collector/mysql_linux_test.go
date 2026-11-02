@@ -563,13 +563,19 @@ func TestMySQLTLSRejectionBeforeAuthentication(t *testing.T) {
 }
 
 func TestMySQLDeadline(t *testing.T) {
-	for _, phase := range []string{"greeting", "query"} {
+	for _, phase := range []string{"greeting", "query", "rollback", "rollback after failure"} {
 		t.Run(phase, func(t *testing.T) {
 			cert := syntheticMySQLCert(t, false, time.Now().Add(-time.Hour), time.Now().Add(time.Hour))
 			path, cfg := mysqlTestConfig(t, cert, true)
-			opts := mysqlWireOptions{stall: phase == "greeting"}
+			opts := mysqlWireOptions{stall: phase == "greeting", size: 0, connections: 1, cipher: "SYNTHETIC-CIPHER"}
 			if phase == "query" {
 				opts.stallAt = mysqlSizeQuery
+			}
+			if strings.HasPrefix(phase, "rollback") {
+				opts.stallAt = "ROLLBACK"
+			}
+			if phase == "rollback after failure" {
+				opts.failAt = mysqlSizeQuery
 			}
 			port, done := startMySQLWire(t, cert, opts)
 			cfg.Port = port
