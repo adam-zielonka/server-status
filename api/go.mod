@@ -2,7 +2,7 @@ module status
 
 go 1.26.0
 
-require github.com/shirou/gopsutil/v4 v4.26.9
+require github.com/shirou/gopsutil/v4 v4.26.10
 
 require (
 	github.com/go-sql-driver/mysql v1.10.1
@@ -12,7 +12,7 @@ require (
 require filippo.io/edwards25519 v1.2.0 // indirect
 
 require (
-	github.com/ebitengine/purego v0.11.1 // indirect
+	github.com/ebitengine/purego v0.11.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
