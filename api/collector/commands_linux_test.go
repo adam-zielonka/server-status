@@ -17,6 +17,7 @@ func TestConfiguredCommandsPreserveArgumentsAndEnvironment(t *testing.T) {
 		{[]string{"/usr/sbin/runuser", "-u", "example", "--", "/usr/bin/systemctl", "--user", "show", "example.service"}, []string{"/opt/tools/runuser", "-u", "example", "--", "/opt/tools/systemctl", "--user", "show", "example.service"}, false},
 		{[]string{"/usr/bin/gh", "run", "list"}, []string{"/opt/tools/gh", "run", "list"}, true},
 		{[]string{"/usr/bin/psql", "--no-password"}, []string{"/usr/bin/psql", "--no-password"}, false},
+		{[]string{"/usr/bin/gh", "--version"}, []string{"/usr/bin/gh", "--version"}, false},
 	} {
 		original := append([]string(nil), tc.before...)
 		env := map[string]string{"LC_ALL": "C"}

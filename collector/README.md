@@ -74,6 +74,8 @@ For example, `"commands": {"gh": "/usr/local/bin/gh"}` changes only the GitHub
 CLI executable. Commands still run without a shell and keep the same fixed
 arguments, timeouts and output limits. Configuration validation checks path
 syntax; it does not prove that an executable exists or can access its source.
+Software inventory's explicit `executable` paths remain independent of these
+integration overrides.
 
 ## Metric semantics
 

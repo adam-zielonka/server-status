@@ -20,6 +20,11 @@ func configuredQuery(cfg *Config, query queryFunc) queryFunc {
 		if len(args) == 0 {
 			return nil, errQuery
 		}
+		// Software inventory already supplies its own explicit executable path.
+		// Do not redirect that target through integration-command overrides.
+		if len(args) == 2 && (args[1] == "--version" || args[1] == "version") {
+			return query(ctx, args, timeout, env)
+		}
 		next := append([]string(nil), args...)
 		next[0] = resolve(args[0])
 		if args[0] == defaultCommands["runuser"] && len(args) > 4 && args[3] == "--" && args[4] == defaultCommands["systemctl"] {
