@@ -50,6 +50,7 @@ func TestAPTSourcesFollowExactVersionAndReleaseOrigin(t *testing.T) {
 		{"local", " *** 2.0-1 100\n 100 /var/lib/dpkg/status", ""},
 		{"unknown", " 2.0-1 500\n 500 https://private.example/secret noble/main amd64 Packages", ""},
 		{"ambiguous", " 2.0-1 500\n 500 https://mirror.example/ubuntu noble/main amd64 Packages\n 500 https://private.example/secret noble/main amd64 Packages", ""},
+		{"flat-ambiguous", " 2.0-1 500\n 500 https://mirror.example/ubuntu noble/main amd64 Packages\n 500 https://private.example/repo ./ Packages", ""},
 		{"missing", " Candidate: (none)", ""},
 	} {
 		got := aptPackageSources(tc.name+":\n"+tc.policy, indexes, map[string]string{tc.name: "2.0-1"})[tc.name]

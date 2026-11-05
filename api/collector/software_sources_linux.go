@@ -75,7 +75,7 @@ func aptPackageSources(policy string, indexes map[string]string, versions map[st
 				continue
 			}
 		}
-		if !selected || len(fields) != 5 || fields[4] != "Packages" {
+		if !selected || len(fields) < 3 || fields[len(fields)-1] != "Packages" {
 			continue
 		}
 		source := indexes[strings.Join(fields[1:], " ")]
