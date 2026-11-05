@@ -119,10 +119,27 @@ func availableVersion(ctx context.Context, tool SoftwareTool, installed string, 
 	}
 	return "", "manual", errors.New("no configured release source")
 }
+func softwareSourceURL(tool SoftwareTool) string {
+	switch tool.Kind {
+	case "npm":
+		return "https://www.npmjs.com/package/" + tool.Package
+	case "github":
+		return "https://github.com/" + tool.Repository
+	case "node":
+		return "https://nodejs.org/en/download"
+	case "go":
+		return "https://go.dev/dl/"
+	}
+	return ""
+}
+
 func (s sampler) softwareTool(ctx context.Context, tool SoftwareTool, now time.Time) row {
 	entry := row{"name": tool.Name, "source": tool.Kind, "status": "unknown", "checked_at": iso(now), "installed_version": nil, "available_version": nil}
 	if tool.Kind == "apt" {
 		return s.aptTool(ctx, tool, now)
+	}
+	if source := softwareSourceURL(tool); source != "" {
+		entry["source_url"] = source
 	}
 	args := []string{tool.Executable, "--version"}
 	if tool.Kind == "go" || tool.VersionCommand == "version" {
@@ -246,7 +263,8 @@ func (s sampler) software(ctx context.Context, cfg *SoftwareConfig, previous any
 		return nil
 	}
 	keyBytes, _ := json.Marshal(cfg)
-	key := fmt.Sprintf("%x", sha256.Sum256(keyBytes))
+	// Invalidate pre-link snapshots once, without changing the collection interval.
+	key := fmt.Sprintf("sources-v1:%x", sha256.Sum256(keyBytes))
 	old, ok := previous.(map[string]any)
 	if ok && text(old["config_hash"]) == key {
 		checked := timestamp(old["checked_at"])
@@ -286,5 +304,10 @@ func (s sampler) software(ctx context.Context, cfg *SoftwareConfig, previous any
 		result["updates"] = updates
 		apt = result
 	}
+	var updates []row
+	if apt != nil {
+		updates = apt.(row)["updates"].([]row)
+	}
+	s.linkAPTSources(ctx, tools, cfg.Tools, updates)
 	return row{"config_hash": key, "checked_at": iso(now), "interval_seconds": cfg.interval(), "apt": apt, "tools": tools}
 }

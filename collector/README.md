@@ -330,6 +330,19 @@ of minute-by-minute telemetry. New installations invalidate the cache at the nex
 scheduled check. The Software page marks stale results and provides search and
 an updates filter; Overview links to update/source warnings.
 
+Software rows may include an optional `source_url`. npm and GitHub URLs use the
+configured package/repository, independently of the display name; Node.js and
+Go link to their official download pages. APT links use the exact available
+version's local repository and Release metadata: Ubuntu/Debian packages link to
+an exact-name search in the distribution's package catalog (across suites), and
+known Tailscale/Cloudflare repositories link to their public package sites.
+This identifies an available source, not the historical origin of an installed
+package. Unknown, ambiguous or unavailable APT origins have no link. Only fixed
+public destinations are emitted; arbitrary repository URLs, credentials and
+private paths are never copied. Link lookup failure does not change update status.
+Older snapshots without links remain valid; upgrading to 5.1 refreshes the
+software cache at the next collection without resetting history.
+
 `apt: true` lists all installed packages reported by local `apt list --upgradable`,
 preserving Debian epochs/revisions. It neither refreshes indexes nor installs
 packages. Refresh indexes separately with your normal maintenance process.

@@ -181,6 +181,7 @@ export interface TunnelInfo {
   error?: string | null
 }
 export interface SoftwareVersion {
+  source_url?: string | null
   name: string
   source: string
   channel?: string | null
@@ -199,7 +200,12 @@ export interface SoftwareInfo {
     checked_at?: string | null
     security_index_at?: string | null
     error?: string | null
-    updates: { name: string; installed_version: string; available_version: string }[]
+    updates: {
+      name: string
+      installed_version: string
+      available_version: string
+      source_url?: string | null
+    }[]
   } | null
 }
 export interface TelemetrySnapshot {

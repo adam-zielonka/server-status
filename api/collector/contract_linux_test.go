@@ -59,7 +59,7 @@ func TestFrontendContractFixtures(t *testing.T) {
 				"jobs":          []row{s.systemdJob(ctx, Job{Unit: Unit{Name: "Example system task", Unit: "example.service"}, Kind: "systemd"}, nil), s.githubJob(ctx, Job{Unit: Unit{Name: "Example workflow"}, Kind: "github", Repository: "example/project", Workflow: "example.yml"}, nil, now, 300)},
 				"databases":     s.databases(ctx, []Database{{Name: "Example database", Service: "example", ServiceFile: "/private/example", LimitBytes: 10000}}),
 				"backup_stores": collectBackupStores([]BackupStore{{Name: "Example store", StatusFile: backup, MaxAge: 300}}, now),
-				"tunnels":       []row{}, "software": nil, "cpu_capacity": row{"peak_cores": 0, "observed_since": nil},
+				"tunnels":       []row{}, "software": s.software(ctx, &SoftwareConfig{Tools: []SoftwareTool{{Name: "Example CLI", Kind: "npm", Package: "@example/cli", Executable: "/example/cli"}}}, nil, now), "cpu_capacity": row{"peak_cores": 0, "observed_since": nil},
 				"history": []row{{"at": iso(now), "cpu_percent": nil, "memory_percent": nil, "disk_percent": 10.0, "cpu_capacity_cores": 2}},
 			}
 			// Host uptime is not part of the fixture; service observations use a

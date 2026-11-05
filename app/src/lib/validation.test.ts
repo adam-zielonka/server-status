@@ -126,6 +126,8 @@ const optionalFields = [
   'tailscale.key_days_remaining',
   'software.apt',
   'software.tools.0.channel',
+  'software.tools.0.source_url',
+  'software.apt.updates.0.source_url',
   'tunnels.0.locations',
   'tunnels.0.connections',
 ]

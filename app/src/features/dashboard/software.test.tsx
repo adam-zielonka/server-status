@@ -39,3 +39,38 @@ it('accepts older snapshots and never marks wholly unknown checks healthy', () =
   view.rerender(<SoftwarePage snapshot={snapshot} now={Date.now()} />)
   expect(screen.getByText('Software monitoring is not configured')).toBeInTheDocument()
 })
+
+it('links package sources independently of display names and check failures', () => {
+  const snapshot = demoTelemetry()
+  snapshot.software!.tools[1].name = 'Scoped CLI'
+  snapshot.software!.tools[1].source_url = 'https://www.npmjs.com/package/@example/cli'
+  snapshot.software!.tools[2].source_url = 'https://github.com/example/cli'
+  snapshot.software!.apt!.updates[0].source_url =
+    'https://packages.debian.org/search?keywords=example-utils'
+  render(<SoftwarePage snapshot={snapshot} now={Date.now()} />)
+  for (const [name, href] of [
+    ['Scoped CLI', 'https://www.npmjs.com/package/@example/cli'],
+    ['Example CLI', 'https://github.com/example/cli'],
+    ['example-utils', 'https://packages.debian.org/search?keywords=example-utils'],
+  ]) {
+    const link = screen.getByRole('link', { name: `${name} source (opens in a new tab)` })
+    expect(link).toHaveAttribute('href', href)
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+  }
+})
+
+it.each([
+  undefined,
+  null,
+  'javascript:alert(1)',
+  'https://github.com.evil.test/repo',
+  'https://secret@github.com/repo',
+])('keeps absent or unsafe sources as plain text: %s', (source) => {
+  const snapshot = demoTelemetry()
+  for (const tool of snapshot.software!.tools) tool.source_url = source
+  snapshot.software!.apt!.updates[0].source_url = source
+  render(<SoftwarePage snapshot={snapshot} now={Date.now()} />)
+  expect(screen.queryByRole('link')).not.toBeInTheDocument()
+  expect(screen.getByText('pnpm')).toBeInTheDocument()
+})

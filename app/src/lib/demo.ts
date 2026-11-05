@@ -189,6 +189,7 @@ export function demoTelemetry(now = Date.now()): TelemetrySnapshot {
         {
           name: 'Node.js',
           source: 'node',
+          source_url: 'https://nodejs.org/en/download',
           channel: '24.x',
           installed_version: '24.4.0',
           available_version: '24.5.0',
@@ -198,6 +199,7 @@ export function demoTelemetry(now = Date.now()): TelemetrySnapshot {
         {
           name: 'pnpm',
           source: 'npm',
+          source_url: 'https://www.npmjs.com/package/pnpm',
           channel: 'latest',
           installed_version: '12.0.0',
           available_version: '12.0.0',

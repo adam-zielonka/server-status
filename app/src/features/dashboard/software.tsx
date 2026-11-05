@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { PackageCheck } from 'lucide-react'
+import { ExternalLink, PackageCheck } from 'lucide-react'
 import { TelemetryCard } from '@/components/telemetry-card'
 import { EmptyState } from '@/components/data-card'
 import { StatusBadge } from '@/components/status-badge'
@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { formatDate, formatDuration } from '@/lib/format'
+import { formatDate, formatDuration, safeSoftwareUrl } from '@/lib/format'
 import { snapshotIsStale, softwareIsStale } from '@/lib/monitoring'
 import type { TelemetrySnapshot } from '@/types'
 
@@ -130,45 +130,63 @@ export function SoftwarePage({ snapshot, now }: { snapshot?: TelemetrySnapshot; 
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((t) => (
-                  <TableRow key={`${t.source}:${t.name}`}>
-                    <TableCell className="font-medium">
-                      {t.name}
-                      <span className="mt-1 block text-[10px] font-normal text-muted-foreground">
-                        {t.source}
-                      </span>
-                    </TableCell>
-                    <TableCell className="font-mono text-xs">
-                      {t.installed_version || '—'}
-                    </TableCell>
-                    <TableCell className="font-mono text-xs">
-                      {t.available_version || '—'}
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge
-                        state={t.error ? 'unknown' : t.status === 'current' ? 'healthy' : 'warning'}
-                        label={
-                          t.error
-                            ? 'Unknown'
-                            : t.status === 'current'
-                              ? 'Up to date'
-                              : t.status === 'update_available'
-                                ? 'Update available'
-                                : 'Unknown'
-                        }
-                        stale={stale}
-                      />
-                      {t.error && (
-                        <p className="mt-1 max-w-64 whitespace-normal text-[10px] text-muted-foreground">
-                          {t.error}
-                        </p>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      {formatDate(t.checked_at)}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {filtered.map((t) => {
+                  const url = safeSoftwareUrl(t.source_url)
+                  return (
+                    <TableRow key={`${t.source}:${t.name}`}>
+                      <TableCell className="font-medium">
+                        {url ? (
+                          <a
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 underline decoration-muted-foreground/50 underline-offset-4 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2"
+                            aria-label={`${t.name} source (opens in a new tab)`}
+                          >
+                            {t.name}
+                            <ExternalLink className="size-3" aria-hidden="true" />
+                          </a>
+                        ) : (
+                          t.name
+                        )}
+                        <span className="mt-1 block text-[10px] font-normal text-muted-foreground">
+                          {t.source}
+                        </span>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs">
+                        {t.installed_version || '—'}
+                      </TableCell>
+                      <TableCell className="font-mono text-xs">
+                        {t.available_version || '—'}
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge
+                          state={
+                            t.error ? 'unknown' : t.status === 'current' ? 'healthy' : 'warning'
+                          }
+                          label={
+                            t.error
+                              ? 'Unknown'
+                              : t.status === 'current'
+                                ? 'Up to date'
+                                : t.status === 'update_available'
+                                  ? 'Update available'
+                                  : 'Unknown'
+                          }
+                          stale={stale}
+                        />
+                        {t.error && (
+                          <p className="mt-1 max-w-64 whitespace-normal text-[10px] text-muted-foreground">
+                            {t.error}
+                          </p>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {formatDate(t.checked_at)}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
               </TableBody>
             </Table>
           ) : (

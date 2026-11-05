@@ -1,5 +1,18 @@
 # Changelog
 
+## 5.1.0 — 2026-11-05
+
+- Link Software names to their configured npm package or GitHub repository,
+  with official download pages for Node.js and Go. Links remain available when
+  version checks fail and open in a new tab.
+- Resolve APT links from the exact available version's repository metadata,
+  including Ubuntu/Debian mirrors and known Tailscale/Cloudflare repositories.
+  Unknown or ambiguous origins remain unlinked; private repository URLs are
+  never copied into telemetry. APT links describe the available package source,
+  not proof of the installed package's historical origin.
+- Keep older snapshots compatible through optional source URLs and refresh the
+  software cache once after upgrading. Version checks and history are unchanged.
+
 ## 5.0.0 — 2026-11-05
 
 - Require a new sign-in after upgrading: JWT sessions expire after 12 hours by

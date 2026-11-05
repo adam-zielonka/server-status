@@ -66,3 +66,30 @@ export function safeWorkflowUrl(value?: string | null): string | undefined {
     return undefined
   }
 }
+
+// Software URLs are produced from known public package sources by the collector.
+export function safeSoftwareUrl(value?: string | null): string | undefined {
+  if (!value) return undefined
+  try {
+    const url = new URL(value)
+    const hosts = [
+      'www.npmjs.com',
+      'github.com',
+      'nodejs.org',
+      'go.dev',
+      'packages.ubuntu.com',
+      'packages.debian.org',
+      'pkgs.tailscale.com',
+      'pkg.cloudflare.com',
+    ]
+    return url.protocol === 'https:' &&
+      hosts.includes(url.hostname) &&
+      !url.username &&
+      !url.password &&
+      !url.port
+      ? url.href
+      : undefined
+  } catch {
+    return undefined
+  }
+}

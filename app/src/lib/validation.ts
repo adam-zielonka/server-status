@@ -197,7 +197,7 @@ function validTelemetry(value: Record<string, unknown>): boolean {
             text(row, ['name', 'source', 'status']) &&
             optional(row.checked_at, timestamp) &&
             ['current', 'update_available', 'unknown'].includes(row.status as string) &&
-            fields(row, ['installed_version', 'available_version', 'channel'], (f) =>
+            fields(row, ['installed_version', 'available_version', 'channel', 'source_url'], (f) =>
               optional(f, string),
             ),
         ) &&
@@ -210,8 +210,11 @@ function validTelemetry(value: Record<string, unknown>): boolean {
             ['current', 'update_available', 'unknown'].includes(apt.status as string) &&
             optional(apt.error, string) &&
             optional(apt.security_index_at, timestamp) &&
-            array(apt.updates, (row) =>
-              text(row, ['name', 'installed_version', 'available_version']),
+            array(
+              apt.updates,
+              (row) =>
+                text(row, ['name', 'installed_version', 'available_version']) &&
+                optional(row.source_url, string),
             ),
         ),
     ) &&
