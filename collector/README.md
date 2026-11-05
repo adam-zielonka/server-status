@@ -57,6 +57,15 @@ The timer defaults to 60 seconds. Keep `sample_interval_seconds` aligned with
 checks default to 5 minutes. Set `max_age_seconds` per task to match its schedule,
 including weekends. Unreachable or missing sources are explicitly unknown.
 
+The snapshot retains the last observed systemd attempt, completion, outcome,
+error and successful completion across host/manager restarts or unit unloading.
+Resetting a failed unit does not rewrite an observed failure as a success.
+Empty execution timestamps from systemd do not erase that history; timer state
+and the next scheduled run are still refreshed. A previously running attempt
+whose completion was not observed remains unknown after a restart. Keep the
+snapshot on persistent storage: the collector cannot reconstruct erased history
+or infer a successful attempt from systemd's default `Result=success` alone.
+
 ## Tool paths and GitHub identity
 
 Optional `commands` maps symbolic names `systemctl`, `runuser`, `du`, `gh`,

@@ -149,6 +149,17 @@ func (s sampler) directories(ctx context.Context, items []Directory, previous []
 
 func (s sampler) systemdJob(ctx context.Context, item Job, old row) row {
 	entry := row{"name": item.Name, "kind": "systemd", "category": item.category(), "status": "unknown", "last_success_at": old["last_success_at"], "max_age_seconds": item.maxAge()}
+	// systemd execution timestamps are volatile across host/manager restarts
+	// and unit garbage collection. Keep the durable observation in the snapshot.
+	for _, key := range []string{"last_run_at", "completed_at", "last_error"} {
+		entry[key] = old[key]
+	}
+	completed, attempted := timestamp(old["completed_at"]), timestamp(old["last_run_at"])
+	knownOutcome := old["status"] == "failure" && text(old["last_error"]) != "" ||
+		old["status"] == "success" && !completed.IsZero() && (attempted.IsZero() || !attempted.After(completed))
+	if knownOutcome {
+		entry["status"] = old["status"]
+	}
 	p, err := s.systemdProperties(ctx, item.Unit, "")
 	if err != nil {
 		entry["error"] = "Task state is unavailable"
@@ -159,16 +170,36 @@ func (s sampler) systemdJob(ctx context.Context, item Job, old row) row {
 	status := "unknown"
 	if running {
 		status = "running"
+	} else if p["ActiveState"] == "failed" || (p["Result"] != "" && p["Result"] != "success" && p["Result"] != "unknown") {
+		status = "failure"
 	} else if !end.IsZero() && p["Result"] == "success" {
 		status = "success"
 	} else if !end.IsZero() {
 		status = "failure"
 	}
-	entry["status"], entry["last_run_at"], entry["completed_at"] = status, timeValue(start), timeValue(end)
-	if !end.IsZero() && p["Result"] == "success" && !running {
+	if start.IsZero() && end.IsZero() && !running && p["ActiveState"] != "failed" && p["Result"] == "success" {
+		// A default Result=success without execution timestamps is not a new
+		// success. Restore only a previously observed completed attempt. In
+		// particular, an interrupted/unobserved running attempt stays unknown.
+		if knownOutcome {
+			status = text(old["status"])
+		}
+	} else {
+		entry["last_run_at"], entry["completed_at"], entry["last_error"] = timeValue(start), timeValue(end), nil
+	}
+	// reset-failed clears Result/ExecMainStatus but can leave the timestamps.
+	// It must not turn the very same observed failed invocation into a success.
+	resetFailure := status == "success" && old["status"] == "failure" &&
+		!end.IsZero() && end.Equal(completed) && start.Equal(attempted)
+	if resetFailure {
+		status = "failure"
+		entry["last_error"] = old["last_error"]
+	}
+	entry["status"] = status
+	if status == "success" && !end.IsZero() {
 		entry["last_success_at"] = iso(end)
 	}
-	if status == "failure" {
+	if status == "failure" && !resetFailure && (p["ActiveState"] == "failed" || p["Result"] != "success") {
 		code, err := integerProperty(p, "ExecMainStatus")
 		if err != nil {
 			entry["error"] = "Task state is unavailable"

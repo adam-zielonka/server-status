@@ -1,5 +1,13 @@
 # Changelog
 
+## 5.1.1 — 2026-11-05
+
+- Retain observed systemd task outcomes, attempt/completion dates and errors when
+  systemd forgets execution timestamps after a restart or unit unloading. Keep
+  interrupted attempts unknown and continue refreshing timer state and schedules.
+- Preserve observed failures across `reset-failed` and report failures that occur
+  before the main process starts without inventing a successful completion.
+
 ## 5.1.0 — 2026-11-05
 
 - Link Software names to their configured npm package or GitHub repository,
