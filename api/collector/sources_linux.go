@@ -201,7 +201,7 @@ func (s sampler) githubJob(ctx context.Context, item Job, old row, now time.Time
 	}
 	entry := row{"name": item.Name, "kind": "github", "category": item.category(), "status": "unknown", "last_success_at": old["last_success_at"], "max_age_seconds": item.maxAge(), "checked_at": iso(now)}
 	args := []string{"/usr/bin/gh", "run", "list", "--repo", item.Repository, "--workflow", item.Workflow, "--json", "status,conclusion,createdAt,updatedAt,url"}
-	env := map[string]string{"GH_CONFIG_DIR": "/root/.config/gh", "GH_PROMPT_DISABLED": "1", "LC_ALL": "C"}
+	env := map[string]string{"GH_PROMPT_DISABLED": "1", "LC_ALL": "C"}
 	get := func(extra ...string) ([]workflowRun, error) {
 		body, err := s.query(ctx, append(append([]string{}, args...), extra...), 20*time.Second, env)
 		var runs []workflowRun

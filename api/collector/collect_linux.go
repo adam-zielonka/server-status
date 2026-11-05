@@ -32,7 +32,7 @@ func Run(ctx context.Context, cfg *Config) error {
 		return errCollection
 	}
 	defer unix.Flock(int(lock.Fd()), unix.LOCK_UN)
-	if err := (sampler{query: runCommand}).collect(ctx, cfg); err != nil {
+	if err := (sampler{query: configuredQuery(cfg, runCommand)}).collect(ctx, cfg); err != nil {
 		return errCollection
 	}
 	return nil

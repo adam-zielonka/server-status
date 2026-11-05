@@ -13,20 +13,22 @@ import (
 )
 
 type Config struct {
-	SnapshotFile      string          `json:"snapshot_file"`
-	StateFile         string          `json:"state_file"`
-	SampleInterval    int             `json:"sample_interval_seconds"`
-	DirectoryInterval int             `json:"directory_interval_seconds"`
-	GitHubInterval    int             `json:"github_interval_seconds"`
-	CPUCapacityCores  *float64        `json:"cpu_capacity_cores"`
-	Software          *SoftwareConfig `json:"software"`
-	Tailscale         bool            `json:"tailscale"`
-	Units             []Unit          `json:"units"`
-	Directories       []Directory     `json:"directories"`
-	Jobs              []Job           `json:"jobs"`
-	Databases         []Database      `json:"databases"`
-	Tunnels           []Tunnel        `json:"tunnels"`
-	BackupStores      []BackupStore   `json:"backup_stores"`
+	SnapshotFile      string            `json:"snapshot_file"`
+	StateFile         string            `json:"state_file"`
+	SampleInterval    int               `json:"sample_interval_seconds"`
+	DirectoryInterval int               `json:"directory_interval_seconds"`
+	GitHubInterval    int               `json:"github_interval_seconds"`
+	CPUCapacityCores  *float64          `json:"cpu_capacity_cores"`
+	Software          *SoftwareConfig   `json:"software"`
+	Tailscale         bool              `json:"tailscale"`
+	Units             []Unit            `json:"units"`
+	Directories       []Directory       `json:"directories"`
+	Jobs              []Job             `json:"jobs"`
+	Databases         []Database        `json:"databases"`
+	Tunnels           []Tunnel          `json:"tunnels"`
+	BackupStores      []BackupStore     `json:"backup_stores"`
+	Commands          map[string]string `json:"commands,omitempty"`
+	GitHubConfigDir   string            `json:"github_config_dir,omitempty"`
 }
 
 // BackupStore reads sanitized measurements from a separate backup checker.
@@ -153,6 +155,14 @@ func (c *Config) Validate() error {
 		filepath.Clean(c.SnapshotFile) == filepath.Clean(c.StateFile) ||
 		filepath.Clean(c.SnapshotFile) == filepath.Clean(c.StateFile)+".lock" {
 		return errors.New("collector output paths must be absolute and distinct")
+	}
+	for name, path := range c.Commands {
+		if _, known := defaultCommands[name]; !known || !filepath.IsAbs(path) || strings.ContainsRune(path, 0) {
+			return errors.New("collector commands require supported names and absolute executable paths")
+		}
+	}
+	if c.GitHubConfigDir != "" && (!filepath.IsAbs(c.GitHubConfigDir) || strings.ContainsRune(c.GitHubConfigDir, 0)) {
+		return errors.New("GitHub configuration directory must be absolute")
 	}
 	if c.SampleInterval < 1 || c.DirectoryInterval < 1 || c.GitHubInterval < 1 {
 		return errors.New("collector intervals must be positive seconds")

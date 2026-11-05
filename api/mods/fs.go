@@ -15,14 +15,36 @@ type FileSystemType struct {
 }
 
 func FileSystem() ([]FileSystemType, error) {
-	partitions, err := disk.Partitions(false)
+	return fileSystems(disk.Partitions, disk.Usage)
+}
+
+func fileSystems(list func(bool) ([]disk.PartitionStat, error), usageAt func(string) (*disk.UsageStat, error)) ([]FileSystemType, error) {
+	partitions, err := list(false)
 	if err != nil {
 		return nil, err
+	}
+	hasRoot := false
+	for _, p := range partitions {
+		hasRoot = hasRoot || p.Mountpoint == "/"
+	}
+	if !hasRoot {
+		// gopsutil's physical-filesystem filter excludes overlayfs. Keep other
+		// pseudo mounts filtered, but always measure the application's root.
+		root := disk.PartitionStat{Device: "/", Mountpoint: "/", Fstype: "unknown"}
+		if all, err := list(true); err == nil {
+			for _, p := range all {
+				if p.Mountpoint == "/" {
+					root = p
+					break
+				}
+			}
+		}
+		partitions = append(partitions, root)
 	}
 
 	var result []FileSystemType
 	for _, p := range partitions {
-		usage, err := disk.Usage(p.Mountpoint)
+		usage, err := usageAt(p.Mountpoint)
 		if err != nil {
 			return nil, err
 		}
