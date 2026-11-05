@@ -215,6 +215,33 @@ func TestCredentialChangesRevokeSessions(t *testing.T) {
 	}
 }
 
+func TestStatelessSessionRestorationAndLifetimePolicy(t *testing.T) {
+	settings := initializeAuth(t, testAuthSettings())
+	now := time.Now().Truncate(time.Second)
+	token, err := issueSession(settings, "example", now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	settings.SessionTTLSeconds = config.MinSessionTTLSeconds
+	initializeAuth(t, settings)
+	later := func() time.Time { return now.Add(time.Hour) }
+	if validateTokenAt(token, later) != nil {
+		t.Fatal("TTL changes apply to newly issued sessions")
+	}
+	settings.Users[0].Pass = "changed"
+	initializeAuth(t, settings)
+	if validateTokenAt(token, later) == nil {
+		t.Fatal("password change must invalidate the token")
+	}
+	initializeAuth(t, testAuthSettings())
+	if validateTokenAt(token, later) != nil {
+		t.Fatal("restoring credentials restores the stateless key")
+	}
+	if validateTokenAt(token, func() time.Time { return now.Add(13 * time.Hour) }) == nil {
+		t.Fatal("restoration must not bypass expiration")
+	}
+}
+
 func TestSessionRejectsInvalidClaimsAndAlgorithms(t *testing.T) {
 	settings := initializeAuth(t, testAuthSettings())
 	key, err := sessionSigningKey(settings, "example")

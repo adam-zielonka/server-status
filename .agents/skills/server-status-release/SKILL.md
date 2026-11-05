@@ -37,6 +37,17 @@ Read the current [build and CLI guide](../../../api/README.md),
   credentials: embedded assets, JWT API access, collection and shutdown. Keep
   any collected host telemetry outside the checkout and remove the temporary
   data. Public fixtures and demo assets must remain synthetic.
+  From 5.0, `python3 scripts/smoke-release.py <native-binary> --previous
+  <previous-binary> --validator app/scripts/validate-telemetry.mjs` exercises this
+  path, including forward/repeat/reverse collection and retained sample fields.
+  It stores host-derived samples only in a temporary directory and removes them.
+  `sh scripts/check-contract.sh` separately validates synthetic Go producer output
+  against the actual frontend validator; it runs in CI and `make test`.
+- 5.0 rejects legacy JWTs. Check successful fresh authentication and expiration,
+  and document the required sign-in. Configuration changes take effect after
+  API restart; restoring previous credentials can revive their unexpired tokens.
+  Never rotate an operator's credentials solely to test this: use synthetic
+  configurations in the auth tests and release smoke check.
 - When retiring an integration, check older configuration/snapshot input and
   the next collection's persisted state: removed polling/cache must disappear
   without resetting resource history or CPU peak metadata. Removed API paths

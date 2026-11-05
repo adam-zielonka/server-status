@@ -63,6 +63,8 @@ jobs:
         run: ./build.sh frontend
       - name: Test Go server and CLI
         run: cd api && go test -race ./...
+      - name: Check Go/frontend telemetry contract
+        run: sh scripts/check-contract.sh
       - name: Build standalone binaries
         run: |
           mkdir -p build

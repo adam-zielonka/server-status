@@ -12,6 +12,11 @@ sign in again. `auth.session_ttl_seconds` defaults to 43200 seconds (12 hours) a
 accepts 300–604800 seconds. Changing a user's password, removing the user or
 rotating the signing key invalidates affected tokens. Local sign-out clears the
 browser session but does not revoke a copied token; rotate credentials if needed.
+Configuration changes take effect after restarting the API. Revocation is
+stateless: restoring a previous password and signing key can make its unexpired
+tokens valid again. Do not restore compromised credentials as a revocation strategy.
+Changing the configured lifetime applies to newly issued tokens; existing sessions
+keep their signed expiration time unless their credentials are changed.
 
 Telemetry schema 1, retained resource history and CPU peak metadata continue
 without a format conversion. Preserve the collector's private state and snapshot

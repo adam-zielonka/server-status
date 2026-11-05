@@ -30,3 +30,9 @@ interpolated values. A backup size does not establish verification or restoreabi
 The embedded dashboard and API share an origin. For a separate static frontend,
 serve it at the same origin as a reverse proxy forwarding `/api/` to the API.
 Changing `VITE_API_URL` does not add CORS support to the API.
+
+Run `sh scripts/check-contract.sh` from the source checkout to generate synthetic
+Go collector fixtures and validate them with the dashboard's runtime validator.
+The same check runs in CI. To validate an existing snapshot privately, use
+`node app/scripts/validate-telemetry.mjs /private/path/telemetry.json` with Node 24+;
+it prints only `PASS` or `FAIL` and exits 0 or 1. It does not collect or upload data.

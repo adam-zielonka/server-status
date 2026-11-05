@@ -17,6 +17,7 @@ build:
 test: frontend
 	cd api && $(GO) test ./...
 	cd app && $(PNPM) test
+	GO="$(GO)" sh scripts/check-contract.sh
 
 clean:
 	rm -rf build api/web/dist app/dist
