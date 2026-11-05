@@ -69,6 +69,12 @@ the invoking user's normal `gh` defaults and environment; no root-specific
 configuration directory is forced. Ensure the service account can access any
 configured sources without exposing credentials.
 
+Defaults use `/usr/bin/<name>` except `runuser`, which uses `/usr/sbin/runuser`.
+For example, `"commands": {"gh": "/usr/local/bin/gh"}` changes only the GitHub
+CLI executable. Commands still run without a shell and keep the same fixed
+arguments, timeouts and output limits. Configuration validation checks path
+syntax; it does not prove that an executable exists or can access its source.
+
 ## Metric semantics
 
 - Service uptime uses systemd monotonic timestamps. Restarts show current

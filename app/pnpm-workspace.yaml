@@ -5,3 +5,8 @@ allowBuilds:
   core-js: false
   core-js-pure: false
   fsevents: false
+
+# Remove after upstream lint dependencies adopt the fixed major.
+# https://github.com/advisories/GHSA-g3hv-75wg-m249
+overrides:
+  'minimatch@>=7 <11.0.1': 11.0.1

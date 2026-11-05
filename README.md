@@ -42,12 +42,12 @@ systemd using the same executable; see the [collector guide](collector/README.md
   growth, scheduled tasks/backups and software update availability. Host configuration and collected data
   stay outside the public repository; the demo uses synthetic examples.
 
-## License
-MIT
-
-
 Optional backup storage monitoring accepts sanitized JSON measurements from a
 separate backup checker. Storage shows capacity, available space, retained copy
 count and the latest backup copy size; Overview flags capacity issues and expired
 measurements. Pair it with a backup job in Tasks to monitor schedule/failures.
 See [collector configuration](collector/README.md#backup-storage-measurements).
+
+## License
+
+MIT

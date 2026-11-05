@@ -1,5 +1,30 @@
 # Changelog
 
+## 5.0.0 — 2026-11-05
+
+- Require a new sign-in after upgrading: JWT sessions expire after 12 hours by
+  default and become invalid when the user's password or signing key changes.
+  Reject empty or ambiguous accounts and invalid API configuration before startup.
+- Validate consumed telemetry fields and nullable measurements consistently.
+  Malformed timestamps become source errors; unavailable database sizes remain
+  unavailable. Distinguish failed, disabled and stale monitoring throughout the UI,
+  including service summaries and Tailscale route exposure.
+- Describe backup sizes without claiming an integrity check or restore test that
+  the source data does not establish.
+- Support trusted absolute collector command overrides and an optional GitHub CLI
+  configuration directory. Omitted GitHub configuration uses the invoking account
+  and environment. Include root filesystem metrics when `/` is overlayfs.
+- Add complete installation, API contract and migration guides, a minimal
+  collector configuration and an unprivileged API systemd service using
+  credential delivery. Document same-origin proxy requirements for static hosting.
+- Add regression and synthetic Go/frontend contract checks and a repeatable
+  native release smoke test with history compatibility checks. Update the
+  development minimatch dependency to address GHSA-g3hv-75wg-m249.
+
+The existing API paths and response envelope remain supported. Telemetry schema 1,
+retained history and CPU peak metadata need no conversion. See the
+[5.0 migration guide](docs/migration-5.0.md) before upgrading.
+
 ## 4.6.1 — 2026-11-05
 
 - Include the retired Agent tasks/GitHub Projects and Caddy/Virtual hosts
