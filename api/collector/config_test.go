@@ -42,6 +42,8 @@ func TestCollectorConfiguration(t *testing.T) {
 		strings.TrimSuffix(base, "}") + `,"cpu_capacity_cores":true}`,
 		strings.TrimSuffix(base, "}") + `,"cpu_capacity_cores":"1"}`,
 		strings.TrimSuffix(base, "}") + `,"software":{"interval_seconds":60}}`,
+		strings.TrimSuffix(base, "}") + `,"software":{"tools":[{"name":"CLI","kind":"apt","package":"--help"}]}}`,
+		strings.TrimSuffix(base, "}") + `,"software":{"tools":[{"name":"CLI","kind":"github","repository":"example/tool","executable":"/bin/tool","version_command":"update"}]}}`,
 		strings.TrimSuffix(base, "}") + `,"software":{"tools":[{"name":"CLI","kind":"npm","package":"https://example.com","executable":"/bin/cli"}]}}`,
 		strings.TrimSuffix(base, "}") + `,"software":{"tools":[{"name":"CLI","kind":"shell","executable":"/bin/cli"}]}}`,
 		strings.TrimSuffix(base, "}") + `,"software":{"tools":[{"name":"CLI","kind":"manual","executable":"relative"}]}}`,

@@ -92,6 +92,11 @@
         "executable": "/usr/local/go/bin/go"
       },
       {
+        "name": "Git",
+        "kind": "apt",
+        "package": "git"
+      },
+      {
         "name": "Example CLI",
         "kind": "github",
         "repository": "example/project",

@@ -43,12 +43,13 @@ type SoftwareConfig struct {
 	Tools    []SoftwareTool `json:"tools"`
 }
 type SoftwareTool struct {
-	Name       string `json:"name"`
-	Executable string `json:"executable"`
-	Kind       string `json:"kind"`
-	Package    string `json:"package"`
-	Repository string `json:"repository"`
-	Channel    string `json:"channel"`
+	Name           string `json:"name"`
+	Executable     string `json:"executable"`
+	Kind           string `json:"kind"`
+	Package        string `json:"package"`
+	Repository     string `json:"repository"`
+	Channel        string `json:"channel"`
+	VersionCommand string `json:"version_command"`
 }
 
 func (c *SoftwareConfig) interval() int {
@@ -165,11 +166,18 @@ func (c *Config) Validate() error {
 		}
 		names := map[string]bool{}
 		for _, tool := range c.Software.Tools {
-			if strings.TrimSpace(tool.Name) == "" || names[tool.Name] || !filepath.IsAbs(tool.Executable) {
+			if strings.TrimSpace(tool.Name) == "" || names[tool.Name] || (tool.Kind != "apt" && !filepath.IsAbs(tool.Executable)) {
 				return errors.New("invalid software name or executable")
 			}
 			names[tool.Name] = true
+			if tool.VersionCommand != "" && tool.VersionCommand != "version" {
+				return errors.New("unsupported version command")
+			}
 			switch tool.Kind {
+			case "apt":
+				if !regexp.MustCompile(`^[a-z0-9][a-z0-9+.-]+$`).MatchString(tool.Package) {
+					return errors.New("invalid APT package")
+				}
 			case "npm":
 				if !regexp.MustCompile(`^(@[a-z0-9_-]+/)?[a-z0-9_.-]+$`).MatchString(tool.Package) || (tool.Channel != "" && !regexp.MustCompile(`^[a-zA-Z0-9_-]+$`).MatchString(tool.Channel)) {
 					return errors.New("invalid npm package or channel")

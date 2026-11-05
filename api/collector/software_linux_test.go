@@ -87,3 +87,53 @@ func TestCLIVersionFormats(t *testing.T) {
 		}
 	}
 }
+
+func TestConfiguredAPTPackage(t *testing.T) {
+	for _, tc := range []struct{ installed, candidate, status string }{
+		{"1:2.43.0-1ubuntu7.3", "1:2.43.0-1ubuntu7.4", "update_available"},
+		{"1.60.1+dfsg-3ubuntu0.24.04.6", "1.60.1+dfsg-3ubuntu0.24.04.6", "current"},
+		{"2.0-1", "1.0-1", "current"},
+		{"2.0-1", "(none)", "unknown"},
+	} {
+		s := sampler{query: func(ctx context.Context, args []string, d time.Duration, env map[string]string) ([]byte, error) {
+			switch args[0] {
+			case "/usr/bin/dpkg-query":
+				return []byte("installed\t" + tc.installed), nil
+			case "/usr/bin/apt-cache":
+				return []byte("  Candidate: " + tc.candidate + "\n"), nil
+			case "/usr/bin/dpkg":
+				return runCommand(ctx, args, d, env)
+			}
+			return nil, errors.New("private error")
+		}}
+		r := s.softwareTool(context.Background(), SoftwareTool{Name: "Example", Kind: "apt", Package: "example"}, time.Now())
+		if r["status"] != tc.status || r["installed_version"] != tc.installed {
+			t.Fatalf("unexpected result: %v", r)
+		}
+	}
+	s := sampler{query: queryFailure}
+	r := s.softwareTool(context.Background(), SoftwareTool{Name: "Missing", Kind: "apt", Package: "missing"}, time.Now())
+	if r["status"] != "unknown" || r["installed_version"] != nil {
+		t.Fatalf("missing package: %v", r)
+	}
+}
+func TestVersionSubcommandAndDeduplication(t *testing.T) {
+	s := sampler{query: func(_ context.Context, args []string, _ time.Duration, _ map[string]string) ([]byte, error) {
+		if args[0] == "/example" {
+			if len(args) != 2 || args[1] != "version" {
+				t.Fatalf("unsafe command: %v", args)
+			}
+			return []byte("example 4.3.3"), nil
+		}
+		return []byte("Listing...\nexample/stable 2.0-1 amd64 [upgradable from: 1.0-1]\nother/stable 3.0-1 amd64 [upgradable from: 2.0-1]\n"), nil
+	}}
+	r := s.softwareTool(context.Background(), SoftwareTool{Name: "Example", Kind: "manual", Executable: "/example", VersionCommand: "version"}, time.Now())
+	if r["installed_version"] != "4.3.3" {
+		t.Fatal(r)
+	}
+	result := s.software(context.Background(), &SoftwareConfig{APT: true, Tools: []SoftwareTool{{Name: "Example", Kind: "apt", Package: "example"}}}, nil, time.Now()).(row)
+	updates := result["apt"].(row)["updates"].([]row)
+	if len(updates) != 1 || updates[0]["name"] != "other" {
+		t.Fatal(updates)
+	}
+}

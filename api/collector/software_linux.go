@@ -121,8 +121,11 @@ func availableVersion(ctx context.Context, tool SoftwareTool, installed string, 
 }
 func (s sampler) softwareTool(ctx context.Context, tool SoftwareTool, now time.Time) row {
 	entry := row{"name": tool.Name, "source": tool.Kind, "status": "unknown", "checked_at": iso(now), "installed_version": nil, "available_version": nil}
+	if tool.Kind == "apt" {
+		return s.aptTool(ctx, tool, now)
+	}
 	args := []string{tool.Executable, "--version"}
-	if tool.Kind == "go" {
+	if tool.Kind == "go" || tool.VersionCommand == "version" {
 		args[1] = "version"
 	}
 	output, err := s.query(ctx, args, 5*time.Second, map[string]string{"NO_COLOR": "1"})
@@ -146,6 +149,51 @@ func (s sampler) softwareTool(ctx context.Context, tool SoftwareTool, now time.T
 	entry["available_version"], entry["status"] = available, versionStatus(installed, available)
 	return entry
 }
+
+// Use the configured distribution candidate, preserving epochs and revisions.
+func (s sampler) aptTool(ctx context.Context, tool SoftwareTool, now time.Time) row {
+	entry := row{"name": tool.Name, "source": "apt", "channel": "distribution", "status": "unknown", "checked_at": iso(now), "installed_version": nil, "available_version": nil}
+	fail := func() row { entry["error"] = "APT package version query failed"; return entry }
+	env := map[string]string{"LC_ALL": "C"}
+	body, err := s.query(ctx, []string{"/usr/bin/dpkg-query", "-W", "-f=${db:Status-Status}\t${Version}", tool.Package}, 5*time.Second, env)
+	if err != nil {
+		return fail()
+	}
+	parts := strings.Split(strings.TrimSpace(string(body)), "\t")
+	if len(parts) != 2 || parts[0] != "installed" || parts[1] == "" {
+		return fail()
+	}
+	installed := parts[1]
+	entry["installed_version"] = installed
+	body, err = s.query(ctx, []string{"/usr/bin/apt-cache", "policy", tool.Package}, 5*time.Second, env)
+	if err != nil {
+		return fail()
+	}
+	candidate := ""
+	for _, line := range strings.Split(string(body), "\n") {
+		if value, ok := strings.CutPrefix(strings.TrimSpace(line), "Candidate:"); ok {
+			candidate = strings.TrimSpace(value)
+		}
+	}
+	if candidate == "" || candidate == "(none)" {
+		return fail()
+	}
+	entry["available_version"] = candidate
+	if installed == candidate {
+		entry["status"] = "current"
+		return entry
+	}
+	if _, err = s.query(ctx, []string{"/usr/bin/dpkg", "--compare-versions", installed, "lt", candidate}, 5*time.Second, env); err == nil {
+		entry["status"] = "update_available"
+		return entry
+	}
+	if _, err = s.query(ctx, []string{"/usr/bin/dpkg", "--compare-versions", installed, "ge", candidate}, 5*time.Second, env); err == nil {
+		entry["status"] = "current"
+		return entry
+	}
+	return fail()
+}
+
 func parseAPTUpdates(output string) ([]row, error) {
 	updates := []row{}
 	for _, line := range strings.Split(output, "\n") {
@@ -222,7 +270,21 @@ func (s sampler) software(ctx context.Context, cfg *SoftwareConfig, previous any
 	wg.Wait()
 	var apt any
 	if cfg.APT {
-		apt = s.aptUpdates(ctx, now)
+		result := s.aptUpdates(ctx, now)
+		configured := map[string]bool{}
+		for _, tool := range cfg.Tools {
+			if tool.Kind == "apt" {
+				configured[tool.Package] = true
+			}
+		}
+		updates := []row{}
+		for _, update := range result["updates"].([]row) {
+			if !configured[text(update["name"])] {
+				updates = append(updates, update)
+			}
+		}
+		result["updates"] = updates
+		apt = result
 	}
 	return row{"config_hash": key, "checked_at": iso(now), "interval_seconds": cfg.interval(), "apt": apt, "tools": tools}
 }

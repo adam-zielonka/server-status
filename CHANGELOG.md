@@ -4,6 +4,9 @@
 
 - Include the retired Agent tasks/GitHub Projects and Caddy/Virtual hosts
   removals prepared for 4.6.0, retaining MySQL/MariaDB and PostgreSQL monitoring.
+- Make the existing Software inventory extension generally available: permanent
+  APT package rows with full Debian versions, update-row deduplication and a
+  fixed `version_command: "version"` option for compatible CLIs.
 - Integrate the merged Dependabot updates: gopsutil 4.26.10, purego 0.11.2,
   React Query 5.105.0, Lucide 1.66.0, Node types 26.6.6, ESLint 10.14.0 and
   typescript-eslint 8.72.1.

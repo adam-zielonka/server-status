@@ -298,15 +298,22 @@ Reference: [Cloudflare tunnel metrics](https://developers.cloudflare.com/cloudfl
 
 Optional `software` enables read-only APT and explicitly configured CLI checks.
 `interval_seconds` defaults to 21600 (six hours), with a range of 3600 to 604800 seconds.
-Up to 24 `tools` accept a unique `name`, absolute `executable` and `kind`:
+Up to 24 `tools` accept a unique `name` and `kind`, plus an absolute
+`executable` for non-APT sources:
 
 - `npm`: `package`, optional dist-tag `channel` (default `latest`).
 - `github`: `repository` (`owner/repo`), latest non-prerelease GitHub release.
 - `node`: latest stable release in the installed major from nodejs.org.
 - `go`: latest stable patch in the installed major.minor from go.dev.
+- `apt`: `package`, installed Debian version and local APT candidate; no executable needed.
 - `manual`: installed version only, explicitly unknown release availability.
 
 Each executable runs with `--version` (`go` uses `version`), without a shell.
+Optional `version_command: "version"` selects that fixed subcommand instead.
+APT tools query dpkg-query and apt-cache, comparing full Debian versions with
+dpkg; they never run the package executable. Configured APT packages get a
+permanent row and are omitted from the generic APT update rows to avoid duplicates.
+APT candidates use local indexes; the global APT freshness warning still applies.
 Choose trusted, root-owned executables. Commands and HTTP requests have time and
 output bounds; at most four tools run concurrently. Only fixed public registry
 hosts are queried, without credentials, proxies or redirects. No update command
