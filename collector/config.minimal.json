@@ -1,0 +1,8 @@
+{
+  "snapshot_file": "/var/lib/server-status/telemetry.json",
+  "state_file": "/var/lib/server-status-collector/state.json",
+  "sample_interval_seconds": 60,
+  "directory_interval_seconds": 900,
+  "github_interval_seconds": 300,
+  "tailscale": false
+}

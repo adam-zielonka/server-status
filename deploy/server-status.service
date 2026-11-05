@@ -1,0 +1,24 @@
+[Unit]
+Description=Server Status API and dashboard
+After=network.target
+
+[Service]
+Type=simple
+User=server-status
+Group=server-status
+LoadCredential=config.json:/etc/server-status/config.json
+ExecStart=/opt/server-status/server-status serve --config %d/config.json
+Restart=on-failure
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

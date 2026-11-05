@@ -15,7 +15,7 @@ unprivileged process without command execution or service-control endpoints.
 
 Keep real configuration, credentials, snapshots, history, deployment notes,
 hostnames, infrastructure addresses, directory labels and task sources **outside
-the public checkout**. Only `config.example.json` is intended for version control.
+the public checkout**. Only the supplied example configurations are intended for version control.
 Never copy production snapshots into tests, screenshots, demo assets, issues,
 commits or CI artifacts. The public demo generates synthetic data.
 
@@ -39,29 +39,15 @@ as root to read process counters and directory metadata. It has no listener,
 uses no shell, and has a read-only filesystem with limited capabilities. Only
 root may edit its configuration or installed code.
 
-1. Create a `server-status` system group/account for the API if needed.
-2. Create `/etc/server-status` with mode 0700. Copy `config.example.json` to
-   `/etc/server-status/collector.json`, mode 0600, and configure the checks.
-3. Create `/var/lib/server-status`, owned by `root:server-status`, mode **2750**.
-   The setgid bit makes atomic snapshots inherit the API's group.
-4. Build the standalone executable with `./build.sh` from the repository root.
-   Install `build/server-status` as `/opt/server-status/server-status`, owned by
-   root with mode 0755. The same executable serves the frontend and API. Validate
-   configuration before enabling collection:
-   `/opt/server-status/server-status config check --collector --config /etc/server-status/collector.json`.
-5. Add `"telemetry_file": "/var/lib/server-status/telemetry.json"` to the
-   private API configuration and restart the API.
-6. Install the supplied `.service` and `.timer` into `/etc/systemd/system/`, run
-   `systemctl daemon-reload`, then
-   `systemctl enable --now server-status-collector.timer`.
-7. Run `systemctl start server-status-collector.service` for an initial sample.
+Follow the complete [installation guide](../docs/installation.md) for the API,
+credential delivery, minimal collector configuration, ownership and units. The
+minimal configuration collects core samples without enabling optional sources.
+The full example is a catalog: configure its integrations before using it. The
+collector unit creates private state and publishes a group-readable snapshot;
+the API does not need access to collector configuration or state.
 
-The unit creates `/var/lib/server-status-collector` (0700) for persistent state
-and locking. Snapshots are 0640; state/history is 0600. The API gets read access
-only to its snapshot, never collector configuration or private state.
-
-Without `telemetry_file`, the API returns `{"enabled":false}` and the operations
-section remains hidden.
+Without `telemetry_file`, `/api/telemetry` reports disabled and operations views
+show disabled states.
 Configure `units` for long-running services, `directories` for disk growth, and
 `jobs` for systemd oneshots and GitHub Actions workflows. Service/task entries
 accept an optional `user` for a user service manager; tasks accept a `timer`.
@@ -70,6 +56,18 @@ The timer defaults to 60 seconds. Keep `sample_interval_seconds` aligned with
 `OnUnitActiveSec` if changing it. Directory scans default to 15 minutes; GitHub
 checks default to 5 minutes. Set `max_age_seconds` per task to match its schedule,
 including weekends. Unreachable or missing sources are explicitly unknown.
+
+## Tool paths and GitHub identity
+
+Optional `commands` maps symbolic names `systemctl`, `runuser`, `du`, `gh`,
+`psql`, `tailscale`, `systemd-detect-virt`, `apt`, `apt-cache`, `dpkg`, and
+`dpkg-query` to trusted absolute executable paths. Omitted entries retain the
+built-in defaults. Only root should control these executables and configuration;
+do not use untrusted paths. Optional `github_config_dir` is an absolute path to
+a private GitHub CLI configuration directory. When omitted, the collector uses
+the invoking user's normal `gh` defaults and environment; no root-specific
+configuration directory is forced. Ensure the service account can access any
+configured sources without exposing credentials.
 
 ## Metric semantics
 
@@ -341,7 +339,8 @@ and package/repository configuration are not exported in telemetry.
 backup checker. Configure a label, absolute `status_file`, and
 `max_age_seconds` (60–604800). The collector only reads these files; it does not
 receive SSH keys, connect to remote stores, create backups, or delete archives.
-The source may contain `status`, `checked_at` (RFC 3339), `bytes`, `limit_bytes`,
+The checker defines the scope of its own measurements; the collector does not
+verify backup integrity or test restoration. The source may contain `status`, `checked_at` (RFC 3339), `bytes`, `limit_bytes`,
 `backup_count`, `last_success_at`, and `latest_backup_bytes`. Use `status: unknown`
 when a remote check fails. Capacity is recomputed at 80%/95% thresholds.
 Missing, invalid, stale, future-dated or oversized measurements become unknown;
@@ -351,7 +350,7 @@ old measurements and shows alerts in Overview and capacity in Storage.
 Monitor the actual backup service/timer separately under `jobs` with category
 `backup` to detect failed runs and overdue copies.
 
-## Upgrading to 4.6.0
+## Upgrading to 4.6.1
 
 The agent task board integration has been removed. Existing configuration files
 remain loadable; remove the unused `agent_queue` option when convenient. The

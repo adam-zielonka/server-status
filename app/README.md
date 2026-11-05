@@ -36,7 +36,10 @@ The output is `dist/`. For the standalone Go executable, run `./build.sh` from
 the repository root after installing dependencies. It embeds the production
 frontend and serves it together with `/api/*`; Node.js is only needed to build.
 See the [CLI and build guide](../api/README.md). Frontend changes require rebuilding
-the executable. Static hosting and the separate public demo remain supported.
+the executable. Static hosting and the separate public demo remain supported. For a separate real
+frontend, serve the assets and reverse proxy `/api/` under the same browser origin.
+The API does not provide CORS; setting `VITE_API_URL` alone does not enable
+cross-origin browser requests.
 
 The dashboard footer and sign-in page show the version from the repository's
 `VERSION` file and link to its release notes. The `VERSION` environment override

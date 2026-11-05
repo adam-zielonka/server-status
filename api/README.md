@@ -41,9 +41,11 @@ CI additionally uses `go test -race ./...`, which needs cgo and a C compiler.
 The API reads `config.json` in the current working directory by default, or the
 path supplied with `--config`. Copy [config.example.json](config.example.json)
 to a private location and set `auth.users` and `auth.secret` before starting.
-Configuration uses JSON syntax and is never embedded in the executable.
+Configuration uses JSON syntax and is never embedded in the executable. For a complete
+downloaded-binary installation with systemd credentials, see the
+[installation guide](../docs/installation.md); see also the [5.0 migration](../docs/migration-5.0.md).
 
-Version 4.6.0 removes Caddy/Virtual hosts monitoring. `/api/vhosts` now returns
+Version 4.6.1 removed Caddy/Virtual hosts monitoring. `/api/vhosts` now returns
 404, and the old `external` configuration option is ignored and can be removed.
 
 ## Run and CLI
@@ -63,7 +65,9 @@ Version 4.6.0 removes Caddy/Virtual hosts monitoring. `/api/vhosts` now returns
 at `/api/*` on the same listener. No static directory, Node server, or second
 frontend port is needed. Configure HTTPS or your existing reverse proxy to forward
 **all paths** to this listener. Keep the API's configured loopback bind when using
-Tailscale Serve or another local proxy. The API requires JWT authentication.
+Tailscale Serve or another local proxy. The API requires JWT authentication. For separate static hosting, proxy `/api/`
+under the same browser origin; the API does not provide CORS. See the
+[API contract](../docs/api-contract.md) for envelopes and session behavior.
 
 `--listen` overrides the configured bind address; bracket IPv6 addresses, for
 example `[::1]:4000`. `--api-only` disables static serving for Vite development

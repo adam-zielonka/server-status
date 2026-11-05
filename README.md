@@ -33,9 +33,10 @@ systemd using the same executable; see the [collector guide](collector/README.md
 
 ## Documentation
 
+- [Installation](docs/installation.md), [5.0 migration](docs/migration-5.0.md), and [API contract](docs/api-contract.md)
 - [REST API (Go)](api/README.md)
 - [Web Application (React + TypeScript + Vite)](app/README.md), with shadcn/ui components.
-- [Application review and improvements](docs/application-review.md)
+- [Historical application review (4.1.0)](docs/application-review.md)
 - [Optional operations monitoring](collector/README.md): service health, top
   processes, container allocation, Tailscale status, resource history, directory
   growth, scheduled tasks/backups and software update availability. Host configuration and collected data
@@ -47,6 +48,6 @@ MIT
 
 Optional backup storage monitoring accepts sanitized JSON measurements from a
 separate backup checker. Storage shows capacity, available space, retained copy
-count and the latest verified backup; Overview flags capacity issues and expired
+count and the latest backup copy size; Overview flags capacity issues and expired
 measurements. Pair it with a backup job in Tasks to monitor schedule/failures.
 See [collector configuration](collector/README.md#backup-storage-measurements).
