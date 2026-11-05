@@ -1,6 +1,15 @@
 # Changelog
 
-## 4.6.0 — 2026-11-05
+## 4.6.1 — 2026-11-05
+
+- Include the retired Agent tasks/GitHub Projects and Caddy/Virtual hosts
+  removals prepared for 4.6.0, retaining MySQL/MariaDB and PostgreSQL monitoring.
+- Integrate the merged Dependabot updates: gopsutil 4.26.10, purego 0.11.2,
+  React Query 5.105.0, Lucide 1.66.0, Node types 26.6.6, ESLint 10.14.0 and
+  typescript-eslint 8.72.1.
+
+
+## 4.6.0 — unreleased preparation, 2026-11-05
 
 - Remove Agent tasks cards and the GitHub Projects queue collector, including
   its configuration, cache, data contracts and synthetic fixtures. GitHub Actions
