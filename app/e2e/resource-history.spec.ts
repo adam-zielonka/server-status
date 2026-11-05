@@ -112,7 +112,7 @@ test('resource series remain identifiable with gaps, overlap, keyboard and a sam
   ] as const) {
     await card.getByRole('tab', { name: hours, exact: true }).click()
     await expect(card.getByText(`View recorded samples (${count})`)).toBeVisible()
-    for (const name of ['CPU capacity', 'Memory', 'Disk']) {
+    for (const name of ['CPU usage', 'Memory', 'Disk']) {
       const button = card.getByRole('button', { name, exact: true })
       await button.focus()
       await page.keyboard.press('Enter')

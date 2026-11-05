@@ -1,4 +1,3 @@
-import { cpuCapacityDescription } from '@/lib/cpu-capacity'
 import { TelemetryCard } from '@/components/telemetry-card'
 import { DataCard, EmptyState, Facts } from '@/components/data-card'
 import { Progress } from '@/components/ui/progress'
@@ -56,19 +55,6 @@ export function SystemPage({
               ['Virtualization', c.virtualization],
               ['Container / PID 1 uptime', formatDuration(c.container_uptime_seconds)],
               ['Kernel clock uptime', formatDuration(c.host_uptime_seconds)],
-              ['Available logical CPUs', String(c.cpu_count)],
-              ['CPU set', c.cpuset || 'Unavailable'],
-              ['CPU capacity scale', cpuCapacityDescription(snapshot)],
-              [
-                'Raw CPU utilization scale',
-                `100% = ${c.effective_cpu_cores ?? c.cpu_count} CPU · ${c.cpu_capacity_cores != null ? 'configured capacity, bounded by visible limits' : 'visible allocation'}`,
-              ],
-              [
-                'CPU quota',
-                c.cpu_quota_cores == null
-                  ? 'No finite limit visible'
-                  : `${c.cpu_quota_cores} cores`,
-              ],
               [
                 'Memory limit',
                 c.memory_limit_bytes == null

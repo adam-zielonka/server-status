@@ -1,4 +1,3 @@
-import { cpuCapacityDescription, cpuRelativePercent } from '@/lib/cpu-capacity'
 import { TelemetryCard } from '@/components/telemetry-card'
 import { lazy, Suspense } from 'react'
 import { Activity, ArrowRight, Boxes, Cpu, HardDrive, MemoryStick } from 'lucide-react'
@@ -61,20 +60,19 @@ export function Overview({
       )}
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <MetricCard
-          title="CPU capacity"
-          value={formatPercent(cpuRelativePercent(latest, snapshot))}
+          title="CPU usage"
+          value={formatPercent(latest?.cpu_percent)}
           detail={
             sampleStale
               ? 'Waiting for a current collector sample'
               : snapshot
-                ? cpuRelativePercent(latest, snapshot) != null
-                  ? 'Relative to peak'
-                  : cpuCapacityDescription(snapshot)
+                ? latest?.cpu_percent != null
+                  ? 'Current utilization'
+                  : 'Waiting for a CPU sample'
                 : 'Operations collector required'
           }
-          info={!sampleStale && snapshot ? cpuCapacityDescription(snapshot) : undefined}
           icon={Cpu}
-          progress={cpuRelativePercent(latest, snapshot)}
+          progress={latest?.cpu_percent}
           loading={loading}
         />
         <MetricCard

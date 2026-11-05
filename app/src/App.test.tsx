@@ -195,15 +195,14 @@ describe('dashboard features', () => {
     expect(screen.getByRole('heading', { name: 'Services', level: 1 })).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 1 })).toHaveFocus()
   })
-  it('shows CPU capacity against the observed peak and explains its reference', async () => {
-    const user = userEvent.setup()
+  it('shows the same CPU utilization as alerts without peak scaling', async () => {
     updateSnapshot = (s) => {
-      s.cpu_capacity = { peak_cores: 0.8, observed_since: s.history[0].at }
+      s.cpu_capacity = { peak_cores: 4, observed_since: s.history[0].at }
       s.history = [
         {
           at: new Date().toISOString(),
-          cpu_percent: 20,
-          cpu_usage_cores: 0.4,
+          cpu_percent: 96,
+          cpu_usage_cores: 1.92,
           cpu_capacity_cores: 2,
           memory_percent: 20,
           disk_percent: 30,
@@ -212,31 +211,43 @@ describe('dashboard features', () => {
     }
     signedIn()
     render(<App />)
-    await screen.findByRole('region', { name: 'Monitoring issues' })
-    const card = within(screen.getByRole('group', { name: 'CPU capacity' }))
-    expect(card.getByText('50.0%')).toBeInTheDocument()
-    expect(card.getByText('Relative to peak')).toBeInTheDocument()
-    expect(screen.queryByRole('dialog', { name: 'About CPU capacity' })).not.toBeInTheDocument()
-    await user.hover(card.getByRole('button', { name: 'About CPU capacity' }))
-    expect(await screen.findByRole('dialog', { name: 'About CPU capacity' })).toHaveTextContent(
-      /100% = highest observed use.*since/,
-    )
-    expect(card.getByText('50.0%')).toBeInTheDocument()
-    await user.keyboard('{Escape}')
-    await waitFor(() =>
-      expect(screen.queryByRole('dialog', { name: 'About CPU capacity' })).not.toBeInTheDocument(),
-    )
+    const issues = await screen.findByRole('region', { name: 'Monitoring issues' })
+    const card = within(screen.getByRole('group', { name: 'CPU usage' }))
+    expect(card.getByText('96.0%')).toBeInTheDocument()
+    expect(card.getByText('Current utilization')).toBeInTheDocument()
+    expect(within(issues).getByText('CPU usage is high (96.0%).')).toBeInTheDocument()
+    expect(card.queryByRole('button')).not.toBeInTheDocument()
+    expect(screen.queryByText('Relative to peak')).not.toBeInTheDocument()
   })
-  it('does not label legacy raw CPU readings as relative capacity', async () => {
+  it.each([0, 20, 120, null])('shows CPU sample %s without peak metadata', async (cpu) => {
     updateSnapshot = (s) => {
       delete s.cpu_capacity
+      s.history.at(-1)!.cpu_percent = cpu
     }
     signedIn()
     render(<App />)
     await screen.findByRole('region', { name: 'Monitoring issues' })
-    const card = within(screen.getByRole('group', { name: 'CPU capacity' }))
-    expect(card.getByText('Unavailable')).toBeInTheDocument()
-    expect(card.getByText(/Historical CPU reference unavailable/)).toBeInTheDocument()
+    const card = within(screen.getByRole('group', { name: 'CPU usage' }))
+    expect(card.getByText(cpu == null ? 'Unavailable' : `${cpu.toFixed(1)}%`)).toBeInTheDocument()
+    expect(
+      card.getByText(cpu == null ? 'Waiting for a CPU sample' : 'Current utilization'),
+    ).toBeInTheDocument()
+  })
+  it('keeps System free of extra CPU scales and allocation details', async () => {
+    signedIn()
+    window.history.replaceState(null, '', '#system')
+    render(<App />)
+    await screen.findByText('Container / PID 1 uptime')
+    expect(screen.getByText('Logical CPUs')).toBeInTheDocument()
+    for (const label of [
+      'CPU set',
+      'CPU capacity scale',
+      'Raw CPU utilization scale',
+      'CPU quota',
+      'Available logical CPUs',
+    ]) {
+      expect(screen.queryByText(label)).not.toBeInTheDocument()
+    }
   })
   it('uses live basic readings when resource history is stale', async () => {
     updateSnapshot = (snapshot) => {
@@ -246,7 +257,7 @@ describe('dashboard features', () => {
     render(<App />)
     await screen.findByRole('region', { name: 'Monitoring issues' })
     expect(
-      within(screen.getByRole('group', { name: 'CPU capacity' })).getByText('Unavailable'),
+      within(screen.getByRole('group', { name: 'CPU usage' })).getByText('Unavailable'),
     ).toBeInTheDocument()
     expect(
       within(screen.getByRole('group', { name: 'Memory usage' })).getByText('37.5%'),

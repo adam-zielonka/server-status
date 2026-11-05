@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.1.2 — 2026-11-05
+
+- Simplify CPU monitoring to the standard utilization percentage shared by the
+  overview, resource history and alerts. Remove historical-peak scaling and
+  extra CPU allocation details, including CPU set, from the dashboard.
+
 ## 5.1.1 — 2026-11-05
 
 - Retain observed systemd task outcomes, attempt/completion dates and errors when

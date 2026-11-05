@@ -1,4 +1,3 @@
-import { cpuCapacityDescription, cpuRelativePercent } from '@/lib/cpu-capacity'
 import { TelemetryCard } from '@/components/telemetry-card'
 import { useId, useState } from 'react'
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
@@ -16,7 +15,7 @@ import { formatDuration, formatPercent } from '@/lib/format'
 import type { TelemetrySnapshot } from '@/types'
 
 const config = {
-  cpu_percent: { label: 'CPU capacity', color: 'var(--chart-1)' },
+  cpu_percent: { label: 'CPU usage', color: 'var(--chart-1)' },
   memory_percent: { label: 'Memory', color: 'var(--chart-3)' },
   disk_percent: { label: 'Disk', color: 'var(--chart-2)' },
 } satisfies ChartConfig
@@ -65,7 +64,6 @@ export default function ResourceHistory({
   const samples = (snapshot?.history || [])
     .map((point) => ({
       ...point,
-      cpu_percent: cpuRelativePercent(point, snapshot),
       timestamp: Date.parse(point.at),
     }))
     .filter((point) => point.timestamp >= start && point.timestamp <= now)
@@ -87,7 +85,7 @@ export default function ResourceHistory({
   return (
     <TelemetryCard
       title="Resource history"
-      description={`CPU relative to its observed peak; memory working set and root disk utilization. ${cpuCapacityDescription(snapshot)}`}
+      description="CPU usage, memory working set and root disk utilization."
       action={
         <Tabs
           value={hours}
@@ -241,8 +239,8 @@ export default function ResourceHistory({
             >
               <table className="w-full min-w-[440px] text-left text-xs tabular-nums">
                 <caption className="p-2 text-left text-muted-foreground">
-                  {hours}-hour window · newest first · CPU relative to observed peak · Missing
-                  values are marked Unavailable. Gaps are not interpolated.
+                  {hours}-hour window · newest first · Missing values are marked Unavailable. Gaps
+                  are not interpolated.
                 </caption>
                 <thead className="sticky top-0 bg-card">
                   <tr>
