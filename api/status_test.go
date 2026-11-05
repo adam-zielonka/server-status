@@ -141,6 +141,7 @@ func TestEmbeddedDashboardAndAPI(t *testing.T) {
 		{"GET", "/missing", 404},
 		{"POST", "/", 405},
 		{"POST", "/api/ok", 405},
+		{"POST", "/api/auth", 405},
 	} {
 		if w := get(tc.method, tc.path); w.Code != tc.status {
 			t.Errorf("%s %s: got %d, want %d", tc.method, tc.path, w.Code, tc.status)
@@ -154,5 +155,40 @@ func TestEmbeddedDashboardAndAPI(t *testing.T) {
 	apiOnly.ServeHTTP(w, httptest.NewRequest("GET", "/", nil))
 	if w.Code != 404 {
 		t.Fatal("API-only mode served the frontend")
+	}
+}
+
+func TestCLIRejectsInvalidAPIConfigWithoutDisclosure(t *testing.T) {
+	original, err := os.ReadFile(testConfig(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct{ name, body string }{
+		{"empty user", strings.Replace(string(original), `{"name":"example-user","pass":"test-only"}`, `{}`, 1)},
+		{"unknown field", strings.TrimSuffix(string(original), "}") + `,"sensitive-sentinel":true}`},
+		{"invalid TTL", strings.Replace(string(original), `"secret":`, `"session_ttl_seconds":0,"secret":`, 1)},
+		{"wrong field type", strings.Replace(string(original), `"port":4000`, `"port":"sensitive-sentinel"`, 1)},
+		{"trailing JSON", string(original) + `{}`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "invalid.json")
+			if err := os.WriteFile(path, []byte(tc.body), 0600); err != nil {
+				t.Fatal(err)
+			}
+			var out bytes.Buffer
+			err := run(context.Background(), []string{"config", "check", "--config", path}, &out, &out)
+			if err == nil {
+				t.Fatal("CLI accepted invalid API configuration")
+			}
+			combined := out.String() + err.Error()
+			for _, value := range []string{"sensitive-sentinel", "test-signing-key-only", "test-only", "example-user"} {
+				if strings.Contains(combined, value) {
+					t.Fatal("CLI disclosed configuration contents")
+				}
+			}
+			if strings.Contains(out.String(), "Configuration is valid.") {
+				t.Fatal("CLI reported success for invalid configuration")
+			}
+		})
 	}
 }

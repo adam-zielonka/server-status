@@ -6,12 +6,10 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"status/auth"
 	"status/config"
-	"status/mods"
 	"strings"
 	"testing"
-
-	"github.com/golang-jwt/jwt/v5"
 )
 
 func TestTelemetryRequiresAuthentication(t *testing.T) {
@@ -36,12 +34,26 @@ func TestTelemetryRequiresAuthentication(t *testing.T) {
 	if err := config.Initialize(path); err != nil {
 		t.Fatal(err)
 	}
-	mux := http.NewServeMux()
-	handleWithAuth(mux, "/api/telemetry", mods.Telemetry)
-	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{"name": "example-user"}).SignedString(config.GetAuthSecret())
+	mux, err := newHandler(true)
 	if err != nil {
 		t.Fatal(err)
 	}
+	// Obtain a real bounded session through the unchanged Basic login interface.
+	loginRequest := httptest.NewRequest(http.MethodGet, "/api/auth", nil)
+	loginRequest.RemoteAddr = "192.0.2.25:1234"
+	loginRequest.SetBasicAuth("example-user", "test-only")
+	loginResponse := httptest.NewRecorder()
+	mux.ServeHTTP(loginResponse, loginRequest)
+	if loginResponse.Code != http.StatusOK {
+		t.Fatalf("login failed: %d", loginResponse.Code)
+	}
+	var session struct {
+		Data auth.Auth `json:"data"`
+	}
+	if err := json.Unmarshal(loginResponse.Body.Bytes(), &session); err != nil || session.Data.Token == "" {
+		t.Fatal("login response must include a token")
+	}
+	token := session.Data.Token
 	for _, tc := range []struct {
 		method, token string
 		status        int

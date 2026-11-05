@@ -2,7 +2,10 @@ package auth
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -14,6 +17,19 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 )
+
+const (
+	sessionIssuer   = "server-status"
+	sessionAudience = "server-status-api"
+	sessionUse      = "session"
+)
+
+// sessionClaims deliberately rejects the legacy, nonexpiring name-only token.
+type sessionClaims struct {
+	Name     string `json:"name"`
+	TokenUse string `json:"token_use"`
+	jwt.RegisteredClaims
+}
 
 type Auth struct {
 	Token string `json:"token"`
@@ -75,13 +91,13 @@ func (rl *RateLimiter) Cleanup() {
 
 func init() {
 	// Clean up expired entries every 5 minutes
-	go func() {
+	go func(rl *RateLimiter) {
 		ticker := time.NewTicker(5 * time.Minute)
 		defer ticker.Stop()
 		for range ticker.C {
-			limiter.Cleanup()
+			rl.Cleanup()
 		}
-	}()
+	}(limiter)
 }
 
 func Wrapper[T any](f func() (T, error)) http.HandlerFunc {
@@ -182,7 +198,8 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	user := parts[0]
 	pass := parts[1]
 
-	if err := config.FindUserAndCheckPassword(user, pass); err != nil {
+	settings := config.GetAuthSettings()
+	if err := settings.CheckPassword(user, pass); err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		response := utils.Response{
 			Errors: []string{"Invalid credentials"},
@@ -191,9 +208,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	key := config.GetAuthSecret()
-	tokenizer := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{"name": user})
-	token, err := tokenizer.SignedString(key)
+	token, err := issueSession(settings, user, time.Now())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		response := utils.Response{
@@ -220,30 +235,69 @@ func clientAddress(r *http.Request) string {
 	return host
 }
 
-func ValidateToken(tokenString string) error {
-	key := config.GetAuthSecret()
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
-		return key, nil
-	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
-
+// sessionSigningKey uses a domain-separated HMAC and a JSON array encoding so
+// neither field boundaries nor a password change can reuse another user's key.
+// Looking up the unverified identity selects a key only: callers must verify the
+// signature and all claims before granting access.
+func sessionSigningKey(settings config.ServerAuth, name string) ([]byte, error) {
+	user, err := settings.FindUser(name)
+	if err != nil || name == "" || settings.Secret == "" {
+		return nil, fmt.Errorf("invalid session identity")
+	}
+	identity, err := json.Marshal([2]string{user.Name, user.Pass})
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("invalid session identity")
 	}
+	mac := hmac.New(sha256.New, []byte(settings.Secret))
+	mac.Write([]byte("server-status/session-signing-key/v1\x00"))
+	mac.Write(identity)
+	return mac.Sum(nil), nil
+}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok || !token.Valid {
-		return fmt.Errorf("invalid token")
+func issueSession(settings config.ServerAuth, name string, now time.Time) (string, error) {
+	key, err := sessionSigningKey(settings, name)
+	if err != nil || settings.SessionTTLSeconds < config.MinSessionTTLSeconds || settings.SessionTTLSeconds > config.MaxSessionTTLSeconds {
+		return "", fmt.Errorf("invalid session settings")
 	}
+	claims := sessionClaims{
+		Name:     name,
+		TokenUse: sessionUse,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    sessionIssuer,
+			Subject:   name,
+			Audience:  jwt.ClaimStrings{sessionAudience},
+			IssuedAt:  jwt.NewNumericDate(now),
+			ExpiresAt: jwt.NewNumericDate(now.Add(time.Duration(settings.SessionTTLSeconds) * time.Second)),
+		},
+	}
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(key)
+}
 
-	nameClaim, exists := claims["name"]
-	if !exists {
-		return fmt.Errorf("invalid token: missing name claim")
-	}
+func ValidateToken(tokenString string) error {
+	return validateTokenAt(tokenString, time.Now)
+}
 
-	userName, ok := nameClaim.(string)
-	if !ok {
-		return fmt.Errorf("invalid token: invalid name claim type")
+func validateTokenAt(tokenString string, now func() time.Time) error {
+	settings := config.GetAuthSettings()
+	claims := &sessionClaims{}
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
+		parsed, ok := token.Claims.(*sessionClaims)
+		// An attacker controls these fields until signature verification. Use only
+		// an existing, exact identity to choose the key; never authorize here.
+		if !ok || parsed.Name == "" || parsed.Subject != parsed.Name || parsed.TokenUse != sessionUse {
+			return nil, fmt.Errorf("invalid session identity")
+		}
+		return sessionSigningKey(settings, parsed.Subject)
+	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}),
+		jwt.WithExpirationRequired(), jwt.WithIssuer(sessionIssuer),
+		jwt.WithAudience(sessionAudience), jwt.WithIssuedAt(), jwt.WithTimeFunc(now))
+	// Do not return parser errors, which may embed attacker-controlled claims.
+	if err != nil || token == nil || !token.Valid || claims.IssuedAt == nil || claims.ExpiresAt == nil {
+		return fmt.Errorf("invalid session")
 	}
-	_, err = config.FindUser(userName)
-	return err
+	lifetime := claims.ExpiresAt.Sub(claims.IssuedAt.Time)
+	if lifetime <= 0 || lifetime > time.Duration(config.MaxSessionTTLSeconds)*time.Second {
+		return fmt.Errorf("invalid session")
+	}
+	return nil
 }

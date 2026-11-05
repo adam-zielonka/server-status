@@ -10,7 +10,8 @@
         "pass": "replace-with-a-strong-password"
       }
     ],
-    "secret": "replace-with-a-random-signing-secret"
+    "secret": "replace-with-a-random-signing-secret",
+    "session_ttl_seconds": 43200
   },
   "services": [
     {
