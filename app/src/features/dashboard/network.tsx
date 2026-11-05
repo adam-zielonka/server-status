@@ -11,24 +11,12 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { useApi } from '@/hooks/use-api'
-import { showVirtualHosts } from '@/lib/api'
 import { formatBytes, formatDate } from '@/lib/format'
 import { snapshotIsStale } from '@/lib/monitoring'
 import type { TelemetrySnapshot } from '@/types'
 
-function HttpStatus({ code }: { code: string }) {
-  const value = Number(code)
-  return (
-    <StatusBadge
-      state={value >= 200 && value < 400 ? 'success' : value >= 400 ? 'failure' : 'unknown'}
-      label={value === 0 ? 'Not reachable' : code}
-    />
-  )
-}
-
 export function NetworkPage({ snapshot, now }: { snapshot?: TelemetrySnapshot; now: number }) {
   const net = useApi('net')
-  const vhosts = useApi('vhosts', showVirtualHosts)
   const ts = snapshot?.tailscale
   const stale = snapshotIsStale(snapshot, now)
   return (
@@ -238,53 +226,6 @@ export function NetworkPage({ snapshot, now }: { snapshot?: TelemetrySnapshot; n
           )}
         </TelemetryCard>
       </div>
-      {showVirtualHosts && (
-        <DataCard
-          title="Virtual hosts"
-          description="Caddy listener responses before redirects. Local checks connect directly to loopback; external checks use the configured checker."
-          loading={vhosts.isPending}
-          error={vhosts.error}
-          retry={() => void vhosts.refetch()}
-        >
-          {vhosts.data?.length ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Host</TableHead>
-                  <TableHead>Port</TableHead>
-                  <TableHead>Local response</TableHead>
-                  <TableHead>External response</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {vhosts.data.map((row) => (
-                  <TableRow key={`${row.name}-${row.port}`}>
-                    <TableCell className="font-medium">{row.name}</TableCell>
-                    <TableCell className="font-mono">{row.port}</TableCell>
-                    <TableCell>
-                      <HttpStatus code={row.statusCode} />
-                    </TableCell>
-                    <TableCell>
-                      {row.externalStatusCode && row.externalStatusCode !== 'Need setup' ? (
-                        <HttpStatus code={row.externalStatusCode} />
-                      ) : (
-                        'Not configured'
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            !vhosts.error && (
-              <EmptyState
-                title="No virtual hosts reported"
-                description="Caddy virtual hosts will appear here when configured."
-              />
-            )
-          )}
-        </DataCard>
-      )}
     </div>
   )
 }

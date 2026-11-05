@@ -132,6 +132,7 @@ func TestEmbeddedDashboardAndAPI(t *testing.T) {
 		{"GET", "/api/ok", 401},
 		{"GET", "/api/telemetry", 401},
 		{"GET", "/api/missing", 404},
+		{"GET", "/api/vhosts", 404},
 		{"GET", "/api", 404},
 		{"GET", "/assets/", 404},
 		{"GET", "/assets/missing.js", 404},

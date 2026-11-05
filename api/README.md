@@ -18,8 +18,7 @@ is included as the `collect` subcommand and runs as a separate process.
 Configuration and collected data remain external.
 
 `./build.sh` forces real API mode with the same-origin `/api/` base URL, even if
-`VITE_FAKE_API` or `VITE_API_URL` is set in the build environment. Other frontend
-build options, such as `VITE_SHOW_VHOSTS=false`, are supported. Builds use the
+`VITE_FAKE_API` or `VITE_API_URL` is set in the build environment. Builds use the
 repository's `VERSION` file by default; set the `VERSION` environment variable to
 override it. A frontend change requires rebuilding the executable.
 
@@ -43,6 +42,9 @@ The API reads `config.json` in the current working directory by default, or the
 path supplied with `--config`. Copy [config.example.json](config.example.json)
 to a private location and set `auth.users` and `auth.secret` before starting.
 Configuration uses JSON syntax and is never embedded in the executable.
+
+Version 4.6.0 removes Caddy/Virtual hosts monitoring. `/api/vhosts` now returns
+404, and the old `external` configuration option is ignored and can be removed.
 
 ## Run and CLI
 
@@ -117,18 +119,6 @@ All endpoints except `/api/auth` require authentication via JWT token.
 **GET** `/api/net`
 - Retrieve network interface information
 - Returns: Network interfaces and their statistics
-
-**GET** `/api/vhosts`
-- Retrieve virtual hosts information
-- Returns: Distinct host/listener pairs discovered from the local Caddy admin
-  API, including nested routes, with local and optional external response codes.
-- Local checks dial IPv4 loopback on the listener port with the virtual host's
-  Host header and TLS SNI. The first response is returned without following
-  redirects; `0` means no valid response. Local-only TLS checks accept local
-  certificates; external checker TLS certificates are verified normally.
-- HTTP calls have a two-second timeout; up to eight host checks run concurrently
-  within an eight-second budget. Configuration and checker bodies are bounded.
-  Probes not completed within the budget return `0`.
 
 **GET** `/api/services`
 - Retrieve services status

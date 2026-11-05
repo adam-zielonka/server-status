@@ -36,12 +36,6 @@ export interface PortService {
   port: string
   hosts: { name: string; port: string; open: boolean }[]
 }
-export interface VirtualHost {
-  port: string
-  name: string
-  statusCode: string
-  externalStatusCode?: string
-}
 export interface ServiceHealth {
   id: string
   name: string
@@ -208,26 +202,6 @@ export interface SoftwareInfo {
     updates: { name: string; installed_version: string; available_version: string }[]
   } | null
 }
-export interface AgentQueueCounts {
-  open: number
-  queued: number
-  active: number
-  waiting: number
-  blocked: number
-  statuses: Record<
-    'new' | 'ready' | 'analysis' | 'in_progress' | 'review' | 'waiting' | 'blocked',
-    number
-  >
-}
-export interface AgentQueueInfo {
-  status: 'ok' | 'error' | 'unavailable'
-  stale: boolean
-  last_attempt_at: string
-  last_success_at: string | null
-  source_url?: string
-  counts: AgentQueueCounts | null
-  error?: string
-}
 export interface TelemetrySnapshot {
   enabled: true
   schema_version: 1
@@ -237,7 +211,6 @@ export interface TelemetrySnapshot {
   services: ServiceHealth[]
   processes: Processes
   container: ContainerInfo
-  agent_queue?: AgentQueueInfo | null
   cpu_capacity?: CPUCapacity
   tailscale: TailscaleInfo | null
   databases?: DatabaseInfo[]
@@ -257,7 +230,6 @@ export interface EndpointMap {
   'file-system': FileSystem[]
   net: NetworkInterface[]
   services: PortService[]
-  vhosts: VirtualHost[]
   telemetry: Telemetry
 }
 export type Endpoint = keyof EndpointMap

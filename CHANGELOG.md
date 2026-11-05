@@ -1,5 +1,16 @@
 # Changelog
 
+## 4.6.0 — 2026-11-05
+
+- Remove Agent tasks cards and the GitHub Projects queue collector, including
+  its configuration, cache, data contracts and synthetic fixtures. GitHub Actions
+  job monitoring and software release checks remain available.
+- Remove Caddy/Virtual hosts monitoring, the `/api/vhosts` endpoint, external
+  status checker configuration and the frontend visibility build option.
+- Preserve MySQL/MariaDB and PostgreSQL monitoring, scheduled jobs, backups,
+  resource history and CPU peak metadata. Older configuration files remain
+  loadable; removed options are ignored and no longer trigger collection.
+
 ## 4.5.0 — 2026-11-02
 
 - Add optional MySQL/MariaDB database monitoring alongside PostgreSQL: estimated

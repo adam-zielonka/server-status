@@ -2,7 +2,6 @@ import type { Endpoint, EndpointMap, Session } from '@/types'
 import { validEndpoint } from './validation'
 
 export const isDemo = import.meta.env.VITE_FAKE_API === 'true'
-export const showVirtualHosts = import.meta.env.VITE_SHOW_VHOSTS !== 'false'
 const baseUrl = (import.meta.env.VITE_API_URL || '/api/').replace(/\/?$/, '/')
 
 export class ApiError extends Error {
@@ -63,7 +62,7 @@ export async function fetchEndpoint<K extends Endpoint>(
 ): Promise<EndpointMap[K]> {
   if (isDemo) return (await import('./demo')).demoEndpoint(endpoint)
   const data = await request(endpoint, `Bearer ${token}`, signal)
-  if (['services', 'net', 'file-system', 'vhosts'].includes(endpoint) && data === null)
+  if (['services', 'net', 'file-system'].includes(endpoint) && data === null)
     return [] as unknown as EndpointMap[K]
   if (!validEndpoint(endpoint, data))
     throw new ApiError(

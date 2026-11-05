@@ -104,29 +104,6 @@ export function demoTelemetry(now = Date.now()): TelemetrySnapshot {
   ]
   return {
     schema_version: 1,
-    agent_queue: {
-      status: 'ok',
-      stale: false,
-      last_attempt_at: at(60),
-      last_success_at: at(60),
-      source_url: 'https://github.com/users/example/projects/1',
-      counts: {
-        open: 12,
-        queued: 5,
-        active: 3,
-        waiting: 3,
-        blocked: 1,
-        statuses: {
-          new: 3,
-          ready: 2,
-          analysis: 1,
-          in_progress: 1,
-          review: 1,
-          waiting: 3,
-          blocked: 1,
-        },
-      },
-    },
     enabled: true,
     collected_at: at(0),
     sample_interval_seconds: 60,
@@ -347,7 +324,6 @@ export function demoEndpoint<K extends Endpoint>(endpoint: K): EndpointMap[K] {
         ],
       },
     ],
-    vhosts: [{ port: '443', name: 'example.com', statusCode: '200', externalStatusCode: '200' }],
     telemetry: demoTelemetry(),
   }
   return data[endpoint]

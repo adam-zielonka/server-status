@@ -121,5 +121,8 @@ as restart, kill and restore remain outside the read-only dashboard's purpose.
   in a temporary directory outside the checkout. Test listeners and temporary
   configurations are removed after verification.
 
+This is a historical review of version 4.1.0. Version 4.6.0 removes the
+virtual-host monitoring described here.
+
 The reviewed changes are included in version 4.1.0. Production deployment
 state is tracked separately in the operator's private documentation.

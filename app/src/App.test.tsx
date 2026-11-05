@@ -283,10 +283,14 @@ describe('dashboard features', () => {
     ).toBe(true)
   })
   it('navigates through all views and keeps system metrics accessible', async () => {
+    updateSnapshot = (snapshot) => {
+      Object.assign(snapshot, { agent_queue: { status: 'unavailable' } })
+    }
     const user = userEvent.setup()
     signedIn()
     render(<App />)
     expect(await screen.findByRole('heading', { name: 'Server overview' })).toBeInTheDocument()
+    expect(screen.queryByText('Agent tasks')).not.toBeInTheDocument()
     await user.click(navigation().getByRole('link', { name: 'Services' }))
     expect(await screen.findByText('System services')).toBeInTheDocument()
     expect(await screen.findByText('Port availability')).toBeInTheDocument()
@@ -295,6 +299,7 @@ describe('dashboard features', () => {
     expect(await screen.findByText('Application data')).toBeInTheDocument()
     await user.click(navigation().getByRole('link', { name: 'Network' }))
     expect(await screen.findByText('Network interfaces')).toBeInTheDocument()
+    expect(screen.queryByText('Virtual hosts')).not.toBeInTheDocument()
     expect(await screen.findByText('example-node.example.ts.net')).toBeInTheDocument()
     expect(await screen.findByText('192.0.2.10/24')).toBeInTheDocument()
     await user.click(navigation().getByRole('link', { name: 'System' }))
@@ -303,6 +308,8 @@ describe('dashboard features', () => {
     expect(await screen.findByText('Load average')).toBeInTheDocument()
     await user.click(navigation().getByRole('link', { name: 'Tasks & backups' }))
     expect(await screen.findByText('Application backup')).toBeInTheDocument()
+    expect(screen.queryByText('Agent tasks')).not.toBeInTheDocument()
+    expect(vi.mocked(fetch).mock.calls.some(([url]) => String(url).endsWith('/vhosts'))).toBe(false)
     expect(window.location.hash).toBe('#tasks')
   })
   it('filters processes and switches between CPU and memory sorting', async () => {

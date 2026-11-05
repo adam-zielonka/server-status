@@ -73,13 +73,10 @@ func observeCPUPeak(state, previous row, history []row, point row, legacyCapacit
 	return row{"peak_cores": peak, "observed_since": timeValue(since)}
 }
 
-func persistCollection(cfg *Config, history []row, peak row, snapshot row, cache ...*queueCache) error {
+func persistCollection(cfg *Config, history []row, peak row, snapshot row) error {
 	// Commit the denominator and high-water mark together, before publishing. A
 	// snapshot failure cannot lose a peak or multiply calibration on retry.
 	state := row{"history": history, "cpu_capacity": peak}
-	if len(cache) > 0 && cache[0] != nil {
-		state["agent_queue"] = cache[0]
-	}
 	if err := atomicJSON(cfg.StateFile, state, 0600); err != nil {
 		return err
 	}

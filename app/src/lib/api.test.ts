@@ -72,7 +72,6 @@ describe('typed API client', () => {
       'load-average',
       'net',
       'services',
-      'vhosts',
       'file-system',
     ] as const) {
       mockResponse({ data: { unexpected: true } })
@@ -135,6 +134,11 @@ describe('typed API client', () => {
       Uint8Array.from(atob(header.slice(6)), (char) => char.charCodeAt(0)),
     )
     expect(decoded).toBe('example-user:pąssword')
+  })
+  it('accepts snapshots from an older collector with retired extra fields', async () => {
+    const snapshot = { ...demoTelemetry(), agent_queue: { status: 'unavailable' } }
+    mockResponse({ data: snapshot })
+    await expect(fetchEndpoint('telemetry', 'test')).resolves.toEqual(snapshot)
   })
   it('distinguishes an invalid login from an expired session', async () => {
     mockResponse({ errors: ['Invalid credentials'] }, 401)

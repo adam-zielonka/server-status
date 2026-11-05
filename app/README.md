@@ -44,15 +44,10 @@ also applies to the frontend when building the standalone executable.
 
 Build-time options:
 
-| Variable           | Default | Purpose                                          |
-| ------------------ | ------- | ------------------------------------------------ |
-| `VITE_API_URL`     | `/api/` | API base URL, including trailing slash           |
-| `VITE_FAKE_API`    | unset   | Set to exactly `true` to use synthetic demo data |
-| `VITE_SHOW_VHOSTS` | `true`  | Set to `false` to hide the optional Caddy panel  |
-
-```bash
-VITE_SHOW_VHOSTS=false pnpm build
-```
+| Variable        | Default | Purpose                                          |
+| --------------- | ------- | ------------------------------------------------ |
+| `VITE_API_URL`  | `/api/` | API base URL, including trailing slash           |
+| `VITE_FAKE_API` | unset   | Set to exactly `true` to use synthetic demo data |
 
 `VITE_*` values are public frontend configuration. Never put credentials,
 private host details, tokens or real monitoring snapshots into these variables,

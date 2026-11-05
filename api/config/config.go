@@ -13,7 +13,6 @@ type ServerConfig struct {
 	Auth          ServerAuth `json:"auth"`
 	Services      []Service  `json:"services"`
 	Hosts         []string   `json:"hosts"`
-	External      string     `json:"external"`
 	TelemetryFile string     `json:"telemetry_file"`
 }
 
@@ -118,13 +117,6 @@ func GetListenAddress() string {
 		return "localhost:4000"
 	}
 	return net.JoinHostPort(config.Listen.Host, strconv.Itoa(config.Listen.Port))
-}
-
-func GetExternalStatusCodeURL() string {
-	if config == nil {
-		return ""
-	}
-	return config.External
 }
 
 func GetServicesAndHosts() ([]Service, []string) {
