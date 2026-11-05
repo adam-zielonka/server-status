@@ -212,7 +212,7 @@ export function NetworkPage({ snapshot, now }: { snapshot?: TelemetrySnapshot; n
                       {row.paths.join(', ')}
                     </TableCell>
                     <TableCell>
-                      <StatusBadge state={row.funnel ? 'public' : 'tailnet'} />
+                      <StatusBadge state={row.funnel ? 'public' : 'tailnet'} stale={stale} />
                     </TableCell>
                   </TableRow>
                 ))}

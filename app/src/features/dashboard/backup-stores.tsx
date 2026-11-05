@@ -18,7 +18,7 @@ export function BackupStores({
   now,
   stale = false,
 }: {
-  stores?: BackupStoreInfo[]
+  stores?: BackupStoreInfo[] | null
   now: number
   stale?: boolean
 }) {
@@ -26,7 +26,7 @@ export function BackupStores({
   return (
     <TelemetryCard
       title="Backup storage"
-      description="Remote capacity and verified backup copies. Capacity warnings start at 80%; critical at 95%. Backup schedules and failures are shown in Tasks."
+      description="Remote capacity and reported backup copies. Capacity warnings start at 80%; critical at 95%. Backup schedules and failures are shown in Tasks."
     >
       <Table>
         <TableHeader>
@@ -37,7 +37,7 @@ export function BackupStores({
             <TableHead>Available</TableHead>
             <TableHead>Utilization</TableHead>
             <TableHead>Copies</TableHead>
-            <TableHead>Last verified backup</TableHead>
+            <TableHead>Latest backup</TableHead>
             <TableHead>Checked</TableHead>
           </TableRow>
         </TableHeader>
@@ -73,9 +73,9 @@ export function BackupStores({
               <TableCell>{store.backup_count ?? 'Unavailable'}</TableCell>
               <TableCell>
                 {formatDate(store.last_success_at)}
-                {store.latest_backup_bytes !== undefined && (
+                {store.latest_backup_bytes != null && (
                   <span className="block text-xs text-muted-foreground">
-                    {formatBytes(store.latest_backup_bytes)} · verified after download
+                    {formatBytes(store.latest_backup_bytes)} · reported size
                   </span>
                 )}
               </TableCell>

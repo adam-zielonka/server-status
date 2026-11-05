@@ -235,7 +235,55 @@ export function softwareIsStale(software: import('@/types').SoftwareInfo, now: n
   const age = ageSeconds(software.checked_at, now)
   return (
     age === null ||
-    Date.parse(software.checked_at) > now + 60000 ||
+    Date.parse(software.checked_at || '') > now + 60000 ||
     age > software.interval_seconds * 1.25 + 60
   )
+}
+
+// A single summary keeps the overview metric and Services header in agreement.
+export function serviceSummary(
+  snapshot: TelemetrySnapshot | undefined,
+  sourceState: 'loading' | 'error' | 'disabled' | 'stale' | 'ready',
+) {
+  const active =
+    snapshot?.services.filter((row) => row.state === 'active' && !row.error).length || 0
+  const total = snapshot?.services.length || 0
+  if (sourceState === 'loading')
+    return { value: 'Loading', label: 'Loading', state: 'loading', detail: 'Waiting for telemetry' }
+  if (sourceState === 'error')
+    return {
+      value: snapshot && total ? `${active} / ${total}` : 'Unavailable',
+      label: snapshot ? 'Refresh failed' : 'Unavailable',
+      state: 'error',
+      detail: snapshot
+        ? 'Last observed state · telemetry refresh failed'
+        : 'Telemetry could not be loaded',
+    }
+  if (sourceState === 'disabled')
+    return {
+      value: 'Not enabled',
+      label: 'Not enabled',
+      state: 'disabled',
+      detail: 'Port checks available in Services',
+    }
+  if (sourceState === 'stale')
+    return {
+      value: total ? `${active} / ${total}` : 'Stale',
+      label: 'Stale',
+      state: 'stale',
+      detail: 'Last observed state · monitoring data is stale',
+    }
+  if (!total)
+    return {
+      value: 'Not configured',
+      label: 'Not configured',
+      state: 'unconfigured',
+      detail: 'No system services configured for monitoring',
+    }
+  return {
+    value: `${active} / ${total}`,
+    label: `${active} active`,
+    state: active === total ? 'active' : 'warning',
+    detail: active === total ? 'All monitored services are active' : 'Some services need attention',
+  }
 }

@@ -52,7 +52,7 @@ export function formatDate(value?: string | null): string {
   })
 }
 
-export function safeWorkflowUrl(value?: string): string | undefined {
+export function safeWorkflowUrl(value?: string | null): string | undefined {
   if (!value) return undefined
   try {
     const url = new URL(value)

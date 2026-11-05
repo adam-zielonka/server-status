@@ -21,7 +21,7 @@ describe('Cloudflare tunnel monitoring', () => {
     snapshot.tunnels![0].status = 'unknown'
     snapshot.tunnels![0].error = 'Local connector metrics are unavailable'
     render(<NetworkPage now={Date.now()} snapshot={snapshot} />)
-    expect(screen.getAllByText('Stale')).toHaveLength(2)
+    expect(screen.getAllByText('Stale')).toHaveLength(3)
     expect(screen.queryByText('connected')).not.toBeInTheDocument()
     expect(screen.queryByText('healthy')).not.toBeInTheDocument()
     expect(screen.queryByText('0 / 4')).not.toBeInTheDocument()
@@ -33,4 +33,18 @@ describe('Cloudflare tunnel monitoring', () => {
     render(<NetworkPage now={Date.now()} snapshot={snapshot} />)
     expect(screen.getByText('No Cloudflare Tunnels configured')).toBeInTheDocument()
   })
+})
+
+it('marks both tailnet and public route exposure as stale', () => {
+  const now = Date.now()
+  const snapshot = demoTelemetry(now - 600_000)
+  snapshot.tailscale!.services = [
+    { address: 'private.example.test', paths: ['/'], funnel: false },
+    { address: 'public.example.test', paths: ['/'], funnel: true },
+  ]
+  render(<NetworkPage now={now} snapshot={snapshot} />)
+  for (const exposure of ['tailnet', 'public']) {
+    expect(screen.getByTitle(`Last reported status: ${exposure}`)).toHaveTextContent('Stale')
+    expect(screen.queryByText(exposure)).not.toBeInTheDocument()
+  }
 })

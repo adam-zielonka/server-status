@@ -9,9 +9,15 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ServiceTable } from './services'
 import { TaskTable } from './tasks'
+import { useTelemetrySource } from '@/hooks/use-telemetry-source'
 import { useApi } from '@/hooks/use-api'
 import { availableDiskSpace, formatBytes, formatDuration, formatPercent } from '@/lib/format'
-import { latestHistoryPoint, resourceSampleIsStale, snapshotIsStale } from '@/lib/monitoring'
+import {
+  latestHistoryPoint,
+  resourceSampleIsStale,
+  serviceSummary,
+  snapshotIsStale,
+} from '@/lib/monitoring'
 import type { Page, SystemInfo, TelemetrySnapshot } from '@/types'
 
 const ResourceHistory = lazy(() => import('./resource-history'))
@@ -40,8 +46,8 @@ export function Overview({
       ? (memory.data.used / memory.data.total) * 100
       : undefined)
   const diskPercent = latest?.disk_percent ?? root?.use
-  const active = snapshot?.services.filter((row) => row.state === 'active' && !row.error).length
-  const total = snapshot?.services.length
+  const source = useTelemetrySource(snapshot, now)
+  const services = serviceSummary(snapshot, source.state)
   return (
     <div className="space-y-5">
       {(memory.error || fs.error) && (
@@ -95,20 +101,10 @@ export function Overview({
         />
         <MetricCard
           title="Services running"
-          value={snapshot ? (total ? `${active} / ${total}` : 'Not configured') : 'Not enabled'}
-          detail={
-            snapshot && snapshotIsStale(snapshot, now)
-              ? 'Last observed state · monitoring data is stale'
-              : snapshot
-                ? !total
-                  ? 'No system services configured for monitoring'
-                  : active === total
-                    ? 'All monitored services are active'
-                    : 'Some services need attention'
-                : 'Port checks available in Services'
-          }
+          value={services.value}
+          detail={services.detail}
           icon={Boxes}
-          loading={loading}
+          loading={source.state === 'loading'}
         />
       </div>
       <Suspense fallback={<Skeleton className="h-[360px] w-full rounded-xl" />}>

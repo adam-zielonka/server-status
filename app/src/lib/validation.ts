@@ -5,6 +5,20 @@ const record = (value: unknown): value is Record<string, unknown> =>
 const number = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value)
 const string = (value: unknown): value is string => typeof value === 'string'
+// Accept ISO and systemd dates, but reject calendar rollovers Date.parse normalizes.
+function timestamp(value: unknown): value is string {
+  if (!string(value) || !Number.isFinite(Date.parse(value))) return false
+  const date = /(?:^|\s)(\d{4})-(\d{2})-(\d{2})(?=T|\s|$)/.exec(value)
+  if (!date) return true
+  const [, year, month, day] = date.map(Number)
+  const calendar = new Date(0)
+  calendar.setUTCFullYear(year, month - 1, day)
+  return (
+    calendar.getUTCFullYear() === year &&
+    calendar.getUTCMonth() === month - 1 &&
+    calendar.getUTCDate() === day
+  )
+}
 const strings = (value: unknown): boolean => Array.isArray(value) && value.every(string)
 const array = (value: unknown, valid: (row: Record<string, unknown>) => boolean): boolean =>
   Array.isArray(value) &&
@@ -31,8 +45,8 @@ function validTelemetry(value: Record<string, unknown>): boolean {
   if (
     value.enabled !== true ||
     value.schema_version !== 1 ||
-    !string(value.collected_at) ||
-    !Number.isFinite(Date.parse(value.collected_at)) ||
+    !timestamp(value.collected_at) ||
+    !optional(value.sample_at, timestamp) ||
     !number(value.sample_interval_seconds) ||
     value.sample_interval_seconds <= 0
   )
@@ -84,7 +98,11 @@ function validTelemetry(value: Record<string, unknown>): boolean {
             ],
             (field) => optional(field, number),
           ) &&
-          fields(row, ['service', 'parent_name', 'instance_name', 'group_kind'], (field) =>
+          optional(
+            row.group_kind,
+            (kind) => string(kind) && ['service', 'browser', 'process'].includes(kind),
+          ) &&
+          fields(row, ['service', 'parent_name', 'instance_name'], (field) =>
             optional(field, string),
           ) &&
           optional(row.member_pids, (members) => Array.isArray(members) && members.every(number)),
@@ -99,18 +117,23 @@ function validTelemetry(value: Record<string, unknown>): boolean {
         record(peak) &&
         number(peak.peak_cores) &&
         peak.peak_cores >= 0 &&
-        (peak.observed_since === null ||
-          (string(peak.observed_since) && Number.isFinite(Date.parse(peak.observed_since)))),
+        optional(peak.observed_since, timestamp),
     ) &&
     array(
       value.services,
       (row) =>
         text(row, ['id', 'name', 'unit', 'scope', 'state']) &&
+        optional(row.last_error_at, timestamp) &&
+        fields(row, ['substate', 'result'], (field) => optional(field, string)) &&
         fields(row, ['uptime_seconds', 'restarts', 'exit_status'], (field) =>
           optional(field, number),
         ),
     ) &&
-    array(value.directories, (row) => string(row.name) && optional(row.bytes, number)) &&
+    array(
+      value.directories,
+      (row) =>
+        string(row.name) && optional(row.bytes, number) && optional(row.collected_at, timestamp),
+    ) &&
     array(
       value.jobs,
       (row) =>
@@ -120,18 +143,23 @@ function validTelemetry(value: Record<string, unknown>): boolean {
         fields(row, ['category', 'timer_state', 'source_url'], (field) =>
           optional(field, string),
         ) &&
-        optional(row.max_age_seconds, number),
+        optional(row.max_age_seconds, number) &&
+        fields(
+          row,
+          ['last_run_at', 'completed_at', 'last_success_at', 'next_run_at', 'checked_at'],
+          (field) => optional(field, timestamp),
+        ),
     ) &&
     array(
       value.history,
       (row) =>
-        string(row.at) &&
-        Number.isFinite(Date.parse(row.at)) &&
+        timestamp(row.at) &&
         fields(
           row,
           ['cpu_percent', 'memory_percent', 'disk_percent'],
           (field) => field === null || number(field),
         ) &&
+        fields(row, ['memory_bytes', 'disk_used_bytes'], (field) => optional(field, number)) &&
         optional(row.cpu_usage_cores, (value) => number(value) && value >= 0) &&
         optional(row.cpu_capacity_cores, (value) => number(value) && value > 0) &&
         optional(
@@ -145,9 +173,8 @@ function validTelemetry(value: Record<string, unknown>): boolean {
         record(ts) &&
         string(ts.state) &&
         typeof ts.online === 'boolean' &&
-        fields(ts, ['error', 'dns_name', 'hostname', 'expires_at'], (field) =>
-          optional(field, string),
-        ) &&
+        fields(ts, ['error', 'dns_name', 'hostname'], (field) => optional(field, string)) &&
+        optional(ts.expires_at, timestamp) &&
         optional(ts.key_days_remaining, number) &&
         optional(ts.addresses, strings) &&
         optional(ts.services, (rows) =>
@@ -161,13 +188,14 @@ function validTelemetry(value: Record<string, unknown>): boolean {
       value.software,
       (sw) =>
         record(sw) &&
-        text(sw, ['checked_at']) &&
+        optional(sw.checked_at, timestamp) &&
         number(sw.interval_seconds) &&
         sw.interval_seconds >= 3600 &&
         array(
           sw.tools,
           (row) =>
-            text(row, ['name', 'source', 'status', 'checked_at']) &&
+            text(row, ['name', 'source', 'status']) &&
+            optional(row.checked_at, timestamp) &&
             ['current', 'update_available', 'unknown'].includes(row.status as string) &&
             fields(row, ['installed_version', 'available_version', 'channel'], (f) =>
               optional(f, string),
@@ -177,10 +205,11 @@ function validTelemetry(value: Record<string, unknown>): boolean {
           sw.apt,
           (apt) =>
             record(apt) &&
-            text(apt, ['status', 'checked_at']) &&
+            string(apt.status) &&
+            optional(apt.checked_at, timestamp) &&
             ['current', 'update_available', 'unknown'].includes(apt.status as string) &&
             optional(apt.error, string) &&
-            optional(apt.security_index_at, string) &&
+            optional(apt.security_index_at, timestamp) &&
             array(apt.updates, (row) =>
               text(row, ['name', 'installed_version', 'available_version']),
             ),
@@ -192,10 +221,10 @@ function validTelemetry(value: Record<string, unknown>): boolean {
         (row) =>
           text(row, ['name', 'status']) &&
           ['healthy', 'warning', 'failure', 'unknown'].includes(row.status as string) &&
-          (row.checked_at === null || string(row.checked_at)) &&
+          optional(row.checked_at, timestamp) &&
           number(row.max_age_seconds) &&
           row.max_age_seconds > 0 &&
-          optional(row.last_success_at, string) &&
+          optional(row.last_success_at, timestamp) &&
           fields(
             row,
             [
@@ -214,7 +243,9 @@ function validTelemetry(value: Record<string, unknown>): boolean {
       array(
         rows,
         (row) =>
-          text(row, ['name', 'status', 'checked_at']) &&
+          text(row, ['name', 'status']) &&
+          optional(row.checked_at, timestamp) &&
+          ['healthy', 'warning', 'failure', 'unknown'].includes(row.status as string) &&
           number(row.limit_bytes) &&
           optional(row.tls, (field) => typeof field === 'boolean') &&
           fields(
@@ -228,7 +259,9 @@ function validTelemetry(value: Record<string, unknown>): boolean {
       array(
         rows,
         (row) =>
-          text(row, ['name', 'status', 'checked_at']) &&
+          text(row, ['name', 'status']) &&
+          optional(row.checked_at, timestamp) &&
+          ['healthy', 'degraded', 'failure', 'unknown'].includes(row.status as string) &&
           strings(row.hostnames) &&
           number(row.expected_connections) &&
           fields(row, ['connections', 'requests', 'request_errors'], (field) =>

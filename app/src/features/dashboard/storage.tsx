@@ -20,8 +20,8 @@ import { directoryGrowth, snapshotIsStale } from '@/lib/monitoring'
 import type { TelemetrySnapshot } from '@/types'
 import { BackupStores } from './backup-stores'
 
-const databaseSize = (bytes?: number) =>
-  bytes === undefined ? 'Unavailable' : `${Number((bytes / 1_000_000).toFixed(1))} MB`
+const databaseSize = (bytes?: number | null) =>
+  bytes == null ? 'Unavailable' : `${Number((bytes / 1_000_000).toFixed(1))} MB`
 
 export function StoragePage({ snapshot, now }: { snapshot?: TelemetrySnapshot; now: number }) {
   const fs = useApi('file-system')
@@ -161,8 +161,8 @@ export function StoragePage({ snapshot, now }: { snapshot?: TelemetrySnapshot; n
                   </TableCell>
                   <TableCell>{row.connections ?? 'Unavailable'}</TableCell>
                   <TableCell>
-                    {row.tls === undefined ? 'Unavailable' : row.tls ? 'TLS' : 'Unencrypted'} /{' '}
-                    {row.latency_ms === undefined ? 'Unavailable' : `${row.latency_ms} ms`}
+                    {row.tls == null ? 'Unavailable' : row.tls ? 'TLS' : 'Unencrypted'} /{' '}
+                    {row.latency_ms == null ? 'Unavailable' : `${row.latency_ms} ms`}
                   </TableCell>
                   <TableCell>{formatDate(row.checked_at)}</TableCell>
                 </TableRow>

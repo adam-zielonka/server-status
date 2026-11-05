@@ -123,6 +123,16 @@ describe('typed API client', () => {
       await expect(fetchEndpoint('telemetry', 'test')).rejects.toThrow('not supported')
     }
   })
+  it('turns malformed job success dates into recoverable source errors', async () => {
+    const snapshot = demoTelemetry()
+    mockResponse({
+      data: {
+        ...snapshot,
+        jobs: [{ ...snapshot.jobs[0], status: 'success', last_success_at: { toString: 0 } }],
+      },
+    })
+    await expect(fetchEndpoint('telemetry', 'test')).rejects.toThrow('not supported')
+  })
   it('supports Unicode credentials without storing a password', async () => {
     const fetch = mockResponse({ data: { token: 'example-session' } })
     expect(await authenticate('example-user', 'pąssword')).toEqual({

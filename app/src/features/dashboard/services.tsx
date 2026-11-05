@@ -13,9 +13,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { useTelemetrySource } from '@/hooks/use-telemetry-source'
 import { useApi } from '@/hooks/use-api'
 import { formatDate, formatDuration } from '@/lib/format'
-import { snapshotIsStale } from '@/lib/monitoring'
+import { serviceSummary, snapshotIsStale } from '@/lib/monitoring'
 import type { ServiceHealth, TelemetrySnapshot } from '@/types'
 
 export function ServiceTable({
@@ -84,6 +85,8 @@ export function ServicesPage({ snapshot, now }: { snapshot?: TelemetrySnapshot; 
   const needsAttention = (row: ServiceHealth) => !!row.error || row.state !== 'active'
   const attentionCount = snapshot?.services.filter(needsAttention).length || 0
   const stale = snapshotIsStale(snapshot, now)
+  const source = useTelemetrySource(snapshot, now)
+  const summary = serviceSummary(snapshot, source.state)
   const services =
     snapshot?.services
       .filter(
@@ -104,9 +107,9 @@ export function ServicesPage({ snapshot, now }: { snapshot?: TelemetrySnapshot; 
         description="Read-only systemd health. Last errors are retained once observed."
         action={
           <StatusBadge
-            state={attentionCount ? 'warning' : 'active'}
-            stale={!!snapshot && stale}
-            label={`${snapshot?.services.filter((s) => s.state === 'active').length || 0} active`}
+            state={summary.state}
+            stale={source.state === 'stale'}
+            label={summary.label}
           />
         }
       >
