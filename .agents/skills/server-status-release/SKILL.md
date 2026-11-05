@@ -15,8 +15,10 @@ Read the current [build and CLI guide](../../../api/README.md),
   fail or read inconsistent assets.
 - Keep the production build separate from the synthetic demo. The workflow
   embeds real API mode first, then builds the demo into `app/dist` for Pages.
-  Build release assets with the repository's general UI settings, rather than
-  inheriting private deployment overrides such as a hidden Caddy panel.
+  Build release assets from the public release source; keep any separately
+  maintained host extensions and artifacts distinct. A host configuration can
+  require a private extension absent from a public release; do not weaken it
+  or publish that extension just to make a release smoke test pass.
 - Read the requested version from `VERSION`, update the changelog, and test the
   final source. Go compilation and tests need staged assets. Run frontend checks
   and Go tests/vet; CI also runs `go test -race ./...`. A machine without a C
@@ -35,6 +37,11 @@ Read the current [build and CLI guide](../../../api/README.md),
   credentials: embedded assets, JWT API access, collection and shutdown. Keep
   any collected host telemetry outside the checkout and remove the temporary
   data. Public fixtures and demo assets must remain synthetic.
+- When retiring an integration, check older configuration/snapshot input and
+  the next collection's persisted state: removed polling/cache must disappear
+  without resetting resource history or CPU peak metadata. Removed API paths
+  must return 404 instead of dashboard HTML. Existing retirement tests cover
+  the queue and virtual-host removals in 4.6.0.
 - Generate `SHA256SUMS` from the final executable bytes, using plain filenames.
   Upload the two binaries and checksums to a draft release with the existing tag
   verified. Compare downloaded assets with the checksums before publication.
