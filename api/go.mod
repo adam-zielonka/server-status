@@ -5,7 +5,7 @@ go 1.26.0
 require github.com/shirou/gopsutil/v4 v4.26.10
 
 require (
-	github.com/go-sql-driver/mysql v1.10.1
+	github.com/go-sql-driver/mysql v1.10.2
 	golang.org/x/mod v0.43.0
 )
 
